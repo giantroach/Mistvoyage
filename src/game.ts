@@ -22,6 +22,7 @@ export class MistvoyageGame {
   private gameData: GameData | null = null;
   private eventConfig: any = null;
   private gameState: GameState = this.initializeGameState();
+  private isMapVisible: boolean = false;
 
   constructor() {
     this.init();
@@ -263,35 +264,45 @@ export class MistvoyageGame {
     content.innerHTML = `
       <h2>航海中</h2>
       <p>船は穏やかに海を進んでいます。次の目的地を選択してください。</p>
-      <div id="map-display">
-        ${this.generateMapDisplay(sightRange)}
+      <div id="map-display" class="${this.isMapVisible ? 'visible' : 'hidden'}">
+        ${this.isMapVisible ? this.generateMapDisplay(sightRange) : ''}
       </div>
     `;
 
+    this.updateMapToggleButton();
+    this.setupMapToggleListener();
+
     choicesContainer.innerHTML = '';
 
-    // Show available nodes based on sight
+    // Show only directly connected and accessible nodes (enforced by line connections)
     if (currentNode) {
       const availableNodes = this.getVisibleNodes(currentNode);
 
-      availableNodes.forEach(nodeId => {
-        const node = this.gameState.currentMap.nodes[nodeId];
-        if (node && node.isAccessible) {
-          const nodeBtn = document.createElement('button');
-          nodeBtn.className = 'choice-btn';
+      if (availableNodes.length === 0) {
+        const noChoiceText = document.createElement('p');
+        noChoiceText.textContent = '進める道がありません。';
+        noChoiceText.style.color = '#999';
+        choicesContainer.appendChild(noChoiceText);
+      } else {
+        availableNodes.forEach(nodeId => {
+          const node = this.gameState.currentMap.nodes[nodeId];
+          if (node && node.isAccessible) {
+            const nodeBtn = document.createElement('button');
+            nodeBtn.className = 'choice-btn';
 
-          let displayText = '???';
-          if (node.isVisible && node.eventType) {
-            displayText = this.getEventTypeName(node.eventType, node);
-          } else if (node.isVisible) {
-            displayText = '未知の場所';
+            let displayText = '???';
+            if (node.isVisible && node.eventType) {
+              displayText = this.getEventTypeName(node.eventType, node);
+            } else if (node.isVisible) {
+              displayText = '未知の場所';
+            }
+
+            nodeBtn.textContent = displayText;
+            nodeBtn.addEventListener('click', () => this.navigateToNode(nodeId));
+            choicesContainer.appendChild(nodeBtn);
           }
-
-          nodeBtn.textContent = displayText;
-          nodeBtn.addEventListener('click', () => this.navigateToNode(nodeId));
-          choicesContainer.appendChild(nodeBtn);
-        }
-      });
+        });
+      }
     }
   }
 
@@ -300,16 +311,13 @@ export class MistvoyageGame {
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (!currentNode) return '';
 
-    let mapHtml = '<div class="map-container">';
+    let mapHtml = '<div class="map-container scrollable">';
     mapHtml += '<h3>周辺の海域</h3>';
 
-    // Show visible nodes within sight range
+    // Show all visible layers within extended sight range (up to the end of the map)
     const visibleNodes: MapNode[] = [];
     Object.values(this.gameState.currentMap.nodes).forEach(node => {
-      const layerDistance = Math.abs(node.layer - currentNode.layer);
-      if (layerDistance <= sightRange) {
-        visibleNodes.push(node);
-      }
+      visibleNodes.push(node);
     });
 
     // Group nodes by layer
@@ -321,30 +329,166 @@ export class MistvoyageGame {
       nodesByLayer[node.layer].push(node);
     });
 
-    // Render each layer
     const layers = Object.keys(nodesByLayer)
       .map(Number)
       .sort((a, b) => a - b);
-    layers.forEach(layer => {
-      mapHtml += `<div class="map-layer">`;
+
+    // Constants for layout
+    const nodeWidth = 180;
+    const nodeHeight = 80;
+    const layerSpacing = 250;
+    const layerPadding = 50;
+    const mapHeight = 500;
+    
+    // Calculate positions with center alignment
+    const nodePositions: { [nodeId: string]: { 
+      centerX: number; 
+      centerY: number;
+      leftX: number;
+      rightX: number;
+      topY: number;
+      bottomY: number;
+    } } = {};
+    
+    layers.forEach((layer, layerIndex) => {
+      const layerNodes = nodesByLayer[layer];
+      const totalLayerHeight = layerNodes.length * nodeHeight + (layerNodes.length - 1) * 20;
+      const availableHeight = mapHeight - 80; // Account for header space (40px top + 40px bottom)
+      const startY = (availableHeight - totalLayerHeight) / 2 + 40; // Center vertically with proper spacing
+      
+      layerNodes.forEach((node, nodeIndex) => {
+        const centerX = layerIndex * layerSpacing + layerPadding + (nodeWidth / 2);
+        const centerY = startY + nodeIndex * (nodeHeight + 20) + (nodeHeight / 2);
+        
+        nodePositions[node.id] = {
+          centerX,
+          centerY,
+          leftX: centerX - (nodeWidth / 2),
+          rightX: centerX + (nodeWidth / 2),
+          topY: centerY - (nodeHeight / 2),
+          bottomY: centerY + (nodeHeight / 2)
+        };
+      });
+    });
+
+    // Calculate total map width for SVG - ensure it covers all layers with extra margin
+    const totalWidth = Math.max(
+      (layers.length - 1) * layerSpacing + layerPadding * 2 + nodeWidth,
+      layers.length * layerSpacing + layerPadding * 2 + nodeWidth + 100 // Extra margin for safety
+    );
+    
+    // Generate SVG for connections
+    let svgConnections = `<svg class="map-connections" xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${mapHeight}" viewBox="0 0 ${totalWidth} ${mapHeight}">`;
+
+    // Draw connection lines - show ALL connections regardless of distance
+    Object.values(this.gameState.currentMap.nodes).forEach(node => {
+      if (node.connections && node.connections.length > 0 && nodePositions[node.id]) {
+        node.connections.forEach(connectedNodeId => {
+          const connectedNode = this.gameState.currentMap.nodes[connectedNodeId];
+          if (connectedNode && nodePositions[connectedNodeId]) {
+            const fromPos = nodePositions[node.id];
+            const toPos = nodePositions[connectedNodeId];
+            
+            const isCurrentPath = (node.id === this.gameState.currentNodeId || 
+                                  this.gameState.visitedNodes.has(node.id)) &&
+                                  node.connections.includes(connectedNodeId);
+            
+            // Calculate distance from current node for styling
+            const fromDistance = Math.abs(node.layer - currentNode.layer);
+            const toDistance = Math.abs(connectedNode.layer - currentNode.layer);
+            const isDistantConnection = fromDistance >= 3 || toDistance >= 3;
+            
+            // Calculate connection points on the edges of the boxes
+            let x1, y1, x2, y2;
+            
+            // From node: use right edge (since we're going to next layer)
+            x1 = fromPos.rightX;
+            y1 = fromPos.centerY;
+            
+            // To node: use left edge (since we're coming from previous layer)  
+            x2 = toPos.leftX;
+            y2 = toPos.centerY;
+            
+            // If nodes are on the same layer (shouldn't happen in this design but safety check)
+            if (node.layer === connectedNode.layer) {
+              // Use top/bottom connection for same layer
+              if (fromPos.centerY < toPos.centerY) {
+                x1 = fromPos.centerX;
+                y1 = fromPos.bottomY;
+                x2 = toPos.centerX;
+                y2 = toPos.topY;
+              } else {
+                x1 = fromPos.centerX;
+                y1 = fromPos.topY;
+                x2 = toPos.centerX;
+                y2 = toPos.bottomY;
+              }
+            }
+            
+            let connectionClass = 'map-connection';
+            if (isCurrentPath) {
+              connectionClass += ' active';
+            }
+            if (isDistantConnection) {
+              connectionClass += ' distant';
+            }
+            
+            // Adjust line visibility based on distance and current path
+            let strokeWidth = isCurrentPath ? '3' : (isDistantConnection ? '1' : '2');
+            let strokeColor = isCurrentPath ? '#66ccff' : (isDistantConnection ? '#999' : '#666');
+            let opacity = isCurrentPath ? '1' : (isDistantConnection ? '0.8' : '0.9');
+            
+            svgConnections += `<line x1="${x1}" y1="${y1}" `;
+            svgConnections += `x2="${x2}" y2="${y2}" `;
+            svgConnections += `class="${connectionClass}" `;
+            svgConnections += `stroke="${strokeColor}" stroke-width="${strokeWidth}" opacity="${opacity}" />`;
+          }
+        });
+      }
+    });
+    
+
+    svgConnections += '</svg>';
+    mapHtml += svgConnections;
+
+    // Render each layer
+    layers.forEach((layer, layerIndex) => {
+      const layerNodes = nodesByLayer[layer];
+      const totalLayerHeight = layerNodes.length * nodeHeight + (layerNodes.length - 1) * 20;
+      const availableHeight = mapHeight - 80; // Account for header space
+      const startY = (availableHeight - totalLayerHeight) / 2 + 40; // Center vertically with proper spacing
+      
+      mapHtml += `<div class="map-layer" style="left: ${layerIndex * layerSpacing + layerPadding}px;">`;
       mapHtml += `<div class="layer-label">レイヤー ${layer}</div>`;
       mapHtml += `<div class="layer-nodes">`;
 
-      nodesByLayer[layer].forEach(node => {
+      layerNodes.forEach((node, nodeIndex) => {
         const isCurrentNode = node.id === this.gameState.currentNodeId;
         const isAccessible = node.isAccessible;
         const isVisited = this.gameState.visitedNodes.has(node.id);
+        const layerDistance = Math.abs(layer - currentNode.layer);
 
         let nodeClass = 'map-node';
         if (isCurrentNode) nodeClass += ' current';
         if (isAccessible) nodeClass += ' accessible';
         if (isVisited) nodeClass += ' visited';
+        if (layerDistance > 2) nodeClass += ' distant';
 
-        const displayName = node.eventType
-          ? this.getEventTypeName(node.eventType, node)
-          : '???';
+        // Apply masking for events 3+ layers away
+        let displayName;
+        if (layerDistance >= 3) {
+          displayName = '???';
+        } else {
+          displayName = node.eventType
+            ? this.getEventTypeName(node.eventType, node)
+            : '???';
+        }
 
-        mapHtml += `<div class="${nodeClass}" title="${displayName}">`;
+        const nodeY = startY + nodeIndex * (nodeHeight + 20);
+        // Account for border width (2px on each side = 4px total) to prevent overflow
+        const adjustedNodeWidth = nodeWidth - 4;
+        mapHtml += `<div class="${nodeClass}" title="${displayName}" `;
+        mapHtml += `style="position: absolute; top: ${nodeY}px; left: 2px; width: ${adjustedNodeWidth}px; height: ${nodeHeight}px;">`;
         mapHtml += displayName;
         mapHtml += '</div>';
       });
@@ -451,10 +595,10 @@ export class MistvoyageGame {
       const currentLayerNodes: string[] = [];
       const previousLayer = layerNodes[layer - 1];
 
-      // Each layer can have 1-3 branches
+      // Each layer can have 1-4 events (maximum 4 per layer)
       const branchCount = Math.min(
-        3,
-        Math.max(1, Math.floor(Math.random() * 3) + 1)
+        4,
+        Math.max(1, Math.floor(Math.random() * 4) + 1)
       );
 
       for (let branch = 0; branch < branchCount; branch++) {
@@ -477,8 +621,8 @@ export class MistvoyageGame {
         currentLayerNodes.push(nodeId);
       }
 
-      // Connect previous layer nodes to current layer
-      this.connectLayers(map, previousLayer, currentLayerNodes);
+      // Connect previous layer nodes to current layer ensuring no orphans
+      this.connectLayersWithOrphanPrevention(map, previousLayer, currentLayerNodes);
       layerNodes.push(currentLayerNodes);
     }
 
@@ -547,6 +691,46 @@ export class MistvoyageGame {
     return eventTypes;
   }
 
+  private connectLayersWithOrphanPrevention(
+    map: ChapterMap,
+    fromLayer: string[],
+    toLayer: string[]
+  ): void {
+    // First pass: each node in previous layer connects to 1-3 nodes in next layer
+    fromLayer.forEach(fromNodeId => {
+      const connectionsCount = Math.min(
+        toLayer.length,
+        Math.max(1, Math.floor(Math.random() * 3) + 1)
+      );
+      const shuffledToLayer = [...toLayer].sort(() => Math.random() - 0.5);
+
+      for (let i = 0; i < connectionsCount; i++) {
+        const toNodeId = shuffledToLayer[i];
+        if (!map.nodes[fromNodeId].connections.includes(toNodeId)) {
+          map.nodes[fromNodeId].connections.push(toNodeId);
+        }
+      }
+    });
+
+    // Second pass: ensure all nodes in next layer have at least one connection
+    const connectedNodes = new Set<string>();
+    fromLayer.forEach(fromNodeId => {
+      map.nodes[fromNodeId].connections.forEach(toNodeId => {
+        connectedNodes.add(toNodeId);
+      });
+    });
+
+    // Connect orphan nodes to random previous layer node
+    toLayer.forEach(toNodeId => {
+      if (!connectedNodes.has(toNodeId)) {
+        const randomFromNode = fromLayer[Math.floor(Math.random() * fromLayer.length)];
+        if (!map.nodes[randomFromNode].connections.includes(toNodeId)) {
+          map.nodes[randomFromNode].connections.push(toNodeId);
+        }
+      }
+    });
+  }
+
   private connectLayers(
     map: ChapterMap,
     fromLayer: string[],
@@ -580,6 +764,11 @@ export class MistvoyageGame {
       Math.max(1, Math.floor(playerSight / 5))
     );
 
+    // Reset accessibility first
+    Object.values(this.gameState.currentMap.nodes).forEach(node => {
+      node.isAccessible = false;
+    });
+
     Object.values(this.gameState.currentMap.nodes).forEach(node => {
       const layerDistance = Math.abs(node.layer - currentNode.layer);
 
@@ -596,16 +785,19 @@ export class MistvoyageGame {
           // Will be handled in display method
         }
       }
+    });
 
-      // Make directly connected nodes accessible
-      if (currentNode.connections.includes(node.id)) {
-        node.isAccessible = true;
+    // Make only directly connected nodes accessible
+    currentNode.connections.forEach(connectedNodeId => {
+      const connectedNode = this.gameState.currentMap.nodes[connectedNodeId];
+      if (connectedNode) {
+        connectedNode.isAccessible = true;
       }
     });
   }
 
   private getVisibleNodes(currentNode: MapNode): string[] {
-    // Return directly connected accessible nodes
+    // Return only directly connected accessible nodes (restricted by connections)
     return currentNode.connections.filter(nodeId => {
       const node = this.gameState.currentMap.nodes[nodeId];
       return node && node.isAccessible;
@@ -797,6 +989,44 @@ export class MistvoyageGame {
     const storyText = document.getElementById('story-text');
     if (storyText) {
       storyText.innerHTML = `<p style="color: #ff6666;">エラー: ${message}</p>`;
+    }
+  }
+
+  private toggleMapView(): void {
+    this.isMapVisible = !this.isMapVisible;
+
+    // Only refresh display if we're in navigation phase
+    if (this.gameState.gamePhase === 'navigation') {
+      this.showNavigation();
+    }
+  }
+
+  private updateMapToggleButton(): void {
+    const mapToggleBtn = document.getElementById('map-toggle-btn');
+    if (mapToggleBtn) {
+      mapToggleBtn.textContent = this.isMapVisible
+        ? 'マップを間す'
+        : 'マップを見る';
+      mapToggleBtn.classList.toggle('active', this.isMapVisible);
+
+      // Show/hide the button based on game phase
+      const storyHeader = document.querySelector('.story-header') as HTMLElement;
+      if (storyHeader) {
+        storyHeader.style.display =
+          this.gameState.gamePhase === 'navigation' ? 'block' : 'none';
+      }
+    }
+  }
+
+  private setupMapToggleListener(): void {
+    const mapToggleBtn = document.getElementById('map-toggle-btn');
+    if (mapToggleBtn) {
+      // Remove existing listener to avoid duplicates
+      mapToggleBtn.replaceWith(mapToggleBtn.cloneNode(true));
+      const newMapToggleBtn = document.getElementById('map-toggle-btn');
+      if (newMapToggleBtn) {
+        newMapToggleBtn.addEventListener('click', () => this.toggleMapView());
+      }
     }
   }
 }
