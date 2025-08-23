@@ -261,9 +261,12 @@ export class MistvoyageGame {
       Math.max(1, Math.floor(this.gameState.playerParameters.sight / 5))
     );
 
+    // Auto-show map when in navigation mode
+    this.isMapVisible = true;
+
     content.innerHTML = `
       <h2>航海中</h2>
-      <p>船は穏やかに海を進んでいます。次の目的地を選択してください。</p>
+      <p>船は穏やかに海を進んでいます。マップ上のアクセス可能なノードをクリックして次の目的地を選択してください。</p>
       <div id="map-display" class="${this.isMapVisible ? 'visible' : 'hidden'}">
         ${this.isMapVisible ? this.generateMapDisplay(sightRange) : ''}
       </div>
@@ -272,38 +275,26 @@ export class MistvoyageGame {
     this.updateMapToggleButton();
     this.setupMapToggleListener();
 
-    choicesContainer.innerHTML = '';
-
-    // Show only directly connected and accessible nodes (enforced by line connections)
-    if (currentNode) {
-      const availableNodes = this.getVisibleNodes(currentNode);
-
-      if (availableNodes.length === 0) {
-        const noChoiceText = document.createElement('p');
-        noChoiceText.textContent = '進める道がありません。';
-        noChoiceText.style.color = '#999';
-        choicesContainer.appendChild(noChoiceText);
-      } else {
-        availableNodes.forEach(nodeId => {
-          const node = this.gameState.currentMap.nodes[nodeId];
-          if (node && node.isAccessible) {
-            const nodeBtn = document.createElement('button');
-            nodeBtn.className = 'choice-btn';
-
-            let displayText = '???';
-            if (node.isVisible && node.eventType) {
-              displayText = this.getEventTypeName(node.eventType, node);
-            } else if (node.isVisible) {
-              displayText = '未知の場所';
-            }
-
-            nodeBtn.textContent = displayText;
-            nodeBtn.addEventListener('click', () => this.navigateToNode(nodeId));
-            choicesContainer.appendChild(nodeBtn);
-          }
-        });
-      }
+    // Auto-scroll to show current node when navigation display is shown
+    if (this.isMapVisible) {
+      this.scrollToNode(this.gameState.currentNodeId);
     }
+
+    // Clear choices container and add instruction
+    choicesContainer.innerHTML = '';
+    
+    const currentNodeInfo = currentNode ? this.getEventTypeName(currentNode.eventType || 'unknown') : '不明';
+    const instructionText = document.createElement('p');
+    instructionText.innerHTML = `
+      <strong>現在地:</strong> ${currentNodeInfo}<br>
+      <strong>指示:</strong> マップ上の<span style="color: #66ff66;">緑色</span>のノードをクリックして移動してください。
+    `;
+    instructionText.style.color = '#ccc';
+    instructionText.style.backgroundColor = '#2a2a2a';
+    instructionText.style.padding = '1rem';
+    instructionText.style.borderRadius = '4px';
+    instructionText.style.border = '1px solid #444';
+    choicesContainer.appendChild(instructionText);
   }
 
   private generateMapDisplay(sightRange: number): string {
@@ -487,8 +478,18 @@ export class MistvoyageGame {
         const nodeY = startY + nodeIndex * (nodeHeight + 20);
         // Account for border width (2px on each side = 4px total) to prevent overflow
         const adjustedNodeWidth = nodeWidth - 4;
+        
+        // Add click handler for accessible nodes
+        const clickHandler = (node.isAccessible && this.gameState.gamePhase === 'navigation') 
+          ? `onclick="window.gameInstance.navigateToNode('${node.id}')"` 
+          : '';
+        const cursorStyle = (node.isAccessible && this.gameState.gamePhase === 'navigation') 
+          ? 'cursor: pointer;' 
+          : '';
+        
         mapHtml += `<div class="${nodeClass}" title="${displayName}" `;
-        mapHtml += `style="position: absolute; top: ${nodeY}px; left: 2px; width: ${adjustedNodeWidth}px; height: ${nodeHeight}px;">`;
+        mapHtml += `style="position: absolute; top: ${nodeY}px; left: 2px; width: ${adjustedNodeWidth}px; height: ${nodeHeight}px; ${cursorStyle}" `;
+        mapHtml += `${clickHandler}>`;
         mapHtml += displayName;
         mapHtml += '</div>';
       });
@@ -834,11 +835,17 @@ export class MistvoyageGame {
     }
   }
 
-  private navigateToNode(nodeId: string): void {
+  public navigateToNode(nodeId: string): void {
+    // Check if navigation is valid (only accessible nodes can be selected)
+    const node = this.gameState.currentMap.nodes[nodeId];
+    if (!node || !node.isAccessible || this.gameState.gamePhase !== 'navigation') {
+      console.log(`Navigation to ${nodeId} not allowed: accessible=${node?.isAccessible}, phase=${this.gameState.gamePhase}`);
+      return;
+    }
+
     this.gameState.currentNodeId = nodeId;
     this.gameState.visitedNodes.add(nodeId);
 
-    const node = this.gameState.currentMap.nodes[nodeId];
     if (node && node.eventType) {
       this.gameState.gamePhase = 'event';
       // Process event here
@@ -861,6 +868,31 @@ export class MistvoyageGame {
     this.updateNodeVisibility();
     this.gameState.gamePhase = 'navigation';
     this.updateDisplay();
+    
+    // Auto-scroll to position the selected node's layer at the left edge
+    this.scrollToNode(nodeId);
+  }
+
+  private scrollToNode(nodeId: string): void {
+    const node = this.gameState.currentMap.nodes[nodeId];
+    if (!node) return;
+
+    // Wait for the display to update, then scroll
+    setTimeout(() => {
+      const mapContainer = document.querySelector('.map-container.scrollable') as HTMLElement;
+      if (!mapContainer) return;
+
+      // Calculate scroll position based on node's layer
+      const layerSpacing = 250;
+      const layerPadding = 50;
+      const targetScrollLeft = node.layer * layerSpacing;
+
+      // Smooth scroll to the target position
+      mapContainer.scrollTo({
+        left: targetScrollLeft,
+        behavior: 'smooth'
+      });
+    }, 100); // Small delay to ensure DOM is updated
   }
 
   // ==================== PARAMETER DISPLAY ====================
@@ -1005,7 +1037,7 @@ export class MistvoyageGame {
     const mapToggleBtn = document.getElementById('map-toggle-btn');
     if (mapToggleBtn) {
       mapToggleBtn.textContent = this.isMapVisible
-        ? 'マップを間す'
+        ? 'マップを隠す'
         : 'マップを見る';
       mapToggleBtn.classList.toggle('active', this.isMapVisible);
 
@@ -1033,5 +1065,7 @@ export class MistvoyageGame {
 
 // ゲーム開始
 document.addEventListener('DOMContentLoaded', () => {
-  new MistvoyageGame();
+  const game = new MistvoyageGame();
+  // Make game instance globally accessible for onclick handlers
+  (window as any).gameInstance = game;
 });
