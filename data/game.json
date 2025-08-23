@@ -71,7 +71,7 @@
   "events": {
     "pirate_encounter": {
       "id": "pirate_encounter",
-      "type": "combat",
+      "type": "monster",
       "name": "海賊との遭遇",
       "description": "遠くから海賊船の旗が見えます。戦闘は避けられそうにありません。",
       "difficulty": 2,
@@ -119,7 +119,7 @@
     },
     "storm_navigation": {
       "id": "storm_navigation",
-      "type": "navigation",
+      "type": "unknown",
       "name": "嵐の中の航海",
       "description": "突然の嵐に巻き込まれました。適切な判断が求められます。",
       "difficulty": 1,
@@ -209,7 +209,7 @@
     },
     "mysterious_island": {
       "id": "mysterious_island",
-      "type": "encounter",
+      "type": "treasure",
       "name": "謎の島",
       "description": "地図にない小さな島を発見しました。探索しますか？",
       "difficulty": 2,

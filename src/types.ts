@@ -35,6 +35,8 @@ export interface MapNode {
   isVisible: boolean;
   isAccessible: boolean;
   connections: string[];
+  layer: number;
+  branchIndex: number;
 }
 
 export interface ChapterMap {
@@ -42,16 +44,27 @@ export interface ChapterMap {
   nodes: Record<string, MapNode>;
   startNodeId: string;
   bossNodeId: string;
+  totalLayers: number;
+  eventTypeConfig: EventTypeConfig;
+}
+
+export interface EventTypeConfig {
+  monster: { weight: number; fixedCount?: number };
+  elite_monster: { weight: number; fixedCount?: number };
+  port: { weight: number; fixedCount?: number };
+  treasure: { weight: number; fixedCount?: number };
+  unknown: { weight: number; fixedCount?: number };
 }
 
 // Event system
 export type EventType =
-  | 'combat'
-  | 'navigation'
-  | 'encounter'
-  | 'hunger'
+  | 'monster'
+  | 'elite_monster'
   | 'port'
-  | 'boss';
+  | 'treasure'
+  | 'boss'
+  | 'start'
+  | 'unknown';
 
 export interface GameEvent {
   id: string;

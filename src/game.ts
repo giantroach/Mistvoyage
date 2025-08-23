@@ -7,6 +7,7 @@ import {
   MapNode,
   GameEvent,
   EventType,
+  EventTypeConfig,
   Ship,
   Weapon,
   Relic,
@@ -19,6 +20,7 @@ import {
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
+  private eventConfig: any = null;
   private gameState: GameState = this.initializeGameState();
 
   constructor() {
@@ -45,6 +47,14 @@ export class MistvoyageGame {
       nodes: {},
       startNodeId: 'start',
       bossNodeId: 'boss',
+      totalLayers: 0,
+      eventTypeConfig: {
+        monster: { weight: 40 },
+        elite_monster: { weight: 15 },
+        port: { weight: 20 },
+        treasure: { weight: 10 },
+        unknown: { weight: 15 },
+      },
     };
   }
 
@@ -101,11 +111,21 @@ export class MistvoyageGame {
   }
 
   private async loadGameData(): Promise<void> {
-    const response = await fetch('data/game.json');
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const gameResponse = await fetch('data/game.json');
+    if (!gameResponse.ok) {
+      throw new Error(
+        `HTTP ${gameResponse.status}: ${gameResponse.statusText}`
+      );
     }
-    this.gameData = await response.json();
+    this.gameData = await gameResponse.json();
+
+    const configResponse = await fetch('data/event_config.json');
+    if (!configResponse.ok) {
+      throw new Error(
+        `HTTP ${configResponse.status}: ${configResponse.statusText}`
+      );
+    }
+    this.eventConfig = await configResponse.json();
   }
 
   private setupEventListeners(): void {
@@ -233,16 +253,24 @@ export class MistvoyageGame {
 
     if (!content || !choicesContainer) return;
 
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    const sightRange = Math.min(
+      3,
+      Math.max(1, Math.floor(this.gameState.playerParameters.sight / 5))
+    );
+
     content.innerHTML = `
       <h2>航海中</h2>
       <p>船は穏やかに海を進んでいます。次の目的地を選択してください。</p>
+      <div id="map-display">
+        ${this.generateMapDisplay(sightRange)}
+      </div>
     `;
 
     choicesContainer.innerHTML = '';
 
     // Show available nodes based on sight
-    const currentNode =
-      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (currentNode) {
       const availableNodes = this.getVisibleNodes(currentNode);
 
@@ -254,7 +282,7 @@ export class MistvoyageGame {
 
           let displayText = '???';
           if (node.isVisible && node.eventType) {
-            displayText = this.getEventTypeName(node.eventType);
+            displayText = this.getEventTypeName(node.eventType, node);
           } else if (node.isVisible) {
             displayText = '未知の場所';
           }
@@ -265,6 +293,67 @@ export class MistvoyageGame {
         }
       });
     }
+  }
+
+  private generateMapDisplay(sightRange: number): string {
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    if (!currentNode) return '';
+
+    let mapHtml = '<div class="map-container">';
+    mapHtml += '<h3>周辺の海域</h3>';
+
+    // Show visible nodes within sight range
+    const visibleNodes: MapNode[] = [];
+    Object.values(this.gameState.currentMap.nodes).forEach(node => {
+      const layerDistance = Math.abs(node.layer - currentNode.layer);
+      if (layerDistance <= sightRange) {
+        visibleNodes.push(node);
+      }
+    });
+
+    // Group nodes by layer
+    const nodesByLayer: { [layer: number]: MapNode[] } = {};
+    visibleNodes.forEach(node => {
+      if (!nodesByLayer[node.layer]) {
+        nodesByLayer[node.layer] = [];
+      }
+      nodesByLayer[node.layer].push(node);
+    });
+
+    // Render each layer
+    const layers = Object.keys(nodesByLayer)
+      .map(Number)
+      .sort((a, b) => a - b);
+    layers.forEach(layer => {
+      mapHtml += `<div class="map-layer">`;
+      mapHtml += `<div class="layer-label">レイヤー ${layer}</div>`;
+      mapHtml += `<div class="layer-nodes">`;
+
+      nodesByLayer[layer].forEach(node => {
+        const isCurrentNode = node.id === this.gameState.currentNodeId;
+        const isAccessible = node.isAccessible;
+        const isVisited = this.gameState.visitedNodes.has(node.id);
+
+        let nodeClass = 'map-node';
+        if (isCurrentNode) nodeClass += ' current';
+        if (isAccessible) nodeClass += ' accessible';
+        if (isVisited) nodeClass += ' visited';
+
+        const displayName = node.eventType
+          ? this.getEventTypeName(node.eventType, node)
+          : '???';
+
+        mapHtml += `<div class="${nodeClass}" title="${displayName}">`;
+        mapHtml += displayName;
+        mapHtml += '</div>';
+      });
+
+      mapHtml += '</div></div>';
+    });
+
+    mapHtml += '</div>';
+    return mapHtml;
   }
 
   private showEvent(): void {
@@ -309,68 +398,175 @@ export class MistvoyageGame {
     const chapter = this.gameData?.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
-    if (!chapter) return;
+    if (!chapter || !this.eventConfig) return;
 
-    // Simple linear map generation for now (will be enhanced to tree structure)
+    const chapterConfigKey = `chapter_${this.gameState.currentChapter}`;
+    const chapterConfig = this.eventConfig.eventConfigs[chapterConfigKey];
+    if (!chapterConfig) return;
+
+    // Create tree-structured map
     const map: ChapterMap = {
       chapterId: this.gameState.currentChapter,
       nodes: {},
       startNodeId: 'start',
       bossNodeId: 'boss',
+      totalLayers: chapter.requiredEvents + 2, // start + events + boss
+      eventTypeConfig: chapterConfig.eventTypes,
     };
+
+    this.generateTreeStructure(map, chapter, chapterConfig);
+    this.gameState.currentMap = map;
+    this.updateNodeVisibility();
+  }
+
+  private generateTreeStructure(
+    map: ChapterMap,
+    chapter: Chapter,
+    chapterConfig: any
+  ): void {
+    const totalLayers = chapter.requiredEvents + 2;
+    const eventTypes = this.generateEventTypeDistribution(
+      chapterConfig.eventTypes,
+      chapter.requiredEvents
+    );
 
     // Create start node
     map.nodes['start'] = {
       id: 'start',
       x: 0,
-      y: 0,
+      y: 1,
+      eventType: 'start',
       isVisible: true,
       isAccessible: true,
-      connections: ['node_1'],
+      connections: [],
+      layer: 0,
+      branchIndex: 0,
     };
 
-    // Create event nodes
-    for (let i = 1; i <= chapter.requiredEvents; i++) {
-      const nodeId = `node_${i}`;
-      map.nodes[nodeId] = {
-        id: nodeId,
-        x: i,
-        y: 0,
-        eventType: this.getRandomEventType(),
-        difficulty: chapter.difficulty + Math.floor(Math.random() * 3) - 1,
-        isVisible: false,
-        isAccessible: false,
-        connections:
-          i === chapter.requiredEvents ? ['boss'] : [`node_${i + 1}`],
-      };
+    // Generate event layers (tree structure)
+    let nodeCounter = 1;
+    const layerNodes: string[][] = [['start']];
+
+    for (let layer = 1; layer <= chapter.requiredEvents; layer++) {
+      const currentLayerNodes: string[] = [];
+      const previousLayer = layerNodes[layer - 1];
+
+      // Each layer can have 1-3 branches
+      const branchCount = Math.min(
+        3,
+        Math.max(1, Math.floor(Math.random() * 3) + 1)
+      );
+
+      for (let branch = 0; branch < branchCount; branch++) {
+        const nodeId = `node_${nodeCounter++}`;
+        const eventType = eventTypes.shift() || 'unknown';
+
+        map.nodes[nodeId] = {
+          id: nodeId,
+          x: layer,
+          y: branch,
+          eventType,
+          difficulty: chapter.difficulty + Math.floor(Math.random() * 3) - 1,
+          isVisible: false,
+          isAccessible: false,
+          connections: [],
+          layer,
+          branchIndex: branch,
+        };
+
+        currentLayerNodes.push(nodeId);
+      }
+
+      // Connect previous layer nodes to current layer
+      this.connectLayers(map, previousLayer, currentLayerNodes);
+      layerNodes.push(currentLayerNodes);
     }
 
-    // Create boss node
+    // Create boss node and connect to final event layer
     map.nodes['boss'] = {
       id: 'boss',
-      x: chapter.requiredEvents + 1,
-      y: 0,
+      x: totalLayers - 1,
+      y: 1,
       eventId: chapter.bossEvent,
       eventType: 'boss',
       difficulty: chapter.difficulty + 2,
       isVisible: false,
       isAccessible: false,
       connections: [],
+      layer: totalLayers - 1,
+      branchIndex: 0,
     };
 
-    this.gameState.currentMap = map;
-    this.updateNodeVisibility();
+    // Connect final event layer to boss
+    const finalEventLayer = layerNodes[layerNodes.length - 1];
+    finalEventLayer.forEach(nodeId => {
+      map.nodes[nodeId].connections.push('boss');
+    });
   }
 
-  private getRandomEventType(): EventType {
-    const types: EventType[] = [
-      'combat',
-      'navigation',
-      'encounter',
-      'hunger',
-      'port',
-    ];
-    return types[Math.floor(Math.random() * types.length)];
+  private generateEventTypeDistribution(
+    config: any,
+    totalEvents: number
+  ): EventType[] {
+    const eventTypes: EventType[] = [];
+    const typeKeys = Object.keys(config) as EventType[];
+
+    // First, add fixed count events
+    typeKeys.forEach(type => {
+      const typeConfig = config[type];
+      if (typeConfig.fixedCount && typeConfig.fixedCount > 0) {
+        for (let i = 0; i < typeConfig.fixedCount; i++) {
+          eventTypes.push(type);
+        }
+      }
+    });
+
+    // Fill remaining slots based on weights
+    const remainingSlots = totalEvents - eventTypes.length;
+    const weightedTypes: EventType[] = [];
+
+    typeKeys.forEach(type => {
+      const weight = config[type].weight;
+      for (let i = 0; i < weight; i++) {
+        weightedTypes.push(type);
+      }
+    });
+
+    for (let i = 0; i < remainingSlots; i++) {
+      const randomType =
+        weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
+      eventTypes.push(randomType);
+    }
+
+    // Shuffle the array
+    for (let i = eventTypes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [eventTypes[i], eventTypes[j]] = [eventTypes[j], eventTypes[i]];
+    }
+
+    return eventTypes;
+  }
+
+  private connectLayers(
+    map: ChapterMap,
+    fromLayer: string[],
+    toLayer: string[]
+  ): void {
+    // Each node in previous layer connects to 1-3 nodes in next layer
+    fromLayer.forEach(fromNodeId => {
+      const connectionsCount = Math.min(
+        toLayer.length,
+        Math.max(1, Math.floor(Math.random() * 3) + 1)
+      );
+      const shuffledToLayer = [...toLayer].sort(() => Math.random() - 0.5);
+
+      for (let i = 0; i < connectionsCount; i++) {
+        const toNodeId = shuffledToLayer[i];
+        if (!map.nodes[fromNodeId].connections.includes(toNodeId)) {
+          map.nodes[fromNodeId].connections.push(toNodeId);
+        }
+      }
+    });
   }
 
   private updateNodeVisibility(): void {
@@ -378,20 +574,30 @@ export class MistvoyageGame {
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (!currentNode) return;
 
-    // Update visibility based on sight stat
-    const maxVisibleDistance = Math.min(
+    const playerSight = this.gameState.playerParameters.sight;
+    const maxVisibleLayers = Math.min(
       2,
-      Math.floor(this.gameState.playerParameters.sight / 5)
+      Math.max(1, Math.floor(playerSight / 5))
     );
 
     Object.values(this.gameState.currentMap.nodes).forEach(node => {
-      const distance =
-        Math.abs(node.x - currentNode.x) + Math.abs(node.y - currentNode.y);
-      if (distance <= maxVisibleDistance) {
+      const layerDistance = Math.abs(node.layer - currentNode.layer);
+
+      // Nodes within sight range become visible
+      if (layerDistance <= maxVisibleLayers) {
         node.isVisible = true;
+
+        // However, if sight is too low compared to event difficulty, show as "???"
+        if (
+          node.eventType &&
+          node.difficulty &&
+          playerSight < node.difficulty * 3
+        ) {
+          // Will be handled in display method
+        }
       }
 
-      // Make connected nodes accessible
+      // Make directly connected nodes accessible
       if (currentNode.connections.includes(node.id)) {
         node.isAccessible = true;
       }
@@ -399,26 +605,38 @@ export class MistvoyageGame {
   }
 
   private getVisibleNodes(currentNode: MapNode): string[] {
+    // Return directly connected accessible nodes
     return currentNode.connections.filter(nodeId => {
       const node = this.gameState.currentMap.nodes[nodeId];
       return node && node.isAccessible;
     });
   }
 
-  private getEventTypeName(eventType: EventType): string {
+  private getEventTypeName(eventType: EventType, node?: MapNode): string {
+    // Check if player sight is insufficient to reveal event type
+    if (
+      node &&
+      node.difficulty &&
+      this.gameState.playerParameters.sight < node.difficulty * 3
+    ) {
+      return '???';
+    }
+
     switch (eventType) {
-      case 'combat':
-        return '戦闘';
-      case 'navigation':
-        return '航海';
-      case 'encounter':
-        return '遭遇';
-      case 'hunger':
-        return '飢餓';
+      case 'monster':
+        return 'モンスター';
+      case 'elite_monster':
+        return 'エリートモンスター';
       case 'port':
         return '港';
+      case 'treasure':
+        return '宝';
       case 'boss':
         return 'ボス';
+      case 'start':
+        return 'スタート地点';
+      case 'unknown':
+        return '???';
       default:
         return '不明';
     }
