@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mistvoyage</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1>Mistvoyage</h1>
+            <div id="game-controls">
+                <button id="save-btn">セーブ</button>
+                <button id="load-btn">ロード</button>
+                <button id="settings-btn">設定</button>
+            </div>
+        </header>
+        
+        <main id="game-main">
+            <div id="story-display">
+                <div id="story-text"></div>
+            </div>
+            
+            <div id="choices-container">
+                <!-- 選択肢がここに動的に表示される -->
+            </div>
+        </main>
+        
+        <div id="status-bar">
+            <span id="current-scene">シーン: --</span>
+            <span id="save-status"></span>
+        </div>
+    </div>
+    
+    <script src="dist/game.js" type="module"></script>
+</body>
+</html>

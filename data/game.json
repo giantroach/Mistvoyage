@@ -1,0 +1,129 @@
+{
+  "title": "Mistvoyage",
+  "version": "1.0.0",
+  "settings": {
+    "autoSave": true,
+    "textSpeed": "normal"
+  },
+  "scenes": {
+    "start": {
+      "id": "start",
+      "text": "霧に覆われた古い港町に足を踏み入れた。\n\n石畳の道は湿り気を帯び、遠くから鐘の音が聞こえてくる。あなたは旅の商人として、この謎めいた町で何か価値のあるものを見つけることができるだろうか？\n\n町の入口で、あなたは三つの道を発見する。",
+      "choices": [
+        {
+          "text": "港の方へ向かう",
+          "nextScene": "harbor",
+          "actions": ["set:visited_harbor:true"]
+        },
+        {
+          "text": "市場の賑わいを探る",
+          "nextScene": "market",
+          "actions": ["set:visited_market:true"]
+        },
+        {
+          "text": "古い教会の鐘の音を辿る",
+          "nextScene": "church",
+          "actions": ["set:visited_church:true"]
+        }
+      ]
+    },
+    "harbor": {
+      "id": "harbor",
+      "text": "霧の向こうに船の影がゆらめいている。\n\n古い港には数隻の漁船が停泊しており、漁師たちが網の手入れをしている。彼らの話し声が聞こえてくるが、何か重要な情報を得られるかもしれない。\n\n一人の老漁師があなたに気づき、手招きをしている。",
+      "choices": [
+        {
+          "text": "老漁師に話しかける",
+          "nextScene": "fisherman_talk",
+          "actions": ["add:knowledge:1"]
+        },
+        {
+          "text": "他の船を調べる",
+          "nextScene": "investigate_ships",
+          "actions": ["set:searched_ships:true"]
+        },
+        {
+          "text": "町の中心部に戻る",
+          "nextScene": "town_center"
+        }
+      ]
+    },
+    "market": {
+      "id": "market",
+      "text": "市場は活気に満ちているが、どこか不思議な雰囲気が漂っている。\n\n色とりどりの商品が並ぶ中、見慣れない品物も多い。商人たちは親切だが、彼らの目には秘密めいた光がある。\n\n特に目を引くのは、古い地図を売る商人と、不思議な香辛料を扱う店だ。",
+      "choices": [
+        {
+          "text": "古い地図を調べる",
+          "nextScene": "map_merchant",
+          "actions": ["set:found_map:true", "add:knowledge:1"]
+        },
+        {
+          "text": "香辛料の店を訪れる",
+          "nextScene": "spice_shop",
+          "actions": ["set:visited_spice_shop:true"]
+        },
+        {
+          "text": "他の場所を探索する",
+          "nextScene": "town_center"
+        }
+      ]
+    },
+    "church": {
+      "id": "church",
+      "text": "古い石造りの教会は、霧の中でも威厳を保っている。\n\n重厚な扉を開けると、ろうそくの光が揺らめく静寂な空間が広がる。祭壇の前で一人の神父が祈りを捧げている。\n\n教会の壁には古い文字で書かれた碑文があり、この町の歴史について何かを物語っているようだ。",
+      "choices": [
+        {
+          "text": "神父に話しかける",
+          "nextScene": "priest_talk",
+          "actions": ["add:knowledge:2"]
+        },
+        {
+          "text": "碑文を詳しく調べる",
+          "nextScene": "examine_inscription",
+          "actions": ["set:read_inscription:true"]
+        },
+        {
+          "text": "静かに教会を後にする",
+          "nextScene": "town_center"
+        }
+      ]
+    },
+    "town_center": {
+      "id": "town_center",
+      "text": "町の中央広場に戻ってきた。\n\n{{knowledge}}つの手がかりを得て、この霧の町の謎が少しずつ明らかになってきた。しかし、まだ多くの秘密が隠されているようだ。\n\n夕方が近づき、霧はさらに深くなってきている。",
+      "choices": [
+        {
+          "text": "宿屋で一夜を過ごす",
+          "nextScene": "inn",
+          "condition": "knowledge:2"
+        },
+        {
+          "text": "もう少し町を探索する",
+          "nextScene": "night_exploration"
+        },
+        {
+          "text": "町を離れる",
+          "nextScene": "ending_leave"
+        }
+      ]
+    },
+    "fisherman_talk": {
+      "id": "fisherman_talk",
+      "text": "老漁師は深いしわを刻んだ顔で微笑み、古い話を聞かせてくれた。\n\n「この町にゃあ古い言い伝えがあるんじゃ。霧の夜に現れるという幻の島の話じゃ。そこには昔の海賊が宝を隠したとも言われておる...」\n\n彼は古い海図の一部を見せてくれる。",
+      "choices": [
+        {
+          "text": "海図について詳しく聞く",
+          "nextScene": "sea_chart_info",
+          "actions": ["set:has_sea_chart:true"]
+        },
+        {
+          "text": "他の話を聞く",
+          "nextScene": "more_stories"
+        },
+        {
+          "text": "礼を言って立ち去る",
+          "nextScene": "harbor"
+        }
+      ]
+    }
+  }
+}
