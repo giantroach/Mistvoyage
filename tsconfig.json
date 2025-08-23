@@ -14,12 +14,6 @@
     "sourceMap": true,
     "removeComments": false
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "js/**/*"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "js/**/*"]
 }

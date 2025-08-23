@@ -1,127 +1,289 @@
 {
   "title": "Mistvoyage",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "settings": {
     "autoSave": true,
-    "textSpeed": "normal"
+    "textSpeed": "normal",
+    "maxChapters": 3,
+    "eventsPerChapter": 5
   },
-  "scenes": {
-    "start": {
-      "id": "start",
-      "text": "霧に覆われた古い港町に足を踏み入れた。\n\n石畳の道は湿り気を帯び、遠くから鐘の音が聞こえてくる。あなたは旅の商人として、この謎めいた町で何か価値のあるものを見つけることができるだろうか？\n\n町の入口で、あなたは三つの道を発見する。",
-      "choices": [
+  "chapters": [
+    {
+      "id": 1,
+      "name": "穏やかな海域",
+      "difficulty": 1,
+      "description": "あなたの冒険は比較的穏やかな海域から始まります。ここで基本的な航海技術と戦闘技術を学びましょう。",
+      "requiredEvents": 5,
+      "bossEvent": "kraken_young"
+    },
+    {
+      "id": 2,
+      "name": "嵐の海域",
+      "difficulty": 2,
+      "description": "より危険な海域に足を踏み入れます。嵐と強敵があなたを待ち受けています。",
+      "requiredEvents": 6,
+      "bossEvent": "ghost_ship"
+    },
+    {
+      "id": 3,
+      "name": "深淵の海域",
+      "difficulty": 3,
+      "description": "最も危険な海域。ここでの決断があなたの運命を決めます。",
+      "requiredEvents": 7,
+      "bossEvent": "leviathan"
+    }
+  ],
+  "ships": {
+    "starter_ship": {
+      "id": "starter_ship",
+      "name": "初心者の帆船",
+      "hullMax": 100,
+      "crewMax": 10,
+      "baseSpeed": 5,
+      "storage": 8,
+      "weaponSlots": 2,
+      "initialWeapons": ["harpoon"],
+      "specialRules": ["安定した操縦性"]
+    },
+    "merchant_vessel": {
+      "id": "merchant_vessel",
+      "name": "商人船",
+      "hullMax": 120,
+      "crewMax": 15,
+      "baseSpeed": 4,
+      "storage": 12,
+      "weaponSlots": 1,
+      "initialWeapons": ["light_cannon"],
+      "specialRules": ["港での価格が10%安い"]
+    },
+    "war_ship": {
+      "id": "war_ship",
+      "name": "軍艦",
+      "hullMax": 150,
+      "crewMax": 20,
+      "baseSpeed": 6,
+      "storage": 6,
+      "weaponSlots": 3,
+      "initialWeapons": ["cannon", "harpoon"],
+      "specialRules": ["戦闘で命中率+10%"]
+    }
+  },
+  "events": {
+    "pirate_encounter": {
+      "id": "pirate_encounter",
+      "type": "combat",
+      "name": "海賊との遭遇",
+      "description": "遠くから海賊船の旗が見えます。戦闘は避けられそうにありません。",
+      "difficulty": 2,
+      "minSightToReveal": 5,
+      "isSequential": false,
+      "conditions": [],
+      "outcomes": [
         {
-          "text": "港の方へ向かう",
-          "nextScene": "harbor",
-          "actions": ["set:visited_harbor:true"]
+          "weight": 70,
+          "description": "海賊を撃退しました！戦利品を獲得します。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "money",
+              "operation": "add",
+              "value": 30
+            },
+            {
+              "type": "parameter",
+              "target": "hull",
+              "operation": "add",
+              "value": -20
+            }
+          ]
         },
         {
-          "text": "市場の賑わいを探る",
-          "nextScene": "market",
-          "actions": ["set:visited_market:true"]
-        },
-        {
-          "text": "古い教会の鐘の音を辿る",
-          "nextScene": "church",
-          "actions": ["set:visited_church:true"]
+          "weight": 30,
+          "description": "海賊に敗北...船体に大きなダメージを受けました。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "hull",
+              "operation": "add",
+              "value": -40
+            },
+            {
+              "type": "parameter",
+              "target": "money",
+              "operation": "add",
+              "value": -20
+            }
+          ]
         }
       ]
     },
-    "harbor": {
-      "id": "harbor",
-      "text": "霧の向こうに船の影がゆらめいている。\n\n古い港には数隻の漁船が停泊しており、漁師たちが網の手入れをしている。彼らの話し声が聞こえてくるが、何か重要な情報を得られるかもしれない。\n\n一人の老漁師があなたに気づき、手招きをしている。",
-      "choices": [
+    "storm_navigation": {
+      "id": "storm_navigation",
+      "type": "navigation",
+      "name": "嵐の中の航海",
+      "description": "突然の嵐に巻き込まれました。適切な判断が求められます。",
+      "difficulty": 1,
+      "minSightToReveal": 3,
+      "isSequential": false,
+      "conditions": [],
+      "outcomes": [
         {
-          "text": "老漁師に話しかける",
-          "nextScene": "fisherman_talk",
-          "actions": ["add:knowledge:1"]
+          "weight": 60,
+          "description": "巧みな操舵で嵐を乗り切りました。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "food",
+              "operation": "add",
+              "value": -2
+            },
+            {
+              "type": "weather",
+              "target": "weather",
+              "operation": "set",
+              "value": "嵐"
+            }
+          ]
         },
         {
-          "text": "他の船を調べる",
-          "nextScene": "investigate_ships",
-          "actions": ["set:searched_ships:true"]
-        },
-        {
-          "text": "町の中心部に戻る",
-          "nextScene": "town_center"
+          "weight": 40,
+          "description": "嵐で船体が損傷し、乗組員の一部が負傷しました。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "hull",
+              "operation": "add",
+              "value": -15
+            },
+            {
+              "type": "parameter",
+              "target": "crew",
+              "operation": "add",
+              "value": -1
+            },
+            {
+              "type": "parameter",
+              "target": "food",
+              "operation": "add",
+              "value": -3
+            }
+          ]
         }
       ]
     },
-    "market": {
-      "id": "market",
-      "text": "市場は活気に満ちているが、どこか不思議な雰囲気が漂っている。\n\n色とりどりの商品が並ぶ中、見慣れない品物も多い。商人たちは親切だが、彼らの目には秘密めいた光がある。\n\n特に目を引くのは、古い地図を売る商人と、不思議な香辛料を扱う店だ。",
-      "choices": [
+    "port_visit": {
+      "id": "port_visit",
+      "type": "port",
+      "name": "港町への寄港",
+      "description": "小さな港町を発見しました。補給と修理の機会です。",
+      "difficulty": 0,
+      "minSightToReveal": 1,
+      "isSequential": false,
+      "conditions": [],
+      "outcomes": [
         {
-          "text": "古い地図を調べる",
-          "nextScene": "map_merchant",
-          "actions": ["set:found_map:true", "add:knowledge:1"]
-        },
-        {
-          "text": "香辛料の店を訪れる",
-          "nextScene": "spice_shop",
-          "actions": ["set:visited_spice_shop:true"]
-        },
-        {
-          "text": "他の場所を探索する",
-          "nextScene": "town_center"
+          "weight": 100,
+          "description": "港で補給と修理を行いました。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "hull",
+              "operation": "add",
+              "value": 25
+            },
+            {
+              "type": "parameter",
+              "target": "food",
+              "operation": "add",
+              "value": 10
+            },
+            {
+              "type": "parameter",
+              "target": "money",
+              "operation": "add",
+              "value": -15
+            }
+          ]
         }
       ]
     },
-    "church": {
-      "id": "church",
-      "text": "古い石造りの教会は、霧の中でも威厳を保っている。\n\n重厚な扉を開けると、ろうそくの光が揺らめく静寂な空間が広がる。祭壇の前で一人の神父が祈りを捧げている。\n\n教会の壁には古い文字で書かれた碑文があり、この町の歴史について何かを物語っているようだ。",
-      "choices": [
+    "mysterious_island": {
+      "id": "mysterious_island",
+      "type": "encounter",
+      "name": "謎の島",
+      "description": "地図にない小さな島を発見しました。探索しますか？",
+      "difficulty": 2,
+      "minSightToReveal": 8,
+      "isSequential": true,
+      "sequentialEvents": ["treasure_discovery"],
+      "conditions": [],
+      "outcomes": [
         {
-          "text": "神父に話しかける",
-          "nextScene": "priest_talk",
-          "actions": ["add:knowledge:2"]
+          "weight": 50,
+          "description": "島で古い遺跡を発見しました。",
+          "effects": [
+            {
+              "type": "relic",
+              "target": "relics",
+              "operation": "add",
+              "value": "ancient_compass"
+            }
+          ],
+          "nextEvents": ["treasure_discovery"]
         },
         {
-          "text": "碑文を詳しく調べる",
-          "nextScene": "examine_inscription",
-          "actions": ["set:read_inscription:true"]
-        },
-        {
-          "text": "静かに教会を後にする",
-          "nextScene": "town_center"
+          "weight": 50,
+          "description": "島は危険でした。急いで離れます。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "crew",
+              "operation": "add",
+              "value": -2
+            }
+          ]
         }
       ]
     },
-    "town_center": {
-      "id": "town_center",
-      "text": "町の中央広場に戻ってきた。\n\n{{knowledge}}つの手がかりを得て、この霧の町の謎が少しずつ明らかになってきた。しかし、まだ多くの秘密が隠されているようだ。\n\n夕方が近づき、霧はさらに深くなってきている。",
-      "choices": [
+    "kraken_young": {
+      "id": "kraken_young",
+      "type": "boss",
+      "name": "若きクラーケン",
+      "description": "海の深淵から巨大な触手が現れました。若いクラーケンとの最終決戦です！",
+      "difficulty": 3,
+      "minSightToReveal": 0,
+      "isSequential": false,
+      "conditions": [],
+      "outcomes": [
         {
-          "text": "宿屋で一夜を過ごす",
-          "nextScene": "inn",
-          "condition": "knowledge:2"
+          "weight": 60,
+          "description": "クラーケンを撃退しました！次の海域への道が開かれます。",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "money",
+              "operation": "add",
+              "value": 100
+            },
+            {
+              "type": "relic",
+              "target": "relics",
+              "operation": "add",
+              "value": "kraken_trophy"
+            }
+          ]
         },
         {
-          "text": "もう少し町を探索する",
-          "nextScene": "night_exploration"
-        },
-        {
-          "text": "町を離れる",
-          "nextScene": "ending_leave"
-        }
-      ]
-    },
-    "fisherman_talk": {
-      "id": "fisherman_talk",
-      "text": "老漁師は深いしわを刻んだ顔で微笑み、古い話を聞かせてくれた。\n\n「この町にゃあ古い言い伝えがあるんじゃ。霧の夜に現れるという幻の島の話じゃ。そこには昔の海賊が宝を隠したとも言われておる...」\n\n彼は古い海図の一部を見せてくれる。",
-      "choices": [
-        {
-          "text": "海図について詳しく聞く",
-          "nextScene": "sea_chart_info",
-          "actions": ["set:has_sea_chart:true"]
-        },
-        {
-          "text": "他の話を聞く",
-          "nextScene": "more_stories"
-        },
-        {
-          "text": "礼を言って立ち去る",
-          "nextScene": "harbor"
+          "weight": 40,
+          "description": "クラーケンの攻撃で船が大破！",
+          "effects": [
+            {
+              "type": "parameter",
+              "target": "hull",
+              "operation": "multiply",
+              "value": 0.1
+            }
+          ]
         }
       ]
     }

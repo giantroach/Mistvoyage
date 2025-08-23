@@ -14,7 +14,12 @@
     "typescript": "^5.0.0",
     "prettier": "^3.0.0"
   },
-  "keywords": ["game", "adventure", "text-based", "offline"],
+  "keywords": [
+    "game",
+    "adventure",
+    "text-based",
+    "offline"
+  ],
   "author": "",
   "license": "MIT"
 }
