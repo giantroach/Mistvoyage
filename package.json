@@ -7,10 +7,12 @@
     "dev": "npm run build && python3 -m http.server 8000",
     "build": "tsc",
     "watch": "tsc --watch",
-    "deploy": "npm run build && echo 'Ready for GitHub Pages deployment'"
+    "deploy": "npm run build && echo 'Ready for GitHub Pages deployment'",
+    "format": "prettier --write \"src/**/*.ts\" \"*.json\" \"*.html\" \"css/**/*.css\""
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "prettier": "^3.0.0"
   },
   "keywords": ["game", "adventure", "text-based", "offline"],
   "author": "",

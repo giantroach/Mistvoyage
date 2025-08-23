@@ -47,9 +47,18 @@ npm run watch
 # Start local development server (builds first)
 npm run dev
 
+# Format code with Prettier (2-space indentation)
+npm run format
+
 # Deployment preparation
 npm run deploy
 ```
+
+## Code Standards
+
+- **Indentation**: 2 spaces (configured via Prettier)
+- **Formatting**: All code must be formatted with Prettier before commits
+- **Auto-formatting**: Claude Code will automatically run `npm run format` after editing TypeScript, JSON, HTML, or CSS files
 
 ## Key Features
 
