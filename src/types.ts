@@ -143,6 +143,9 @@ export interface Monster {
   difficulty: number;
   chapters: number[];
   effects: BattleEffect[];
+  // Combat stats for simple battle system
+  attack: number;
+  defense: number;
 }
 
 export interface MonsterWeapon {
@@ -183,9 +186,12 @@ export interface BattleState {
     weapon: Weapon;
     lastUsed: number;
   }>;
-  battleLog: BattleAction[];
+  battleLog: (BattleAction | string)[];
   startTime: number;
   playerEffects: BattleEffect[];
+  // Additional properties for the new combat system
+  playerTurn: boolean;
+  turnCount: number;
 }
 
 export interface Relic {
@@ -218,6 +224,15 @@ export interface PlayerParameters {
   // Private parameters (internal only)
   speed: number;
   karma: number;
+
+  // RPG Combat parameters
+  level: number;
+  health: number;
+  maxHealth: number;
+  attack: number;
+  defense: number;
+  experience: number;
+  gold: number;
 }
 
 export type WeatherType = '晴れ' | '曇り' | '雨' | '嵐' | '霧';
@@ -234,6 +249,7 @@ export interface GameState {
   activeSequentialEvents: string[];
   gamePhase: GamePhase;
   battleState?: BattleState;
+  mapScrollPosition?: number;
 }
 
 export type GamePhase =
@@ -243,7 +259,8 @@ export type GamePhase =
   | 'event'
   | 'combat'
   | 'game_over'
-  | 'victory';
+  | 'victory'
+  | 'battle_result';
 
 // Combat system
 export interface CombatState {

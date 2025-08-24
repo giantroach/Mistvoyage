@@ -46,6 +46,8 @@ export class BattleManager {
       battleLog: [],
       startTime: Date.now(),
       playerEffects: [],
+      playerTurn: true,
+      turnCount: 1,
     };
 
     gameState.gamePhase = 'combat';
@@ -432,6 +434,7 @@ export class BattleManager {
       const goldReward = this.calculateGoldReward(battleState.monsters);
       gameState.playerParameters.money += goldReward;
       battleState.phase = 'victory';
+      gameState.gamePhase = 'battle_result'; // Set game phase to show result screen
 
       // Add victory log entry
       battleState.battleLog.push({
@@ -480,7 +483,7 @@ export class BattleManager {
     }
   }
 
-  getBattleLog(gameState: GameState): BattleAction[] {
+  getBattleLog(gameState: GameState): (BattleAction | string)[] {
     return gameState.battleState?.battleLog || [];
   }
 }

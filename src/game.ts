@@ -21,6 +21,8 @@ import { MapManager } from './MapManager.js';
 import { DisplayManager } from './DisplayManager.js';
 import { SaveManager } from './SaveManager.js';
 import { BattleManager } from './BattleManager.js';
+import { NavigationManager } from './NavigationManager.js';
+import { CombatSystem } from './CombatSystem.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
@@ -33,12 +35,24 @@ export class MistvoyageGame {
   private displayManager: DisplayManager;
   private saveManager: SaveManager;
   private battleManager: BattleManager;
+  private navigationManager: NavigationManager;
+  private combatSystem: CombatSystem;
+  private pendingScrollInfo: any = null;
 
   constructor() {
     this.mapManager = new MapManager();
     this.displayManager = new DisplayManager(this.mapManager);
     this.saveManager = new SaveManager();
     this.battleManager = new BattleManager();
+    this.navigationManager = new NavigationManager(
+      this.gameState,
+      this.displayManager
+    );
+    this.combatSystem = new CombatSystem(
+      this.gameState,
+      () => this.updateDisplay(),
+      () => this.navigationManager.updateNodeVisibility()
+    );
     this.init();
   }
 
@@ -115,6 +129,15 @@ export class MistvoyageGame {
       // Private parameters
       speed: defaultShip.baseSpeed,
       karma: 0,
+
+      // RPG Combat parameters
+      level: 1,
+      health: 100,
+      maxHealth: 100,
+      attack: 20,
+      defense: 5,
+      experience: 0,
+      gold: 50,
     };
   }
 
@@ -197,6 +220,9 @@ export class MistvoyageGame {
         break;
       case 'victory':
         this.showVictory();
+        break;
+      case 'battle_result':
+        this.showBattleResult();
         break;
       default:
         console.error('Unknown game phase:', this.gameState.gamePhase);
@@ -281,49 +307,16 @@ export class MistvoyageGame {
 
     if (!content || !choicesContainer) return;
 
-    const currentNode =
-      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-    const sightRange = Math.min(
-      3,
-      Math.max(1, Math.floor(this.gameState.playerParameters.sight / 5))
-    );
-
     // Auto-show map when in navigation mode
     this.isMapVisible = true;
 
-    content.innerHTML = `
-      <h2>航海中</h2>
-      <p>船は穏やかに海を進んでいます。マップ上のアクセス可能なノードをクリックして次の目的地を選択してください。</p>
-      <div id="map-display" class="${this.isMapVisible ? 'visible' : 'hidden'}">
-        ${this.isMapVisible ? this.generateMapDisplay(sightRange) : ''}
-      </div>
-    `;
-
-    this.updateMapToggleButton();
-    this.setupMapToggleListener();
-
-    // Auto-scroll to show current node when navigation display is shown
-    if (this.isMapVisible) {
-      this.scrollToNode(this.gameState.currentNodeId);
-    }
-
-    // Clear choices container and add instruction
-    choicesContainer.innerHTML = '';
-
-    const currentNodeInfo = currentNode
-      ? this.getEventTypeName(currentNode.eventType || 'unknown')
-      : '不明';
-    const instructionText = document.createElement('p');
-    instructionText.innerHTML = `
-      <strong>現在地:</strong> ${currentNodeInfo}<br>
-      <strong>指示:</strong> マップ上の<span style="color: #66ff66;">緑色</span>のノードをクリックして移動してください。
-    `;
-    instructionText.style.color = '#ccc';
-    instructionText.style.backgroundColor = '#2a2a2a';
-    instructionText.style.padding = '1rem';
-    instructionText.style.borderRadius = '4px';
-    instructionText.style.border = '1px solid #444';
-    choicesContainer.appendChild(instructionText);
+    this.navigationManager.showNavigation(
+      content,
+      choicesContainer,
+      this.isMapVisible,
+      () => this.updateMapToggleButton(),
+      () => this.setupMapToggleListener()
+    );
   }
 
   private generateMapDisplay(sightRange: number): string {
@@ -339,11 +332,149 @@ export class MistvoyageGame {
   }
 
   private showCombat(): void {
-    // Combat handling will be implemented later
     const content = document.getElementById('story-text');
-    if (content) {
-      content.innerHTML = '<h2>戦闘中...</h2>';
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (content && choicesContainer && this.gameState.battleState) {
+      this.displayBattleScreen(content, choicesContainer);
     }
+  }
+
+  private displayBattleScreen(content: HTMLElement, choicesContainer: HTMLElement): void {
+    const battleState = this.gameState.battleState!;
+    const playerParams = this.gameState.playerParameters;
+
+    // Display battle status
+    content.innerHTML = `
+      <div class="battle-screen">
+        <h2>⚔️ 戦闘中 - オートバトル</h2>
+        
+        <div class="player-status">
+          <h3>🛡️ あなたのステータス</h3>
+          <div class="status-bars">
+            <div class="health-bar">
+              <span>Hull: ${playerParams.hull}/${playerParams.ship.hullMax}</span>
+              <div class="bar">
+                <div class="fill" style="width: ${(playerParams.hull / playerParams.ship.hullMax) * 100}%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="enemies-status">
+          <h3>👹 敵のステータス</h3>
+          ${battleState.monsters.map(monster => `
+            <div class="enemy ${monster.hp <= 0 ? 'defeated' : ''}">
+              <span>${monster.name} - HP: ${monster.hp > 0 ? '██████████'.slice(0, Math.max(1, Math.floor((monster.hp / monster.maxHp) * 10))) : '💀'}</span>
+              <div class="bar">
+                <div class="fill" style="width: ${(monster.hp / monster.maxHp) * 100}%"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="battle-log">
+          <h3>📜 戦闘ログ</h3>
+          <div class="log-content">
+            ${this.formatBattleLog(this.battleManager.getBattleLog(this.gameState))}
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Auto-battle status
+    choicesContainer.innerHTML = '';
+    const statusText = document.createElement('p');
+    statusText.textContent = '⚡ オートバトル進行中... ログを観察してください';
+    statusText.style.color = '#66ff66';
+    statusText.style.fontWeight = 'bold';
+    statusText.style.textAlign = 'center';
+    statusText.style.padding = '1rem';
+    choicesContainer.appendChild(statusText);
+  }
+
+  private formatBattleLog(battleLog: any[]): string {
+    return battleLog.slice(-5).map(entry => {
+      if (typeof entry === 'string') {
+        return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
+      } else if (entry.actorType && entry.weaponName) {
+        const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
+        const result = entry.hit ? `${entry.damage}ダメージ` : 'ミス';
+        const backgroundColor = entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
+        return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${entry.actorType === 'player' ? '#66ff66' : '#ff6666'};">${actor}の${entry.weaponName}: ${result}</p>`;
+      }
+      return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${JSON.stringify(entry)}</p>`;
+    }).join('');
+  }
+
+  private showBattleResult(): void {
+    const content = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (content && choicesContainer && this.gameState.battleState) {
+      this.displayBattleResultScreen(content, choicesContainer);
+    }
+  }
+
+  private displayBattleResultScreen(content: HTMLElement, choicesContainer: HTMLElement): void {
+    const battleState = this.gameState.battleState!;
+    const playerParams = this.gameState.playerParameters;
+
+    content.innerHTML = `
+      <div class="battle-result">
+        <h2>🎉 戦闘勝利！</h2>
+        
+        <div class="victory-summary">
+          <h3>戦闘結果</h3>
+          <ul>
+            ${battleState.monsters.map(monster => `<li>✓ ${monster.name}を撃破</li>`).join('')}
+          </ul>
+        </div>
+
+        <div class="rewards">
+          <h3>🎁 獲得報酬</h3>
+          <ul>
+            <li>💰 ゴールド: +${this.calculateDisplayGoldReward(battleState.monsters)}</li>
+          </ul>
+        </div>
+
+        <div class="current-status">
+          <h3>📊 現在のステータス</h3>
+          <p><strong>Hull:</strong> ${playerParams.hull}/${playerParams.ship.hullMax}</p>
+          <p><strong>ゴールド:</strong> ${playerParams.money}</p>
+        </div>
+      </div>
+    `;
+
+    choicesContainer.innerHTML = '';
+    const continueBtn = document.createElement('button');
+    continueBtn.textContent = '⛵ 航海を続ける';
+    continueBtn.className = 'choice-btn';
+    continueBtn.addEventListener('click', () => {
+      this.completeBattleAndContinue();
+    });
+    choicesContainer.appendChild(continueBtn);
+  }
+
+  private calculateDisplayGoldReward(monsters: any[]): number {
+    return monsters.reduce((total, monster) => {
+      const midReward = Math.floor((monster.goldReward.min + monster.goldReward.max) / 2);
+      return total + midReward;
+    }, 0);
+  }
+
+  private completeBattleAndContinue(): void {
+    // Use BattleManager to complete battle
+    this.battleManager.completeBattle(this.gameState);
+    
+    // Complete the event
+    this.gameState.eventsCompleted++;
+    
+    // Update node visibility
+    this.navigationManager.updateNodeVisibility();
+    
+    // Update display
+    this.updateDisplay();
   }
 
   private showGameOver(): void {
@@ -383,80 +514,66 @@ export class MistvoyageGame {
       chapterConfig,
       this.gameState.currentChapter
     );
-    this.mapManager.updateNodeVisibility(this.gameState);
+    
+    // Update node visibility using NavigationManager
+    this.navigationManager.updateNodeVisibility();
   }
 
-  private updateNodeVisibility(): void {
-    this.mapManager.updateNodeVisibility(this.gameState);
-  }
+  // Node visibility methods moved to NavigationManager
 
-  private getVisibleNodes(currentNode: MapNode): string[] {
-    return this.mapManager.getVisibleNodes(currentNode, this.gameState);
-  }
-
-  private getEventTypeName(eventType: EventType, node?: MapNode): string {
-    const currentNode =
-      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-    return this.mapManager.getEventTypeName(
-      eventType,
-      node,
-      this.gameState.playerParameters.sight,
-      this.gameState.visitedNodes,
-      currentNode?.layer
-    );
-  }
+  // Event type naming moved to NavigationManager
 
   public navigateToNode(nodeId: string): void {
-    // Check if navigation is valid (only accessible nodes can be selected)
-    const node = this.gameState.currentMap.nodes[nodeId];
-    if (
-      !node ||
-      !node.isAccessible ||
-      this.gameState.gamePhase !== 'navigation'
-    ) {
-      console.log(
-        `Navigation to ${nodeId} not allowed: accessible=${node?.isAccessible}, phase=${this.gameState.gamePhase}`
-      );
-      return;
-    }
+    const success = this.navigationManager.navigateToNode(nodeId, () =>
+      this.updateDisplay()
+    );
 
-    this.gameState.currentNodeId = nodeId;
-    this.gameState.visitedNodes.add(nodeId);
+    if (success) {
+      const node = this.gameState.currentMap.nodes[nodeId];
+      if (node && node.eventType) {
+        // Process event based on type
+        if (
+          node.eventType === 'monster' ||
+          node.eventType === 'elite_monster'
+        ) {
+          this.handleMonsterEvent();
+          return; // Return early as battle will handle state changes
+        } else {
+          // Process other event types here
+          this.processEvent(node.eventType);
+          
+          // Complete the event and return to navigation
+          this.gameState.eventsCompleted++;
 
-    if (node && node.eventType) {
-      this.gameState.gamePhase = 'event';
+          // Check if chapter is complete
+          const chapter = this.gameData?.chapters.find(
+            c => c.id === this.gameState.currentChapter
+          );
+          if (
+            chapter &&
+            this.gameState.eventsCompleted >= chapter.requiredEvents
+          ) {
+            // Enable boss node
+            const bossNode = this.gameState.currentMap.nodes['boss'];
+            if (bossNode) {
+              bossNode.isAccessible = true;
+              bossNode.isVisible = true;
+            }
+          }
 
-      // Process event based on type
-      if (node.eventType === 'monster' || node.eventType === 'elite_monster') {
-        this.handleMonsterEvent();
-        return; // Return early as battle will handle state changes
-      } else {
-        // Process other event types here
-        this.processEvent(node.eventType);
-      }
-
-      this.gameState.eventsCompleted++;
-
-      // Check if chapter is complete
-      const chapter = this.gameData?.chapters.find(
-        c => c.id === this.gameState.currentChapter
-      );
-      if (chapter && this.gameState.eventsCompleted >= chapter.requiredEvents) {
-        // Enable boss node
-        const bossNode = this.gameState.currentMap.nodes['boss'];
-        if (bossNode) {
-          bossNode.isAccessible = true;
-          bossNode.isVisible = true;
+          // Return to navigation phase after processing non-combat event
+          this.gameState.gamePhase = 'navigation';
+          
+          // Update node visibility after event completion
+          this.navigationManager.updateNodeVisibility();
+          
+          this.updateDisplay();
         }
+      } else {
+        // No event - just update display
+        this.updateDisplay();
       }
     }
-
-    this.updateNodeVisibility();
-    this.gameState.gamePhase = 'navigation';
-    this.updateDisplay();
-
-    // Auto-scroll to position the selected node's layer at the left edge
-    this.scrollToNode(nodeId);
   }
 
   private scrollToNode(nodeId: string): void {
@@ -467,13 +584,30 @@ export class MistvoyageGame {
 
   private handleMonsterEvent(): void {
     try {
+      // Use BattleManager for proper auto-battle system
       this.battleManager.initiateBattle(this.gameState);
-      this.startBattleLoop();
+      
+      // Start the battle loop
+      this.startBattleUpdateLoop();
+      
+      // Update display to show battle screen
+      this.updateDisplay();
     } catch (error) {
       console.error('Failed to start battle:', error);
       // Fallback to normal event processing
       this.processEvent('monster');
     }
+  }
+
+  private startBattleUpdateLoop(): void {
+    const battleUpdate = () => {
+      if (this.gameState.battleState?.isActive) {
+        this.battleManager.updateBattle(this.gameState);
+        this.updateDisplay();
+        setTimeout(battleUpdate, 100); // Update every 100ms for smooth auto-battle
+      }
+    };
+    battleUpdate();
   }
 
   private processEvent(eventType: EventType): void {
@@ -495,27 +629,7 @@ export class MistvoyageGame {
     }
   }
 
-  private startBattleLoop(): void {
-    const battleLoop = () => {
-      if (this.gameState.battleState?.isActive) {
-        this.battleManager.updateBattle(this.gameState);
-        this.updateBattleDisplay();
-
-        // Use setTimeout instead of requestAnimationFrame for slower updates
-        setTimeout(battleLoop, 200); // Update every 200ms instead of ~16ms
-      } else if (this.gameState.battleState?.phase === 'victory') {
-        // Transition to result screen instead of immediate victory handling
-        this.gameState.battleState.phase = 'result_screen';
-        this.showBattleResultScreen();
-      } else if (this.gameState.battleState?.phase === 'defeat') {
-        this.handleBattleDefeat();
-      }
-      // Note: result_screen phase stops the loop until user clicks continue
-    };
-
-    this.updateBattleDisplay();
-    setTimeout(battleLoop, 200); // Start with 200ms delay
-  }
+  // Battle loop moved to CombatSystem
 
   private handleBattleVictory(): void {
     console.log(
@@ -545,7 +659,6 @@ export class MistvoyageGame {
       'handleBattleVictory: after completeBattle, gamePhase:',
       this.gameState.gamePhase
     );
-    this.updateNodeVisibility();
     this.updateDisplay();
   }
 
@@ -555,181 +668,11 @@ export class MistvoyageGame {
     this.updateDisplay();
   }
 
-  private updateBattleDisplay(): void {
-    if (!this.gameState.battleState) return;
-
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    const battleState = this.gameState.battleState;
-
-    // Display battle information
-    let battleInfo = `<h3>戦闘中</h3>`;
-    battleInfo += `<p><strong>敵:</strong> ${battleState.monsters
-      .map(m => m.name)
-      .join(', ')}</p>`;
-
-    // Display player status
-    battleInfo += `<p><strong>船体:</strong> ${this.gameState.playerParameters.hull}/${this.gameState.playerParameters.ship.hullMax}</p>`;
-
-    // Display monster HP bars
-    battleInfo += `<div class="monster-status">`;
-    battleState.monsters.forEach(monster => {
-      const hpPercentage = (monster.hp / monster.maxHp) * 100;
-      battleInfo += `
-        <div class="monster-hp">
-          <span>${monster.name}</span>
-          <div class="hp-bar">
-            <div class="hp-fill" style="width: ${hpPercentage}%"></div>
-          </div>
-        </div>
-      `;
-    });
-    battleInfo += `</div>`;
-
-    // Display recent battle log (newest first)
-    const recentLog = battleState.battleLog.slice(-10).reverse(); // Show last 10 actions, newest first
-    const battleDuration = Math.floor(
-      (Date.now() - battleState.startTime) / 1000
-    );
-    battleInfo += `<div class="battle-log">`;
-    battleInfo += `<h4>戦闘ログ (経過時間: ${battleDuration}秒):</h4>`;
-    recentLog.forEach(action => {
-      const actor =
-        action.actorType === 'player' ? 'プレイヤー' : action.actorId;
-      const target =
-        action.targetType === 'player' ? 'プレイヤー' : action.targetId;
-      const result = action.hit ? `${action.damage}ダメージ` : 'ミス';
-      const actionTime = Math.floor(
-        (action.timestamp - battleState.startTime) / 1000
-      );
-
-      // Color coding for different actors
-      let cssClass = '';
-      if (action.actorType === 'player') {
-        cssClass = 'log-player';
-      } else {
-        // Different colors for different monsters
-        const monsterIndex = battleState.monsters.findIndex(
-          m => m.id === action.actorId
-        );
-        cssClass = `log-monster log-monster-${monsterIndex % 4}`; // Cycle through 4 colors
-      }
-
-      battleInfo += `<p class="${cssClass}">[${actionTime}s] ${actor}の${action.weaponName} → ${target}: ${result}</p>`;
-    });
-    battleInfo += `</div>`;
-
-    storyElement.innerHTML = battleInfo;
-
-    // Clear choices during battle
-    choicesContainer.innerHTML = '';
-
-    // If battle is over, show result
-    if (battleState.phase === 'defeat') {
-      choicesContainer.innerHTML =
-        '<button onclick="window.gameInstance.restart()">ゲームオーバー - リスタート</button>';
-    }
-    // Note: victory and result_screen phases are handled elsewhere
-  }
-
-  private showBattleResultScreen(): void {
-    if (!this.gameState.battleState) return;
-
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    const battleState = this.gameState.battleState;
-    const battleDuration = Math.floor(
-      (Date.now() - battleState.startTime) / 1000
-    );
-
-    // Get already calculated rewards from battle manager
-    const goldReward = battleState.monsters.reduce((total, monster) => {
-      const reward =
-        Math.floor(
-          Math.random() * (monster.goldReward.max - monster.goldReward.min + 1)
-        ) + monster.goldReward.min;
-      return total + reward;
-    }, 0);
-
-    let resultHTML = `<div class="battle-result"><h2>🎉 戦闘勝利！</h2>`;
-    resultHTML += `<p><strong>戦闘時間:</strong> ${battleDuration}秒</p>`;
-    resultHTML += `<p><strong>敵を倒しました:</strong> ${battleState.monsters
-      .map(m => m.name)
-      .join(', ')}</p>`;
-
-    // Show rewards
-    resultHTML += `<div class="battle-rewards">`;
-    resultHTML += `<h3>💰 戦利品:</h3>`;
-    resultHTML += `<p>金: +${goldReward}（現在: ${this.gameState.playerParameters.money}）</p>`;
-    // TODO: 将来的には武器、レリックなどの報酬も表示
-    resultHTML += `</div>`;
-
-    // Show complete battle log
-    resultHTML += `<div class="battle-log">`;
-    resultHTML += `<h3>📋 戦闘ログ:</h3>`;
-    resultHTML += `<div class="battle-log-complete">`;
-
-    // Show all battle log entries (newest first)
-    const completeLog = [...battleState.battleLog].reverse();
-    completeLog.forEach(action => {
-      const actor =
-        action.actorType === 'player' ? 'プレイヤー' : action.actorId;
-      const target =
-        action.targetType === 'player' ? 'プレイヤー' : action.targetId;
-      const result = action.hit ? `${action.damage}ダメージ` : 'ミス';
-      const actionTime = Math.floor(
-        (action.timestamp - battleState.startTime) / 1000
-      );
-
-      // Color coding
-      let cssClass = '';
-      if (action.actorType === 'player') {
-        cssClass = 'log-player';
-      } else {
-        const monsterIndex = battleState.monsters.findIndex(
-          m => m.id === action.actorId
-        );
-        cssClass = `log-monster log-monster-${monsterIndex % 4}`;
-      }
-
-      resultHTML += `<p class="${cssClass}">[${actionTime}s] ${actor}の${action.weaponName} → ${target}: ${result}</p>`;
-    });
-
-    resultHTML += `</div></div></div>`; // Close battle-result div
-
-    storyElement.innerHTML = resultHTML;
-
-    // Show continue button
-    choicesContainer.innerHTML = `
-      <button onclick="window.gameInstance.continueBattle()">マップに戻る</button>
-    `;
-  }
-
-  private calculateGoldReward(monsters: any[]): number {
-    return monsters.reduce((total, monster) => {
-      const reward =
-        Math.floor(
-          Math.random() * (monster.goldReward.max - monster.goldReward.min + 1)
-        ) + monster.goldReward.min;
-      return total + reward;
-    }, 0);
-  }
+  // Battle display methods moved to CombatSystem
 
   public continueBattle(): void {
-    console.log(
-      'continueBattle called, battleState phase:',
-      this.gameState.battleState?.phase
-    );
-    console.log('continueBattle called, gamePhase:', this.gameState.gamePhase);
-    if (this.gameState.battleState?.phase === 'result_screen') {
-      this.handleBattleVictory();
-    }
+    console.log('continueBattle called');
+    this.combatSystem.continueBattle();
   }
 
   public restart(): void {

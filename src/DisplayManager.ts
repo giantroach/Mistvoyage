@@ -334,11 +334,11 @@ export class DisplayManager {
       const layerSpacing = 250;
       const targetScrollLeft = node.layer * layerSpacing;
 
-      // Smooth scroll to the target position
+      // Smooth scroll to the target position from current position
       mapContainer.scrollTo({
         left: targetScrollLeft,
         behavior: 'smooth',
       });
-    }, 100); // Small delay to ensure DOM is updated
+    }, 50); // Small delay to ensure DOM is updated
   }
 }
