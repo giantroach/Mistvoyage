@@ -379,10 +379,14 @@ export class MistvoyageGame {
   }
 
   private getEventTypeName(eventType: EventType, node?: MapNode): string {
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     return this.mapManager.getEventTypeName(
       eventType,
       node,
-      this.gameState.playerParameters.sight
+      this.gameState.playerParameters.sight,
+      this.gameState.visitedNodes,
+      currentNode?.layer
     );
   }
 

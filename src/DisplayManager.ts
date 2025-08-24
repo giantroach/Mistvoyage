@@ -251,16 +251,23 @@ export class DisplayManager {
         if (isVisited) nodeClass += ' visited';
         if (layerDistance > 2) nodeClass += ' distant';
 
-        // Apply masking for events 3+ layers away
+        // Apply masking for events 3+ layers away, but not for past layers
         let displayName;
-        if (layerDistance >= 3) {
+        const currentNodeLayer =
+          gameState.currentMap.nodes[gameState.currentNodeId]?.layer;
+        const isPastNode =
+          currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+
+        if (layerDistance >= 3 && !isPastNode) {
           displayName = '???';
         } else {
           displayName = node.eventType
             ? this.mapManager.getEventTypeName(
                 node.eventType,
                 node,
-                gameState.playerParameters.sight
+                gameState.playerParameters.sight,
+                gameState.visitedNodes,
+                currentNodeLayer
               )
             : '???';
         }

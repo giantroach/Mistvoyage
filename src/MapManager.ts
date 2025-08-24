@@ -359,10 +359,19 @@ export class MapManager {
   getEventTypeName(
     eventType: EventType | undefined,
     node?: MapNode,
-    playerSight?: number
+    playerSight?: number,
+    visitedNodes?: Set<string>,
+    currentNodeLayer?: number
   ): string {
-    // Check if player sight is insufficient to reveal event type
+    // If the node is from a past layer (layer < current layer), always show its type
     if (
+      node &&
+      currentNodeLayer !== undefined &&
+      node.layer < currentNodeLayer
+    ) {
+      // Skip the sight check for past nodes
+    } else if (
+      // Check if player sight is insufficient to reveal event type for current/future nodes
       node &&
       node.difficulty &&
       playerSight &&
