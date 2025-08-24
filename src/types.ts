@@ -131,6 +131,8 @@ export interface Weapon {
   cooldown: number;
   type: string;
   effect?: string;
+  critRate?: number; // Critical hit rate (0-100)
+  critMultiplier?: number; // Critical damage multiplier (e.g., 2.0 for double damage)
 }
 
 // Battle system types
@@ -208,10 +210,19 @@ export interface Relic {
 }
 
 export interface RelicEffect {
-  type: 'parameter' | 'combat' | 'event';
+  type:
+    | 'parameter'
+    | 'combat'
+    | 'event'
+    | 'storage'
+    | 'weapon_slot'
+    | 'gold_bonus'
+    | 'weapon_function';
   target: string;
   modifier: number;
   condition?: string;
+  duration?: number; // For temporary effects
+  weapon?: Weapon; // For relics that function as weapons
 }
 
 // Player state

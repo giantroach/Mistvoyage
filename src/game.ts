@@ -333,9 +333,7 @@ export class MistvoyageGame {
     this.navigationManager.showNavigation(
       content,
       choicesContainer,
-      this.isMapVisible,
-      () => this.updateMapToggleButton(),
-      () => this.setupMapToggleListener()
+      this.isMapVisible
     );
   }
 
@@ -535,6 +533,150 @@ export class MistvoyageGame {
     this.navigationManager.updateNodeVisibility();
 
     // Update display
+    this.updateDisplay();
+  }
+
+  public showWeaponDetail(weapon: Weapon): void {
+    const content = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (content && choicesContainer) {
+      content.innerHTML = `
+        <div class="weapon-detail">
+          <div class="detail-header">
+            <h2>🗡️ ${weapon.name}</h2>
+            <button class="close-detail-btn" onclick="window.gameInstance.closeDetailView()">✕</button>
+          </div>
+          <p class="weapon-description">${weapon.description}</p>
+          
+          <div class="weapon-stats">
+            <h3>⚔️ ステータス</h3>
+            <div class="stat-grid">
+              <div class="stat-item">
+                <span class="stat-label">ダメージ:</span>
+                <span class="stat-value">${weapon.damage.min} - ${
+        weapon.damage.max
+      }</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">命中率:</span>
+                <span class="stat-value">${weapon.accuracy}%</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">クールダウン:</span>
+                <span class="stat-value">${weapon.cooldown / 1000}秒</span>
+              </div>
+              ${
+                weapon.critRate
+                  ? `
+                <div class="stat-item">
+                  <span class="stat-label">クリティカル率:</span>
+                  <span class="stat-value">${weapon.critRate}%</span>
+                </div>
+              `
+                  : ''
+              }
+              ${
+                weapon.critMultiplier
+                  ? `
+                <div class="stat-item">
+                  <span class="stat-label">クリティカル倍率:</span>
+                  <span class="stat-value">${weapon.critMultiplier}x</span>
+                </div>
+              `
+                  : ''
+              }
+              <div class="stat-item">
+                <span class="stat-label">タイプ:</span>
+                <span class="stat-value">${weapon.type}</span>
+              </div>
+              ${
+                weapon.effect
+                  ? `
+                <div class="stat-item">
+                  <span class="stat-label">特殊効果:</span>
+                  <span class="stat-value">${weapon.effect}</span>
+                </div>
+              `
+                  : ''
+              }
+            </div>
+          </div>
+        </div>
+      `;
+
+      choicesContainer.innerHTML = '';
+      const backBtn = document.createElement('button');
+      backBtn.textContent = '⬅️ 戻る';
+      backBtn.className = 'choice-btn';
+      backBtn.addEventListener('click', () => {
+        this.closeDetailView();
+      });
+      choicesContainer.appendChild(backBtn);
+    }
+  }
+
+  public showRelicDetail(relic: Relic): void {
+    const content = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (content && choicesContainer) {
+      content.innerHTML = `
+        <div class="relic-detail">
+          <div class="detail-header">
+            <h2>🏺 ${relic.name}</h2>
+            <button class="close-detail-btn" onclick="window.gameInstance.closeDetailView()">✕</button>
+          </div>
+          <p class="relic-description">${relic.description}</p>
+          
+          <div class="relic-effects">
+            <h3>✨ 効果</h3>
+            <ul class="effects-list">
+              ${relic.effects
+                .map(effect => {
+                  let effectDescription = '';
+                  switch (effect.type) {
+                    case 'parameter':
+                      effectDescription = `${effect.target}を${
+                        effect.modifier > 0 ? '+' : ''
+                      }${effect.modifier}する`;
+                      break;
+                    case 'storage':
+                      effectDescription = `保管庫を${effect.modifier}拡張する`;
+                      break;
+                    case 'weapon_slot':
+                      effectDescription = `武器スロットを${effect.modifier}拡張する`;
+                      break;
+                    case 'gold_bonus':
+                      effectDescription = `戦闘後の金獲得を${effect.modifier}%増加させる`;
+                      break;
+                    case 'weapon_function':
+                      effectDescription = `武器として機能する（武器スロットを消費しない）`;
+                      break;
+                    default:
+                      effectDescription = `${effect.target}に${effect.modifier}の効果`;
+                  }
+                  return `<li>• ${effectDescription}</li>`;
+                })
+                .join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+
+      choicesContainer.innerHTML = '';
+      const backBtn = document.createElement('button');
+      backBtn.textContent = '⬅️ 戻る';
+      backBtn.className = 'choice-btn';
+      backBtn.addEventListener('click', () => {
+        this.closeDetailView();
+      });
+      choicesContainer.appendChild(backBtn);
+    }
+  }
+
+  public closeDetailView(): void {
+    // Return to previous display
     this.updateDisplay();
   }
 
@@ -772,45 +914,6 @@ export class MistvoyageGame {
     this.displayManager.showError(message);
   }
 
-  private toggleMapView(): void {
-    this.isMapVisible = !this.isMapVisible;
-
-    // Only refresh display if we're in navigation phase
-    if (this.gameState.gamePhase === 'navigation') {
-      this.showNavigation();
-    }
-  }
-
-  private updateMapToggleButton(): void {
-    const mapToggleBtn = document.getElementById('map-toggle-btn');
-    if (mapToggleBtn) {
-      mapToggleBtn.textContent = this.isMapVisible
-        ? 'マップを隠す'
-        : 'マップを見る';
-      mapToggleBtn.classList.toggle('active', this.isMapVisible);
-
-      // Show/hide the button based on game phase
-      const storyHeader = document.querySelector(
-        '.story-header'
-      ) as HTMLElement;
-      if (storyHeader) {
-        storyHeader.style.display =
-          this.gameState.gamePhase === 'navigation' ? 'block' : 'none';
-      }
-    }
-  }
-
-  private setupMapToggleListener(): void {
-    const mapToggleBtn = document.getElementById('map-toggle-btn');
-    if (mapToggleBtn) {
-      // Remove existing listener to avoid duplicates
-      mapToggleBtn.replaceWith(mapToggleBtn.cloneNode(true));
-      const newMapToggleBtn = document.getElementById('map-toggle-btn');
-      if (newMapToggleBtn) {
-        newMapToggleBtn.addEventListener('click', () => this.toggleMapView());
-      }
-    }
-  }
 }
 
 // ゲーム開始

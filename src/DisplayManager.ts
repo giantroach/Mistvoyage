@@ -31,10 +31,11 @@ export class DisplayManager {
       'storage-display',
       `保管庫: ${params.relics.length}/${params.ship.storage}`
     );
-    this.updateParameterElement(
-      'weapons-display',
-      `武器: ${params.weapons.map(w => w.name).join(', ')}`
-    );
+    // Update weapons with clickable links
+    this.updateWeaponsDisplay(params.weapons);
+
+    // Update relics with clickable links
+    this.updateRelicsDisplay(params.relics);
 
     // Update game progress
     const chapter = gameData?.chapters.find(
@@ -56,6 +57,70 @@ export class DisplayManager {
     const element = document.getElementById(id);
     if (element) {
       element.textContent = text;
+    }
+  }
+
+  private updateWeaponsDisplay(weapons: any[]): void {
+    const element = document.getElementById('weapons-display');
+    if (element) {
+      if (weapons.length === 0) {
+        element.innerHTML = '武器: なし';
+        return;
+      }
+
+      const weaponElements = weapons
+        .map(
+          weapon =>
+            `<span class="clickable-weapon" data-weapon-id="${weapon.id}" title="${weapon.description}">⚔️ ${weapon.name}</span>`
+        )
+        .join(', ');
+
+      element.innerHTML = `武器: ${weaponElements}`;
+
+      // Add click listeners
+      element.querySelectorAll('.clickable-weapon').forEach(weaponEl => {
+        weaponEl.addEventListener('click', e => {
+          const weaponId = (e.target as HTMLElement).getAttribute(
+            'data-weapon-id'
+          );
+          const weapon = weapons.find(w => w.id === weaponId);
+          if (weapon && (window as any).gameInstance) {
+            (window as any).gameInstance.showWeaponDetail(weapon);
+          }
+        });
+      });
+    }
+  }
+
+  private updateRelicsDisplay(relics: any[]): void {
+    const element = document.getElementById('relics-display');
+    if (element) {
+      if (relics.length === 0) {
+        element.innerHTML = 'レリック: なし';
+        return;
+      }
+
+      const relicElements = relics
+        .map(
+          relic =>
+            `<span class="clickable-relic" data-relic-id="${relic.id}" title="${relic.description}">🏺 ${relic.name}</span>`
+        )
+        .join(', ');
+
+      element.innerHTML = `レリック: ${relicElements}`;
+
+      // Add click listeners
+      element.querySelectorAll('.clickable-relic').forEach(relicEl => {
+        relicEl.addEventListener('click', e => {
+          const relicId = (e.target as HTMLElement).getAttribute(
+            'data-relic-id'
+          );
+          const relic = relics.find(r => r.id === relicId);
+          if (relic && (window as any).gameInstance) {
+            (window as any).gameInstance.showRelicDetail(relic);
+          }
+        });
+      });
     }
   }
 

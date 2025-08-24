@@ -198,9 +198,7 @@ export class NavigationManager {
   public showNavigation(
     content: HTMLElement,
     choicesContainer: HTMLElement,
-    isMapVisible: boolean,
-    updateMapToggleButton: () => void,
-    setupMapToggleListener: () => void
+    isMapVisible: boolean
   ): void {
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
@@ -252,8 +250,6 @@ export class NavigationManager {
       </div>
     `;
 
-    updateMapToggleButton();
-    setupMapToggleListener();
 
     this.handleScrollPositionAfterCreation(
       currentScrollLeft,

@@ -10,7 +10,9 @@
       },
       "accuracy": 85,
       "cooldown": 1500,
-      "type": "projectile"
+      "type": "projectile",
+      "critRate": 10,
+      "critMultiplier": 2.0
     },
     "cannon": {
       "id": "cannon",
@@ -22,7 +24,9 @@
       },
       "accuracy": 70,
       "cooldown": 4000,
-      "type": "artillery"
+      "type": "artillery",
+      "critRate": 5,
+      "critMultiplier": 2.5
     },
     "crossbow": {
       "id": "crossbow",

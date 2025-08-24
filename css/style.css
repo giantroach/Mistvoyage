@@ -238,30 +238,6 @@ button.active:hover {
   z-index: 10;
 }
 
-.map-toggle-btn {
-  background-color: #4a4a4a;
-  color: #e0e0e0;
-  border: 1px solid #666;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  transition: all 0.3s;
-}
-
-.map-toggle-btn:hover {
-  background-color: #5a5a5a;
-  transform: translateY(-1px);
-}
-
-.map-toggle-btn.active {
-  background-color: #66ccff;
-  color: #1a1a1a;
-}
-
-.map-toggle-btn.active:hover {
-  background-color: #77ddff;
-}
 
 #story-text {
   font-size: 1.1rem;
@@ -446,6 +422,105 @@ button.active:hover {
   opacity: 0.7;
   stroke: #888;
   stroke-width: 1;
+}
+
+/* Clickable weapons and relics */
+.clickable-weapon,
+.clickable-relic {
+  color: #66ccff;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.clickable-weapon:hover,
+.clickable-relic:hover {
+  background-color: rgba(102, 204, 255, 0.1);
+  color: #88ddff;
+}
+
+/* Weapon and relic detail screens */
+.weapon-detail,
+.relic-detail {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.close-detail-btn {
+  background-color: #cc4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.close-detail-btn:hover {
+  background-color: #dd5555;
+}
+
+.weapon-description,
+.relic-description {
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  color: #ccc;
+}
+
+.weapon-stats,
+.relic-effects {
+  background-color: #333;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #444;
+}
+
+.stat-label {
+  font-weight: bold;
+  color: #aaa;
+}
+
+.stat-value {
+  color: #66ccff;
+}
+
+.effects-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+}
+
+.effects-list li {
+  padding: 0.3rem 0;
+  color: #e0e0e0;
 }
 
 /* SVG connection lines */
