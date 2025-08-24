@@ -36,13 +36,13 @@ export class NavigationManager {
     // Handle events
     if (node && node.eventType) {
       this.gameState.gamePhase = 'event';
-      
+
       // Set up scroll for after event processing
       this.pendingScrollInfo = {
         targetNodeId: nodeId,
         targetScrollLeft: targetScrollLeft,
       };
-      
+
       return true; // Caller handles event processing
     }
 
@@ -146,12 +146,12 @@ export class NavigationManager {
 
     for (const nodeId in this.gameState.currentMap.nodes) {
       const node = this.gameState.currentMap.nodes[nodeId];
-      
+
       // Set visibility based on sight range
       if (visibleNodes.includes(nodeId)) {
         node.isVisible = true;
       }
-      
+
       // Set accessibility based on connections from current node
       if (currentNode.connections.includes(nodeId)) {
         // Node is directly connected to current node
@@ -164,7 +164,7 @@ export class NavigationManager {
         // Not connected to current node
         node.isAccessible = false;
       }
-      
+
       // Current node should not be clickable
       if (nodeId === this.gameState.currentNodeId) {
         node.isAccessible = false;
@@ -259,7 +259,7 @@ export class NavigationManager {
       currentScrollLeft,
       this.pendingScrollInfo
     );
-    
+
     // Clear pending scroll info after handling
     this.clearPendingScrollInfo();
     this.addNavigationInstructions(choicesContainer, currentNode);

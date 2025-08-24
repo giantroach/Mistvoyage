@@ -340,7 +340,10 @@ export class MistvoyageGame {
     }
   }
 
-  private displayBattleScreen(content: HTMLElement, choicesContainer: HTMLElement): void {
+  private displayBattleScreen(
+    content: HTMLElement,
+    choicesContainer: HTMLElement
+  ): void {
     const battleState = this.gameState.battleState!;
     const playerParams = this.gameState.playerParameters;
 
@@ -353,9 +356,13 @@ export class MistvoyageGame {
           <h3>🛡️ あなたのステータス</h3>
           <div class="status-bars">
             <div class="health-bar">
-              <span>Hull: ${playerParams.hull}/${playerParams.ship.hullMax}</span>
+              <span>Hull: ${playerParams.hull}/${
+      playerParams.ship.hullMax
+    }</span>
               <div class="bar">
-                <div class="fill" style="width: ${(playerParams.hull / playerParams.ship.hullMax) * 100}%"></div>
+                <div class="fill" style="width: ${
+                  (playerParams.hull / playerParams.ship.hullMax) * 100
+                }%"></div>
               </div>
             </div>
           </div>
@@ -363,20 +370,35 @@ export class MistvoyageGame {
 
         <div class="enemies-status">
           <h3>👹 敵のステータス</h3>
-          ${battleState.monsters.map(monster => `
+          ${battleState.monsters
+            .map(
+              monster => `
             <div class="enemy ${monster.hp <= 0 ? 'defeated' : ''}">
-              <span>${monster.name} - HP: ${monster.hp > 0 ? '██████████'.slice(0, Math.max(1, Math.floor((monster.hp / monster.maxHp) * 10))) : '💀'}</span>
+              <span>${monster.name} - HP: ${
+                monster.hp > 0
+                  ? '██████████'.slice(
+                      0,
+                      Math.max(1, Math.floor((monster.hp / monster.maxHp) * 10))
+                    )
+                  : '💀'
+              }</span>
               <div class="bar">
-                <div class="fill" style="width: ${(monster.hp / monster.maxHp) * 100}%"></div>
+                <div class="fill" style="width: ${
+                  (monster.hp / monster.maxHp) * 100
+                }%"></div>
               </div>
             </div>
-          `).join('')}
+          `
+            )
+            .join('')}
         </div>
 
         <div class="battle-log">
           <h3>📜 戦闘ログ</h3>
           <div class="log-content">
-            ${this.formatBattleLog(this.battleManager.getBattleLog(this.gameState))}
+            ${this.formatBattleLog(
+              this.battleManager.getBattleLog(this.gameState)
+            )}
           </div>
         </div>
       </div>
@@ -394,17 +416,25 @@ export class MistvoyageGame {
   }
 
   private formatBattleLog(battleLog: any[]): string {
-    return battleLog.slice(-5).map(entry => {
-      if (typeof entry === 'string') {
-        return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
-      } else if (entry.actorType && entry.weaponName) {
-        const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
-        const result = entry.hit ? `${entry.damage}ダメージ` : 'ミス';
-        const backgroundColor = entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
-        return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${entry.actorType === 'player' ? '#66ff66' : '#ff6666'};">${actor}の${entry.weaponName}: ${result}</p>`;
-      }
-      return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${JSON.stringify(entry)}</p>`;
-    }).join('');
+    return battleLog
+      .slice(-5)
+      .map(entry => {
+        if (typeof entry === 'string') {
+          return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
+        } else if (entry.actorType && entry.weaponName) {
+          const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
+          const result = entry.hit ? `${entry.damage}ダメージ` : 'ミス';
+          const backgroundColor =
+            entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
+          return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${
+            entry.actorType === 'player' ? '#66ff66' : '#ff6666'
+          };">${actor}の${entry.weaponName}: ${result}</p>`;
+        }
+        return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${JSON.stringify(
+          entry
+        )}</p>`;
+      })
+      .join('');
   }
 
   private showBattleResult(): void {
@@ -416,7 +446,10 @@ export class MistvoyageGame {
     }
   }
 
-  private displayBattleResultScreen(content: HTMLElement, choicesContainer: HTMLElement): void {
+  private displayBattleResultScreen(
+    content: HTMLElement,
+    choicesContainer: HTMLElement
+  ): void {
     const battleState = this.gameState.battleState!;
     const playerParams = this.gameState.playerParameters;
 
@@ -427,20 +460,26 @@ export class MistvoyageGame {
         <div class="victory-summary">
           <h3>戦闘結果</h3>
           <ul>
-            ${battleState.monsters.map(monster => `<li>✓ ${monster.name}を撃破</li>`).join('')}
+            ${battleState.monsters
+              .map(monster => `<li>✓ ${monster.name}を撃破</li>`)
+              .join('')}
           </ul>
         </div>
 
         <div class="rewards">
           <h3>🎁 獲得報酬</h3>
           <ul>
-            <li>💰 ゴールド: +${this.calculateDisplayGoldReward(battleState.monsters)}</li>
+            <li>💰 ゴールド: +${this.calculateDisplayGoldReward(
+              battleState.monsters
+            )}</li>
           </ul>
         </div>
 
         <div class="current-status">
           <h3>📊 現在のステータス</h3>
-          <p><strong>Hull:</strong> ${playerParams.hull}/${playerParams.ship.hullMax}</p>
+          <p><strong>Hull:</strong> ${playerParams.hull}/${
+      playerParams.ship.hullMax
+    }</p>
           <p><strong>ゴールド:</strong> ${playerParams.money}</p>
         </div>
       </div>
@@ -458,7 +497,9 @@ export class MistvoyageGame {
 
   private calculateDisplayGoldReward(monsters: any[]): number {
     return monsters.reduce((total, monster) => {
-      const midReward = Math.floor((monster.goldReward.min + monster.goldReward.max) / 2);
+      const midReward = Math.floor(
+        (monster.goldReward.min + monster.goldReward.max) / 2
+      );
       return total + midReward;
     }, 0);
   }
@@ -466,13 +507,13 @@ export class MistvoyageGame {
   private completeBattleAndContinue(): void {
     // Use BattleManager to complete battle
     this.battleManager.completeBattle(this.gameState);
-    
+
     // Complete the event
     this.gameState.eventsCompleted++;
-    
+
     // Update node visibility
     this.navigationManager.updateNodeVisibility();
-    
+
     // Update display
     this.updateDisplay();
   }
@@ -514,7 +555,7 @@ export class MistvoyageGame {
       chapterConfig,
       this.gameState.currentChapter
     );
-    
+
     // Update node visibility using NavigationManager
     this.navigationManager.updateNodeVisibility();
   }
@@ -541,7 +582,7 @@ export class MistvoyageGame {
         } else {
           // Process other event types here
           this.processEvent(node.eventType);
-          
+
           // Complete the event and return to navigation
           this.gameState.eventsCompleted++;
 
@@ -563,10 +604,10 @@ export class MistvoyageGame {
 
           // Return to navigation phase after processing non-combat event
           this.gameState.gamePhase = 'navigation';
-          
+
           // Update node visibility after event completion
           this.navigationManager.updateNodeVisibility();
-          
+
           this.updateDisplay();
         }
       } else {
@@ -586,10 +627,10 @@ export class MistvoyageGame {
     try {
       // Use BattleManager for proper auto-battle system
       this.battleManager.initiateBattle(this.gameState);
-      
+
       // Start the battle loop
       this.startBattleUpdateLoop();
-      
+
       // Update display to show battle screen
       this.updateDisplay();
     } catch (error) {

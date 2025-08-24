@@ -227,10 +227,10 @@ export class CombatSystem {
     }
 
     this.gameState.gamePhase = 'navigation';
-    
+
     // Update node visibility after battle completion
     this.updateNodeVisibilityCallback?.();
-    
+
     this.updateDisplayCallback?.();
   }
 

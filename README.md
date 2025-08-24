@@ -1,19 +1,21 @@
 # Mistvoyage
 
-テキストベースのオフラインアドベンチャーゲーム
+テキストベースのオフラインローグライクゲーム
 
 ## 概要
 
-Mistvoyageは霧に覆われた古い港町を舞台とした日本語のテキストアドベンチャーゲームです。プレイヤーは旅の商人として町を探索し、選択肢によって物語が分岐する体験を楽しめます。
+Mistvoyageは霧に包まれた海域を航海するローグライクゲームです。プレイヤーは船長として様々な海域を探索し、モンスターとの戦闘、港での補給、宝探しなどを通じてチャプターを攻略していきます。
 
 ## 特徴
 
 - 🌐 **オフライン対応**: インターネット接続なしでプレイ可能
 - 💾 **自動セーブ**: LocalStorageを使用したセーブ・ロード機能
-- 🎮 **分岐ストーリー**: 選択肢によって変化する物語展開
+- 🗺️ **ランダムマップ**: 各チャプターで自動生成される航海マップ
+- ⚔️ **オートバトル**: 戦闘は自動進行、戦闘ログを観察して楽しむ
+- 🚢 **船舶選択**: 異なる性能を持つ船から選択して航海
 - 📱 **レスポンシブ**: モバイル端末でも快適にプレイ
 - ⚙️ **JSON設定**: ゲーム内容の追加・編集が容易
-- 🔄 **変数システム**: ゲーム状態の追跡と条件分岐
+- 🎯 **RPG要素**: レベルアップ、武器、レリック、パラメータ管理
 
 ## 技術仕様
 
@@ -21,7 +23,8 @@ Mistvoyageは霧に覆われた古い港町を舞台とした日本語のテキ�
 - **コンパイル**: TypeScript → JavaScript (ES2020)
 - **デプロイ**: GitHub Pages対応
 - **データ保存**: LocalStorage
-- **コンテンツ管理**: JSON形式
+- **コンテンツ管理**: JSON形式（チャプター、モンスター、武器、戦闘設定）
+- **アーキテクチャ**: モジュール化されたゲームシステム（MapManager, CombatSystem, BattleManager, NavigationManager, DisplayManager）
 
 ## 開発・実行
 
@@ -39,47 +42,73 @@ npm run watch
 npm run dev
 
 # http://localhost:8000 でゲームにアクセス
+
+# コードフォーマット
+npm run format
 ```
 
 ## ファイル構成
 
 ```
 /
-├── index.html          # メインゲーム画面
+├── index.html              # メインゲーム画面
 ├── src/
-│   ├── game.ts        # ゲームエンジン（TypeScript）
-│   └── types.ts       # 型定義
-├── js/game.js         # コンパイル済みゲームエンジン
-├── data/game.json     # ゲームコンテンツ
-├── css/style.css      # スタイルシート
-├── tsconfig.json      # TypeScript設定
-└── package.json       # パッケージ設定
+│   ├── game.ts            # メインゲームエンジン
+│   ├── types.ts           # TypeScript型定義
+│   ├── MapManager.ts      # マップ生成・管理
+│   ├── CombatSystem.ts    # 戦闘システム（簡易RPG風）
+│   ├── BattleManager.ts   # バトルシステム（オートバトル）
+│   ├── NavigationManager.ts # ナビゲーション管理
+│   └── DisplayManager.ts   # 画面表示管理
+├── dist/                  # コンパイル済みJavaScript
+├── data/
+│   ├── game.json         # 基本ゲームデータ
+│   ├── chapters.json     # チャプター設定
+│   ├── monsters.json     # モンスターデータ
+│   ├── weapons.json      # 武器データ
+│   └── battle_config.json # 戦闘設定
+├── css/style.css         # スタイルシート
+├── spec.md              # ゲーム仕様書
+├── CLAUDE.md            # Claude開発用指示
+├── tsconfig.json        # TypeScript設定
+└── package.json         # パッケージ設定
 ```
+
+## ゲームシステム
+
+### チャプター構成
+- **Chapter 1-3**: 各チャプターには異なる難易度の海域
+- **必要イベント数**: チャプターごとに規定数のイベントクリアでボス出現
+- **ランダムマップ**: ツリー構造で最大3分岐のマップを自動生成
+
+### イベントタイプ
+- **🔴 モンスター**: 通常の戦闘イベント
+- **🟡 エリートモンスター**: 強力な敵との戦闘
+- **🟢 港**: 補給・修理・買い物
+- **🟠 宝**: レリック入手
+- **🟣 ボス**: チャプター最終戦
+- **❓ ???**: Sight不足で詳細不明
+
+### 戦闘システム
+- **完全オートバトル**: プレイヤーの操作なし
+- **武器クールダウン**: 各武器に個別のクールダウン
+- **命中計算**: Speed, Sight, Weather, Crewによる補正
+- **戦闘ログ**: 攻撃者別の色分け表示
+
+### パラメータシステム
+- **公開パラメータ**: Hull, Food, Money, Crew, Sight, Weather等
+- **非公開パラメータ**: Speed, Karma等
+- **RPG要素**: Level, Health, Attack, Defense, Experience
 
 ## ゲーム内容の編集
 
-`data/game.json` を編集することでストーリーや選択肢を追加・変更できます。
+JSONファイルを編集してゲーム内容をカスタマイズできます：
 
-### シーン構造
-
-```json
-{
-  "scenes": {
-    "scene_id": {
-      "id": "scene_id",
-      "text": "表示するテキスト",
-      "choices": [
-        {
-          "text": "選択肢のテキスト",
-          "nextScene": "次のシーンID",
-          "actions": ["set:変数名:値"],
-          "condition": "変数名:期待値"
-        }
-      ]
-    }
-  }
-}
-```
+### データファイル
+- `data/chapters.json` - チャプター設定とイベント出現率
+- `data/monsters.json` - モンスターデータと戦闘組み合わせ  
+- `data/weapons.json` - 武器性能とエフェクト
+- `data/battle_config.json` - 戦闘計算の各種補正値
 
 ## ライセンス
 
