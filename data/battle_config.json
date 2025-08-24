@@ -1,0 +1,63 @@
+{
+  "battleConfig": {
+    "crewModifiers": {
+      "cooldownPenalty": {
+        "threshold": 0.5,
+        "maxPenalty": 2.0,
+        "description": "Crew数が船の上限の半分以下の場合のクールダウン増加"
+      }
+    },
+    "speedModifiers": {
+      "accuracy": {
+        "playerFaster": 1.2,
+        "playerSlower": 0.8,
+        "description": "速度差による命中率補正"
+      }
+    },
+    "sightModifiers": {
+      "accuracy": {
+        "threshold": 5,
+        "penalty": 0.7,
+        "description": "視界値が閾値より低い場合の命中率減少"
+      }
+    },
+    "monsterBerserkModifiers": {
+      "hpThreshold": 0.3,
+      "cooldownReduction": 0.7,
+      "accuracyPenalty": 0.8,
+      "description": "モンスターのHP30%以下で狂暴化"
+    },
+    "weatherModifiers": {
+      "clear": {
+        "sightMultiplier": 1.0,
+        "speedMultiplier": 1.0
+      },
+      "fog": {
+        "sightMultiplier": 0.7,
+        "speedMultiplier": 0.9
+      },
+      "storm": {
+        "sightMultiplier": 0.5,
+        "speedMultiplier": 0.8
+      },
+      "calm": {
+        "sightMultiplier": 1.2,
+        "speedMultiplier": 1.1
+      }
+    },
+    "effects": {
+      "slow": {
+        "speedMultiplier": 0.5,
+        "duration": 3000
+      },
+      "blind": {
+        "accuracyMultiplier": 0.3,
+        "duration": 5000
+      },
+      "fear": {
+        "cooldownMultiplier": 1.5,
+        "duration": 4000
+      }
+    }
+  }
+}

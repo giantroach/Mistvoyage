@@ -116,10 +116,76 @@ export interface Ship {
 export interface Weapon {
   id: string;
   name: string;
-  damage: number;
+  description: string;
+  damage: {
+    min: number;
+    max: number;
+  };
   accuracy: number;
-  range: string;
-  specialEffects?: string[];
+  cooldown: number;
+  type: string;
+  effect?: string;
+}
+
+// Battle system types
+export interface Monster {
+  id: string;
+  name: string;
+  description: string;
+  hp: number;
+  maxHp: number;
+  speed: number;
+  weapons: string[];
+  goldReward: {
+    min: number;
+    max: number;
+  };
+  difficulty: number;
+  chapters: number[];
+  effects: BattleEffect[];
+}
+
+export interface MonsterWeapon {
+  name: string;
+  damage: {
+    min: number;
+    max: number;
+  };
+  accuracy: number;
+  cooldown: number;
+  effect?: string;
+}
+
+export interface BattleEffect {
+  type: string;
+  duration: number;
+  startTime: number;
+}
+
+export interface BattleAction {
+  actorType: 'player' | 'monster';
+  actorId: string;
+  weaponName: string;
+  targetType: 'player' | 'monster';
+  targetId: string;
+  damage: number;
+  hit: boolean;
+  critical?: boolean;
+  effect?: string;
+  timestamp: number;
+}
+
+export interface BattleState {
+  isActive: boolean;
+  phase: 'preparation' | 'combat' | 'victory' | 'defeat' | 'result_screen';
+  monsters: Monster[];
+  playerWeapons: Array<{
+    weapon: Weapon;
+    lastUsed: number;
+  }>;
+  battleLog: BattleAction[];
+  startTime: number;
+  playerEffects: BattleEffect[];
 }
 
 export interface Relic {
@@ -167,6 +233,7 @@ export interface GameState {
   visitedNodes: Set<string>;
   activeSequentialEvents: string[];
   gamePhase: GamePhase;
+  battleState?: BattleState;
 }
 
 export type GamePhase =

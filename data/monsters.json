@@ -1,0 +1,208 @@
+{
+  "monsters": {
+    "sea_slime": {
+      "id": "sea_slime",
+      "name": "海のスライム",
+      "description": "弱い海洋生物",
+      "hp": 8,
+      "speed": 3,
+      "weapons": ["tentacle_slap"],
+      "goldReward": {
+        "min": 3,
+        "max": 8
+      },
+      "difficulty": 1,
+      "chapters": [1]
+    },
+    "giant_crab": {
+      "id": "giant_crab",
+      "name": "巨大蟹",
+      "description": "硬い殻を持つ大型の蟹",
+      "hp": 12,
+      "speed": 2,
+      "weapons": ["claw_attack"],
+      "goldReward": {
+        "min": 8,
+        "max": 15
+      },
+      "difficulty": 2,
+      "chapters": [1, 2]
+    },
+    "storm_shark": {
+      "id": "storm_shark",
+      "name": "嵐鮫",
+      "description": "嵐の海域に住む凶暴な鮫",
+      "hp": 18,
+      "speed": 6,
+      "weapons": ["bite", "ram"],
+      "goldReward": {
+        "min": 15,
+        "max": 25
+      },
+      "difficulty": 3,
+      "chapters": [2, 3]
+    },
+    "kraken_spawn": {
+      "id": "kraken_spawn",
+      "name": "クラーケンの子",
+      "description": "深海の怪物の幼体",
+      "hp": 25,
+      "speed": 4,
+      "weapons": ["tentacle_whip", "ink_spray"],
+      "goldReward": {
+        "min": 20,
+        "max": 35
+      },
+      "difficulty": 4,
+      "chapters": [2, 3]
+    },
+    "leviathan": {
+      "id": "leviathan",
+      "name": "リヴァイアサン",
+      "description": "深淵の支配者",
+      "hp": 45,
+      "speed": 5,
+      "weapons": ["water_blast", "tail_sweep", "roar"],
+      "goldReward": {
+        "min": 50,
+        "max": 80
+      },
+      "difficulty": 6,
+      "chapters": [3]
+    }
+  },
+  "monsterWeapons": {
+    "tentacle_slap": {
+      "name": "触手叩き",
+      "damage": { "min": 1, "max": 2 },
+      "accuracy": 70,
+      "cooldown": 2000
+    },
+    "claw_attack": {
+      "name": "鋏攻撃",
+      "damage": { "min": 2, "max": 4 },
+      "accuracy": 80,
+      "cooldown": 3000
+    },
+    "bite": {
+      "name": "噛み付き",
+      "damage": { "min": 3, "max": 5 },
+      "accuracy": 85,
+      "cooldown": 2500
+    },
+    "ram": {
+      "name": "体当たり",
+      "damage": { "min": 1, "max": 3 },
+      "accuracy": 90,
+      "cooldown": 4000
+    },
+    "tentacle_whip": {
+      "name": "触手鞭",
+      "damage": { "min": 3, "max": 6 },
+      "accuracy": 75,
+      "cooldown": 3500
+    },
+    "ink_spray": {
+      "name": "墨吐き",
+      "damage": { "min": 1, "max": 2 },
+      "accuracy": 95,
+      "cooldown": 6000,
+      "effect": "blind"
+    },
+    "water_blast": {
+      "name": "水流砲",
+      "damage": { "min": 4, "max": 8 },
+      "accuracy": 70,
+      "cooldown": 4000
+    },
+    "tail_sweep": {
+      "name": "尻尾薙ぎ",
+      "damage": { "min": 3, "max": 7 },
+      "accuracy": 80,
+      "cooldown": 3000
+    },
+    "roar": {
+      "name": "咆哮",
+      "damage": { "min": 0, "max": 0 },
+      "accuracy": 100,
+      "cooldown": 8000,
+      "effect": "fear"
+    }
+  },
+  "encounters": {
+    "chapter_1": [
+      {
+        "monsters": ["sea_slime"],
+        "weight": 40
+      },
+      {
+        "monsters": ["giant_crab"],
+        "weight": 30
+      },
+      {
+        "monsters": ["sea_slime", "sea_slime"],
+        "weight": 20
+      },
+      {
+        "monsters": ["sea_slime", "giant_crab"],
+        "weight": 10
+      }
+    ],
+    "chapter_2": [
+      {
+        "monsters": ["giant_crab"],
+        "weight": 25
+      },
+      {
+        "monsters": ["storm_shark"],
+        "weight": 25
+      },
+      {
+        "monsters": ["kraken_spawn"],
+        "weight": 15
+      },
+      {
+        "monsters": ["giant_crab", "giant_crab"],
+        "weight": 20
+      },
+      {
+        "monsters": ["sea_slime", "storm_shark"],
+        "weight": 10
+      },
+      {
+        "monsters": ["giant_crab", "storm_shark"],
+        "weight": 5
+      }
+    ],
+    "chapter_3": [
+      {
+        "monsters": ["storm_shark"],
+        "weight": 20
+      },
+      {
+        "monsters": ["kraken_spawn"],
+        "weight": 25
+      },
+      {
+        "monsters": ["leviathan"],
+        "weight": 10
+      },
+      {
+        "monsters": ["storm_shark", "storm_shark"],
+        "weight": 15
+      },
+      {
+        "monsters": ["kraken_spawn", "storm_shark"],
+        "weight": 15
+      },
+      {
+        "monsters": ["kraken_spawn", "kraken_spawn"],
+        "weight": 10
+      },
+      {
+        "monsters": ["storm_shark", "kraken_spawn", "kraken_spawn"],
+        "weight": 5
+      }
+    ]
+  }
+}

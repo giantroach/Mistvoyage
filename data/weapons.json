@@ -1,0 +1,65 @@
+{
+  "weapons": {
+    "harpoon": {
+      "id": "harpoon",
+      "name": "ハープーン",
+      "description": "基本的な漁船用の武器",
+      "damage": {
+        "min": 2,
+        "max": 6
+      },
+      "accuracy": 85,
+      "cooldown": 1500,
+      "type": "projectile"
+    },
+    "cannon": {
+      "id": "cannon",
+      "name": "大砲",
+      "description": "強力だが装填に時間がかかる",
+      "damage": {
+        "min": 8,
+        "max": 15
+      },
+      "accuracy": 70,
+      "cooldown": 4000,
+      "type": "artillery"
+    },
+    "crossbow": {
+      "id": "crossbow",
+      "name": "クロスボウ",
+      "description": "素早く正確な武器",
+      "damage": {
+        "min": 3,
+        "max": 8
+      },
+      "accuracy": 90,
+      "cooldown": 1200,
+      "type": "projectile"
+    },
+    "flame_thrower": {
+      "id": "flame_thrower",
+      "name": "火炎放射器",
+      "description": "近距離で威力を発揮",
+      "damage": {
+        "min": 4,
+        "max": 10
+      },
+      "accuracy": 70,
+      "cooldown": 4000,
+      "type": "flame"
+    },
+    "net_launcher": {
+      "id": "net_launcher",
+      "name": "ネットランチャー",
+      "description": "敵の動きを制限する",
+      "damage": {
+        "min": 1,
+        "max": 3
+      },
+      "accuracy": 90,
+      "cooldown": 5000,
+      "type": "utility",
+      "effect": "slow"
+    }
+  }
+}
