@@ -57,10 +57,43 @@ export class MapManager {
         Math.max(1, Math.floor(Math.random() * 4) + 1)
       );
 
-      for (let branch = 0; branch < branchCount; branch++) {
-        const nodeId = `node_${nodeCounter++}`;
-        const eventType = eventTypes.shift() || 'unknown';
+      // Track event types in current layer to prevent duplicates
+      const layerEventTypes = new Set<EventType>();
+      const layerEventTypesList: EventType[] = [];
 
+      for (let branch = 0; branch < branchCount; branch++) {
+        let eventType: EventType = 'unknown';
+        let attempts = 0;
+        const maxAttempts = 50;
+
+        // Find a valid event type for this node
+        while (attempts < maxAttempts) {
+          const candidateType = eventTypes.shift() || 'unknown';
+
+          // Check if this type is already used in current layer (only if layer has 2+ nodes)
+          const isDuplicateInLayer =
+            branchCount >= 2 && layerEventTypes.has(candidateType);
+
+          // Check if elite_monster is too close to start (within 2 layers from start)
+          const isEliteTooClose =
+            candidateType === 'elite_monster' && layer <= 2;
+
+          if (!isDuplicateInLayer && !isEliteTooClose) {
+            eventType = candidateType;
+            break;
+          } else {
+            // Put the event type back at the end of the array
+            eventTypes.push(candidateType);
+          }
+
+          attempts++;
+        }
+
+        // Add to layer tracking
+        layerEventTypes.add(eventType);
+        layerEventTypesList.push(eventType);
+
+        const nodeId = `node_${nodeCounter++}`;
         map.nodes[nodeId] = {
           id: nodeId,
           x: layer,
@@ -125,21 +158,53 @@ export class MapManager {
       }
     });
 
-    // Fill remaining slots based on weights
+    // Add minimum count events
+    typeKeys.forEach(type => {
+      const typeConfig = config[type];
+      if (typeConfig.minCount && typeConfig.minCount > 0) {
+        const currentCount = eventTypes.filter(t => t === type).length;
+        const needToAdd = Math.max(0, typeConfig.minCount - currentCount);
+        for (let i = 0; i < needToAdd; i++) {
+          eventTypes.push(type);
+        }
+      }
+    });
+
+    // Fill remaining slots based on weights, respecting maxCount
     const remainingSlots = totalEvents - eventTypes.length;
     const weightedTypes: EventType[] = [];
 
     typeKeys.forEach(type => {
-      const weight = config[type].weight;
-      for (let i = 0; i < weight; i++) {
-        weightedTypes.push(type);
+      const typeConfig = config[type];
+      const currentCount = eventTypes.filter(t => t === type).length;
+      const maxCount = typeConfig.maxCount || totalEvents; // If no maxCount, use totalEvents as limit
+      const availableSlots = maxCount - currentCount;
+
+      if (availableSlots > 0) {
+        const weight = typeConfig.weight || 0;
+        for (let i = 0; i < weight; i++) {
+          weightedTypes.push(type);
+        }
       }
     });
 
     for (let i = 0; i < remainingSlots; i++) {
-      const randomType =
-        weightedTypes[Math.floor(Math.random() * weightedTypes.length)];
-      eventTypes.push(randomType);
+      if (weightedTypes.length === 0) break;
+
+      const randomIndex = Math.floor(Math.random() * weightedTypes.length);
+      const randomType = weightedTypes[randomIndex];
+
+      // Check if we can still add this type
+      const currentCount = eventTypes.filter(t => t === randomType).length;
+      const maxCount = config[randomType].maxCount || totalEvents;
+
+      if (currentCount < maxCount) {
+        eventTypes.push(randomType);
+      } else {
+        // Remove this type from weightedTypes to avoid infinite loop
+        weightedTypes.splice(randomIndex, 1);
+        i--; // Retry this slot
+      }
     }
 
     // Shuffle the array
