@@ -1,5 +1,7 @@
 import {
   GameData,
+  ShipsData,
+  EventsData,
   GameState,
   GamePhase,
   Chapter,
@@ -26,6 +28,8 @@ import { CombatSystem } from './CombatSystem.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
+  private shipsData: ShipsData | null = null;
+  private eventsData: EventsData | null = null;
   private eventConfig: any = null;
   private gameState: GameState = this.initializeGameState();
   private isMapVisible: boolean = false;
@@ -162,6 +166,22 @@ export class MistvoyageGame {
     }
     this.gameData = await gameResponse.json();
 
+    const shipsResponse = await fetch('data/ships.json');
+    if (!shipsResponse.ok) {
+      throw new Error(
+        `HTTP ${shipsResponse.status}: ${shipsResponse.statusText}`
+      );
+    }
+    this.shipsData = await shipsResponse.json();
+
+    const eventsResponse = await fetch('data/events.json');
+    if (!eventsResponse.ok) {
+      throw new Error(
+        `HTTP ${eventsResponse.status}: ${eventsResponse.statusText}`
+      );
+    }
+    this.eventsData = await eventsResponse.json();
+
     const configResponse = await fetch('data/event_config.json');
     if (!configResponse.ok) {
       throw new Error(
@@ -245,7 +265,7 @@ export class MistvoyageGame {
     choicesContainer.innerHTML = '';
 
     // Display available ships
-    Object.values(this.gameData.ships).forEach(ship => {
+    Object.values(this.shipsData!.ships).forEach(ship => {
       const shipBtn = document.createElement('button');
       shipBtn.className = 'choice-btn';
       shipBtn.innerHTML = `

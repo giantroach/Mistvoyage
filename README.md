@@ -62,7 +62,9 @@ npm run format
 │   └── DisplayManager.ts   # 画面表示管理
 ├── dist/                  # コンパイル済みJavaScript
 ├── data/
-│   ├── game.json         # 基本ゲームデータ
+│   ├── game.json         # 基本ゲーム設定
+│   ├── ships.json        # 船舶データ
+│   ├── events.json       # イベントデータ
 │   ├── chapters.json     # チャプター設定
 │   ├── monsters.json     # モンスターデータ
 │   ├── weapons.json      # 武器データ
@@ -105,6 +107,9 @@ npm run format
 JSONファイルを編集してゲーム内容をカスタマイズできます：
 
 ### データファイル
+- `data/game.json` - 基本ゲーム設定（タイトル、バージョン、チャプター定義）
+- `data/ships.json` - 船舶ステータスと特殊ルール
+- `data/events.json` - イベント定義（港、宝、ボス等のストーリーイベント）
 - `data/chapters.json` - チャプター設定とイベント出現率
 - `data/monsters.json` - モンスターデータと戦闘組み合わせ  
 - `data/weapons.json` - 武器性能とエフェクト

@@ -1,0 +1,37 @@
+{
+  "ships": {
+    "starter_ship": {
+      "id": "starter_ship",
+      "name": "初心者の帆船",
+      "hullMax": 100,
+      "crewMax": 10,
+      "baseSpeed": 5,
+      "storage": 8,
+      "weaponSlots": 2,
+      "initialWeapons": ["harpoon"],
+      "specialRules": ["安定した操縦性"]
+    },
+    "merchant_vessel": {
+      "id": "merchant_vessel",
+      "name": "商人船",
+      "hullMax": 120,
+      "crewMax": 15,
+      "baseSpeed": 4,
+      "storage": 12,
+      "weaponSlots": 1,
+      "initialWeapons": ["light_cannon"],
+      "specialRules": ["港での価格が10%安い"]
+    },
+    "war_ship": {
+      "id": "war_ship",
+      "name": "軍艦",
+      "hullMax": 150,
+      "crewMax": 20,
+      "baseSpeed": 6,
+      "storage": 6,
+      "weaponSlots": 3,
+      "initialWeapons": ["cannon", "harpoon"],
+      "specialRules": ["戦闘で命中率+10%"]
+    }
+  }
+}

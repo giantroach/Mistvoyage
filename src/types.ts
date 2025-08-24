@@ -4,8 +4,14 @@ export interface GameData {
   version: string;
   settings: GameSettings;
   chapters: Chapter[];
-  events: Record<string, GameEvent>;
+}
+
+export interface ShipsData {
   ships: Record<string, Ship>;
+}
+
+export interface EventsData {
+  events: Record<string, GameEvent>;
 }
 
 export interface GameSettings {
