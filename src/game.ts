@@ -25,6 +25,7 @@ import { SaveManager } from './SaveManager.js';
 import { BattleManager } from './BattleManager.js';
 import { NavigationManager } from './NavigationManager.js';
 import { CombatSystem } from './CombatSystem.js';
+import { RelicManager } from './RelicManager.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
@@ -41,6 +42,7 @@ export class MistvoyageGame {
   private battleManager: BattleManager;
   private navigationManager: NavigationManager;
   private combatSystem: CombatSystem;
+  private relicManager: RelicManager;
   private pendingScrollInfo: any = null;
 
   constructor() {
@@ -48,6 +50,7 @@ export class MistvoyageGame {
     this.displayManager = new DisplayManager(this.mapManager);
     this.saveManager = new SaveManager();
     this.battleManager = new BattleManager();
+    this.relicManager = new RelicManager();
     this.navigationManager = new NavigationManager(
       this.gameState,
       this.displayManager
@@ -149,6 +152,7 @@ export class MistvoyageGame {
     try {
       await this.loadGameData();
       await this.battleManager.initialize();
+      await this.relicManager.initialize();
       this.setupEventListeners();
       this.startGame();
     } catch (error) {
@@ -633,35 +637,17 @@ export class MistvoyageGame {
           </div>
           <p class="relic-description">${relic.description}</p>
           
+          <div class="relic-rarity-display">
+            <span class="relic-rarity rarity-${
+              relic.rarity
+            }">${this.getRarityDisplayName(relic.rarity)}</span>
+          </div>
+          
           <div class="relic-effects">
             <h3>✨ 効果</h3>
             <ul class="effects-list">
               ${relic.effects
-                .map(effect => {
-                  let effectDescription = '';
-                  switch (effect.type) {
-                    case 'parameter':
-                      effectDescription = `${effect.target}を${
-                        effect.modifier > 0 ? '+' : ''
-                      }${effect.modifier}する`;
-                      break;
-                    case 'storage':
-                      effectDescription = `保管庫を${effect.modifier}拡張する`;
-                      break;
-                    case 'weapon_slot':
-                      effectDescription = `武器スロットを${effect.modifier}拡張する`;
-                      break;
-                    case 'gold_bonus':
-                      effectDescription = `戦闘後の金獲得を${effect.modifier}%増加させる`;
-                      break;
-                    case 'weapon_function':
-                      effectDescription = `武器として機能する（武器スロットを消費しない）`;
-                      break;
-                    default:
-                      effectDescription = `${effect.target}に${effect.modifier}の効果`;
-                  }
-                  return `<li>• ${effectDescription}</li>`;
-                })
+                .map(effect => `<li>• ${effect.description}</li>`)
                 .join('')}
             </ul>
           </div>
@@ -818,22 +804,221 @@ export class MistvoyageGame {
   }
 
   private processEvent(eventType: EventType): void {
-    // Placeholder for other event types
     console.log(`Processing ${eventType} event`);
 
-    // For now, just display a simple message
+    switch (eventType) {
+      case 'treasure':
+        this.handleTreasureEvent();
+        break;
+      case 'port':
+        this.handlePortEvent();
+        break;
+      case 'boss':
+        this.handleBossEvent();
+        break;
+      default:
+        this.handleGenericEvent(eventType);
+        break;
+    }
+  }
+
+  private handleTreasureEvent(): void {
+    const storyElement = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (!storyElement || !choicesContainer) return;
+
+    // Generate 3 random relics
+    const relics = this.relicManager.generateMultipleRelics(3);
+
+    storyElement.innerHTML = `
+      <h2>🏺 宝箱発見！</h2>
+      <p>古い宝箱を発見しました。中から3つのレリックが現れています。</p>
+      <p>どれか一つを選んで持ち帰ることができます。</p>
+    `;
+
+    choicesContainer.innerHTML = '';
+
+    relics.forEach((relic, index) => {
+      const relicButton = document.createElement('button');
+      relicButton.className = 'choice-btn relic-choice';
+      relicButton.innerHTML = `
+        <div class="relic-choice-content">
+          <div class="relic-header">
+            <span class="relic-name">${relic.name}</span>
+            <span class="relic-rarity rarity-${
+              relic.rarity
+            }">${this.getRarityDisplayName(relic.rarity)}</span>
+          </div>
+          <div class="relic-effects">
+            ${relic.effects
+              .map(
+                effect =>
+                  `<div class="effect-line">• ${effect.description}</div>`
+              )
+              .join('')}
+          </div>
+        </div>
+      `;
+
+      relicButton.addEventListener('click', () => {
+        this.selectRelic(relic);
+      });
+
+      choicesContainer.appendChild(relicButton);
+    });
+
+    // Add skip option
+    const skipButton = document.createElement('button');
+    skipButton.className = 'choice-btn';
+    skipButton.textContent = '何も取らずに立ち去る';
+    skipButton.addEventListener('click', () => {
+      this.completeEvent();
+    });
+    choicesContainer.appendChild(skipButton);
+  }
+
+  private selectRelic(relic: Relic): void {
+    // Check if player has storage space
+    const currentRelics = this.gameState.playerParameters.relics.length;
+    const maxStorage = this.calculateMaxStorage();
+
+    if (currentRelics >= maxStorage) {
+      alert(`保管庫が満杯です！(最大${maxStorage}個)`);
+      return;
+    }
+
+    // Add relic to player inventory
+    this.gameState.playerParameters.relics.push(relic);
+
+    // Apply relic effects
+    this.applyRelicEffects(relic);
+
+    // Show confirmation
+    const storyElement = document.getElementById('story-text');
+    if (storyElement) {
+      storyElement.innerHTML = `
+        <h2>📿 レリック獲得！</h2>
+        <p><strong>${relic.name}</strong>を獲得しました！</p>
+        <div class="relic-effects">
+          ${relic.effects
+            .map(
+              effect => `<div class="effect-line">• ${effect.description}</div>`
+            )
+            .join('')}
+        </div>
+      `;
+    }
+
+    const choicesContainer = document.getElementById('choices-container');
+    if (choicesContainer) {
+      choicesContainer.innerHTML = '';
+      const continueButton = document.createElement('button');
+      continueButton.className = 'choice-btn';
+      continueButton.textContent = '続ける';
+      continueButton.addEventListener('click', () => {
+        this.completeEvent();
+      });
+      choicesContainer.appendChild(continueButton);
+    }
+  }
+
+  private calculateMaxStorage(): number {
+    let maxStorage = this.gameState.playerParameters.ship.storage;
+
+    // Add storage bonuses from relics
+    this.gameState.playerParameters.relics.forEach(relic => {
+      relic.effects.forEach(effect => {
+        if (effect.type === 'storage_increase') {
+          maxStorage += effect.value;
+        }
+      });
+    });
+
+    return maxStorage;
+  }
+
+  private getRarityDisplayName(rarity: string): string {
+    const rarityNames: { [key: string]: string } = {
+      common: 'コモン',
+      uncommon: 'アンコモン',
+      rare: 'レア',
+      epic: 'エピック',
+      legendary: 'レジェンダリ',
+    };
+    return rarityNames[rarity] || rarity;
+  }
+
+  private handlePortEvent(): void {
+    const storyElement = document.getElementById('story-text');
+    if (storyElement) {
+      storyElement.textContent = '港に到着しました。補給や修理が可能です。';
+    }
+    // TODO: Implement port functionality
+  }
+
+  private handleBossEvent(): void {
+    const storyElement = document.getElementById('story-text');
+    if (storyElement) {
+      storyElement.textContent = 'ボスとの戦闘が始まります！';
+    }
+    // TODO: Implement boss battle
+  }
+
+  private handleGenericEvent(eventType: EventType): void {
     const storyElement = document.getElementById('story-text');
     if (storyElement) {
       const eventMessages: { [key: string]: string } = {
-        port: '港に到着しました。補給や修理が可能です。',
-        treasure: '宝箱を発見しました！',
         unknown: '何かが起こりました...',
-        boss: 'ボスとの戦闘が始まります！',
       };
-
       storyElement.textContent =
         eventMessages[eventType] || '謎のイベントが発生しました。';
     }
+  }
+
+  private completeEvent(): void {
+    this.gameState.eventsCompleted++;
+    this.gameState.gamePhase = 'navigation';
+    this.updateDisplay();
+  }
+
+  private applyRelicEffects(relic: Relic): void {
+    relic.effects.forEach(effect => {
+      switch (effect.type) {
+        case 'hull_increase':
+          this.gameState.playerParameters.hull += effect.value;
+          this.gameState.playerParameters.ship.hullMax += effect.value;
+          break;
+        case 'speed_increase':
+          this.gameState.playerParameters.speed += effect.value;
+          break;
+        case 'sight_increase':
+          this.gameState.playerParameters.sight += effect.value;
+          break;
+        case 'crew_increase':
+          this.gameState.playerParameters.crew += effect.value;
+          this.gameState.playerParameters.ship.crewMax += effect.value;
+          break;
+        case 'weapon_slot_increase':
+          this.gameState.playerParameters.ship.weaponSlots += effect.value;
+          break;
+        case 'weapon_relic':
+          if (effect.weapon) {
+            this.gameState.playerParameters.weapons.push(effect.weapon);
+          }
+          break;
+        // storage_increase and gold_bonus are handled dynamically when needed
+        case 'storage_increase':
+          // Applied in calculateMaxStorage()
+          break;
+        case 'gold_bonus':
+          // Applied when calculating gold rewards
+          break;
+        default:
+          console.log(`Unknown relic effect type: ${effect.type}`);
+          break;
+      }
+    });
   }
 
   // Battle loop moved to CombatSystem

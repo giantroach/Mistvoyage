@@ -202,27 +202,49 @@ export interface BattleState {
   turnCount: number;
 }
 
+export type RelicRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
 export interface Relic {
   id: string;
   name: string;
   description: string;
+  rarity: RelicRarity;
   effects: RelicEffect[];
+  isLegendary?: boolean;
 }
 
 export interface RelicEffect {
-  type:
-    | 'parameter'
-    | 'combat'
-    | 'event'
-    | 'storage'
-    | 'weapon_slot'
-    | 'gold_bonus'
-    | 'weapon_function';
-  target: string;
-  modifier: number;
-  condition?: string;
-  duration?: number; // For temporary effects
+  type: string; // Effect type (storage_increase, hull_increase, etc.)
+  name: string; // Display name
+  description: string; // Description with {value} placeholder
+  value: number; // The actual value for this effect
+  isLegendary?: boolean; // True for legendary-only effects
   weapon?: Weapon; // For relics that function as weapons
+  duration?: number; // For temporary effects like berserker
+}
+
+export interface RelicData {
+  effects: Record<string, RelicEffectTemplate>;
+  legendaryEffects: Record<string, LegendaryEffectTemplate>;
+  rarityWeights: Record<RelicRarity, number>;
+  effectCounts: Record<RelicRarity, { min: number; max: number }>;
+}
+
+export interface RelicEffectTemplate {
+  name: string;
+  description: string;
+  rarityRanges: Record<RelicRarity, { min: number; max: number }>;
+}
+
+export interface LegendaryEffectTemplate {
+  name: string;
+  description: string;
+  durationRange?: { min: number; max: number };
+  weaponStats?: {
+    damage: { min: number; max: number };
+    accuracy: { min: number; max: number };
+    cooldown: { min: number; max: number };
+  };
 }
 
 // Player state

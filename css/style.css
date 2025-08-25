@@ -387,6 +387,70 @@ button.active:hover {
   transform: translateX(5px);
 }
 
+/* Relic Choice Styles */
+.relic-choice {
+  text-align: left;
+}
+
+.relic-choice-content {
+  width: 100%;
+}
+
+.relic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.relic-name {
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+.relic-rarity {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.rarity-common {
+  background-color: #666;
+  color: white;
+}
+
+.rarity-uncommon {
+  background-color: #4a9f4a;
+  color: white;
+}
+
+.rarity-rare {
+  background-color: #4a7ccc;
+  color: white;
+}
+
+.rarity-epic {
+  background-color: #8b4a9f;
+  color: white;
+}
+
+.rarity-legendary {
+  background-color: #cc8b4a;
+  color: white;
+}
+
+.relic-effects {
+  font-size: 0.9em;
+  color: #ccc;
+}
+
+.effect-line {
+  margin: 2px 0;
+  padding-left: 8px;
+}
+
 #status-bar {
   background-color: #2c2c2c;
   padding: 0.5rem 1rem;

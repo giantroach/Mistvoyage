@@ -1,0 +1,111 @@
+{
+  "effects": {
+    "storage_increase": {
+      "name": "保管庫拡張",
+      "description": "保管庫を{value}拡張する",
+      "rarityRanges": {
+        "common": { "min": 1, "max": 2 },
+        "uncommon": { "min": 2, "max": 3 },
+        "rare": { "min": 3, "max": 4 },
+        "epic": { "min": 4, "max": 5 },
+        "legendary": { "min": 5, "max": 6 }
+      }
+    },
+    "weapon_slot_increase": {
+      "name": "武器スロット拡張", 
+      "description": "武器スロットを{value}拡張する",
+      "rarityRanges": {
+        "common": { "min": 1, "max": 1 },
+        "uncommon": { "min": 1, "max": 1 },
+        "rare": { "min": 1, "max": 2 },
+        "epic": { "min": 1, "max": 2 },
+        "legendary": { "min": 2, "max": 2 }
+      }
+    },
+    "hull_increase": {
+      "name": "船体強化",
+      "description": "船体値を{value}増加させる",
+      "rarityRanges": {
+        "common": { "min": 5, "max": 10 },
+        "uncommon": { "min": 8, "max": 15 },
+        "rare": { "min": 12, "max": 20 },
+        "epic": { "min": 18, "max": 25 },
+        "legendary": { "min": 25, "max": 35 }
+      }
+    },
+    "speed_increase": {
+      "name": "速度向上",
+      "description": "速度を{value}増加させる",
+      "rarityRanges": {
+        "common": { "min": 1, "max": 2 },
+        "uncommon": { "min": 2, "max": 3 },
+        "rare": { "min": 3, "max": 5 },
+        "epic": { "min": 4, "max": 6 },
+        "legendary": { "min": 6, "max": 8 }
+      }
+    },
+    "sight_increase": {
+      "name": "視界改善",
+      "description": "視界を{value}増加させる",
+      "rarityRanges": {
+        "common": { "min": 1, "max": 2 },
+        "uncommon": { "min": 2, "max": 3 },
+        "rare": { "min": 3, "max": 4 },
+        "epic": { "min": 4, "max": 5 },
+        "legendary": { "min": 5, "max": 7 }
+      }
+    },
+    "crew_increase": {
+      "name": "乗組員増強",
+      "description": "乗組員を{value}増加させる",
+      "rarityRanges": {
+        "common": { "min": 1, "max": 2 },
+        "uncommon": { "min": 2, "max": 3 },
+        "rare": { "min": 3, "max": 4 },
+        "epic": { "min": 4, "max": 5 },
+        "legendary": { "min": 5, "max": 6 }
+      }
+    },
+    "gold_bonus": {
+      "name": "金運向上",
+      "description": "戦闘後に入手できる金が{value}%増加する",
+      "rarityRanges": {
+        "common": { "min": 10, "max": 20 },
+        "uncommon": { "min": 15, "max": 25 },
+        "rare": { "min": 20, "max": 35 },
+        "epic": { "min": 30, "max": 50 },
+        "legendary": { "min": 40, "max": 60 }
+      }
+    }
+  },
+  "legendaryEffects": {
+    "berserker": {
+      "name": "狂戦士の魂",
+      "description": "戦闘開始後{duration}秒間速度が50%になるが、その後速度が300%になる",
+      "durationRange": { "min": 10, "max": 20 }
+    },
+    "weapon_relic": {
+      "name": "魔法の武器",
+      "description": "武器として機能する(武器スロットを消費しない)",
+      "weaponStats": {
+        "damage": { "min": 8, "max": 15 },
+        "accuracy": { "min": 85, "max": 95 },
+        "cooldown": { "min": 3000, "max": 5000 }
+      }
+    }
+  },
+  "rarityWeights": {
+    "common": 50,
+    "uncommon": 30,
+    "rare": 15,
+    "epic": 4,
+    "legendary": 1
+  },
+  "effectCounts": {
+    "common": { "min": 1, "max": 1 },
+    "uncommon": { "min": 1, "max": 2 },
+    "rare": { "min": 1, "max": 3 },
+    "epic": { "min": 2, "max": 3 },
+    "legendary": { "min": 3, "max": 3 }
+  }
+}
