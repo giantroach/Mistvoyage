@@ -250,7 +250,6 @@ export class NavigationManager {
       </div>
     `;
 
-
     this.handleScrollPositionAfterCreation(
       currentScrollLeft,
       this.pendingScrollInfo

@@ -486,4 +486,68 @@ export class BattleManager {
   getBattleLog(gameState: GameState): (BattleAction | string)[] {
     return gameState.battleState?.battleLog || [];
   }
+
+  getCooldownData(gameState: GameState): {
+    playerWeapons: Array<{
+      name: string;
+      cooldownPercent: number;
+      remainingTime: number;
+      isReady: boolean;
+    }>;
+    monsters: Array<{
+      id: string;
+      name: string;
+      weapons: Array<{
+        name: string;
+        isActive: boolean;
+      }>;
+    }>;
+  } {
+    if (!gameState.battleState) {
+      return { playerWeapons: [], monsters: [] };
+    }
+
+    const currentTime = Date.now();
+    const battleState = gameState.battleState;
+    const playerParams = gameState.playerParameters;
+
+    const playerWeapons = battleState.playerWeapons.map(weaponState => {
+      const timeSinceLastUse = currentTime - weaponState.lastUsed;
+      const effectiveCooldown = this.calculateEffectiveCooldown(
+        weaponState.weapon,
+        playerParams,
+        battleState.playerEffects
+      );
+
+      const remainingTime = Math.max(0, effectiveCooldown - timeSinceLastUse);
+      const cooldownPercent =
+        effectiveCooldown > 0
+          ? Math.max(0, 100 - (timeSinceLastUse / effectiveCooldown) * 100)
+          : 0;
+      const isReady = remainingTime <= 0;
+
+      return {
+        name: weaponState.weapon.name,
+        cooldownPercent,
+        remainingTime,
+        isReady,
+      };
+    });
+
+    const monsters = battleState.monsters
+      .filter(monster => monster.hp > 0)
+      .map(monster => ({
+        id: monster.id,
+        name: monster.name,
+        weapons: monster.weapons.map(weaponId => {
+          const weaponData = this.monstersData?.monsterWeapons[weaponId];
+          return {
+            name: weaponData?.name || weaponId,
+            isActive: Math.random() < 0.3,
+          };
+        }),
+      }));
+
+    return { playerWeapons, monsters };
+  }
 }

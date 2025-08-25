@@ -211,6 +211,17 @@ export class MistvoyageGame {
   private updateDisplay(): void {
     this.updateParameterDisplay();
 
+    // Update cooldown display during combat
+    if (
+      this.gameState.gamePhase === 'combat' &&
+      this.gameState.battleState?.isActive
+    ) {
+      const cooldownData = this.battleManager.getCooldownData(this.gameState);
+      this.displayManager.updateCooldownDisplay(cooldownData);
+    } else {
+      this.displayManager.hideCooldownDisplay();
+    }
+
     console.log('updateDisplay: current gamePhase:', this.gameState.gamePhase);
     console.log(
       'updateDisplay: battleState exists:',
@@ -422,15 +433,8 @@ export class MistvoyageGame {
       </div>
     `;
 
-    // Auto-battle status
+    // Clear choices during combat
     choicesContainer.innerHTML = '';
-    const statusText = document.createElement('p');
-    statusText.textContent = '⚡ オートバトル進行中... ログを観察してください';
-    statusText.style.color = '#66ff66';
-    statusText.style.fontWeight = 'bold';
-    statusText.style.textAlign = 'center';
-    statusText.style.padding = '1rem';
-    choicesContainer.appendChild(statusText);
   }
 
   private formatBattleLog(battleLog: any[]): string {
@@ -913,7 +917,6 @@ export class MistvoyageGame {
   private showError(message: string): void {
     this.displayManager.showError(message);
   }
-
 }
 
 // ゲーム開始
