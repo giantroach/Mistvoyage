@@ -25,13 +25,16 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/DisplayManager.ts` - UI rendering and visual updates
 - `src/CombatSystem.ts` - Simple RPG-style combat (legacy, being replaced)
 - `src/BattleManager.ts` - Advanced auto-battle system with weapon cooldowns
+- `src/SaveManager.ts` - Game save/load functionality using LocalStorage
+- `src/RelicManager.ts` - Relic system management and effects
 - `data/game.json` - Basic game settings and chapter definitions
 - `data/ships.json` - Ship statistics and special rules
 - `data/events.json` - Story event definitions (ports, treasure, bosses, etc.)
-- `data/chapters.json` - Chapter configuration and event type weights
+- `data/event_config.json` - Chapter configuration and event type weights
 - `data/monsters.json` - Monster stats, encounters, and weapon definitions
 - `data/weapons.json` - Weapon statistics and effects
 - `data/battle_config.json` - Combat calculation modifiers and balancing
+- `data/relics.json` - Relic effects, rarities, and generation configuration
 - `css/style.css` - Dark theme styling optimized for Japanese text
 
 ### Game Data Structure
@@ -40,10 +43,11 @@ The game uses multiple JSON files:
 - **Game**: Basic settings, title, version, and chapter definitions
 - **Ships**: Ship stats (Hull, Crew, Speed, Storage, Weapon Slots) and special rules
 - **Events**: Story event definitions (ports, treasure, boss encounters, etc.)
-- **Chapters**: Define required events, difficulty, and event type probabilities
+- **Event Config**: Define required events, difficulty, and event type probabilities for each chapter
 - **Monsters**: Individual monster stats and encounter combinations
 - **Weapons**: Damage ranges, accuracy, cooldowns, and special effects
 - **Battle Config**: Speed modifiers, weather effects, crew penalties, etc.
+- **Relics**: Collectible items with various effects, rarity systems, and legendary abilities
 - **Game State**: Player parameters (Hull, Food, Money, Level, etc.) and current progress
 
 ## Development Commands
@@ -84,6 +88,7 @@ npm run deploy
 - **Weather System**: Weather affects combat accuracy and movement speed
 - **Save/Load**: Complete game state persistence to LocalStorage
 - **Event System**: Monster encounters, elite battles, ports, treasure, and boss fights
+- **Relic System**: Collectible items with various effects from stat boosts to legendary abilities
 
 ## Game Flow
 
