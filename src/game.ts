@@ -357,10 +357,21 @@ export class MistvoyageGame {
   }
 
   private showEvent(): void {
-    // Event handling will be implemented later
-    const content = document.getElementById('story-text');
-    if (content) {
-      content.innerHTML = '<h2>イベント処理中...</h2>';
+    // Get current node and display appropriate event
+    const currentNode = this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    if (currentNode && currentNode.eventType) {
+      switch (currentNode.eventType) {
+        case 'treasure':
+          this.handleTreasureEvent();
+          break;
+        default:
+          // For other events, show generic message
+          const content = document.getElementById('story-text');
+          if (content) {
+            content.innerHTML = '<h2>イベント処理中...</h2>';
+          }
+          break;
+      }
     }
   }
 
@@ -731,6 +742,11 @@ export class MistvoyageGame {
         ) {
           this.handleMonsterEvent();
           return; // Return early as battle will handle state changes
+        } else if (node.eventType === 'treasure') {
+          // Treasure events need special handling with event phase
+          this.gameState.gamePhase = 'event';
+          this.processEvent(node.eventType);
+          // Don't complete the event immediately - let player make choice
         } else {
           // Process other event types here
           this.processEvent(node.eventType);
@@ -828,8 +844,17 @@ export class MistvoyageGame {
 
     if (!storyElement || !choicesContainer) return;
 
-    // Generate 3 random relics
-    const relics = this.relicManager.generateMultipleRelics(3);
+    // Get chapter-specific rarity weights
+    const chapterConfigKey = `chapter_${this.gameState.currentChapter}`;
+    const chapterConfig = this.eventConfig?.eventConfigs[chapterConfigKey];
+    const treasureConfig = chapterConfig?.eventTypes?.treasure;
+    const customRarityWeights = treasureConfig?.rarityWeights;
+
+    // Generate 3 random relics using chapter-specific weights
+    const relics = this.relicManager.generateMultipleRelics(
+      3,
+      customRarityWeights
+    );
 
     storyElement.innerHTML = `
       <h2>🏺 宝箱発見！</h2>
@@ -978,7 +1003,26 @@ export class MistvoyageGame {
 
   private completeEvent(): void {
     this.gameState.eventsCompleted++;
+
+    // Check if chapter is complete
+    const chapter = this.gameData?.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    if (chapter && this.gameState.eventsCompleted >= chapter.requiredEvents) {
+      // Enable boss node
+      const bossNode = this.gameState.currentMap.nodes['boss'];
+      if (bossNode) {
+        bossNode.isAccessible = true;
+        bossNode.isVisible = true;
+      }
+    }
+
+    // Return to navigation phase
     this.gameState.gamePhase = 'navigation';
+
+    // Update node visibility after event completion
+    this.navigationManager.updateNodeVisibility();
+
     this.updateDisplay();
   }
 

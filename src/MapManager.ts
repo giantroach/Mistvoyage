@@ -68,15 +68,30 @@ export class MapManager {
 
         // Find a valid event type for this node
         while (attempts < maxAttempts) {
+          if (eventTypes.length === 0) {
+            eventType = 'unknown';
+            break;
+          }
+
           const candidateType = eventTypes.shift() || 'unknown';
 
+          // Check if this is a minCount (priority) event - these should be placed more aggressively
+          const isMinCountEvent = this.isMinCountEvent(
+            candidateType,
+            chapterConfig.eventTypes
+          );
+
           // Check if this type is already used in current layer (only if layer has 2+ nodes)
+          // For minCount events, allow layer duplicates if needed
           const isDuplicateInLayer =
-            branchCount >= 2 && layerEventTypes.has(candidateType);
+            !isMinCountEvent &&
+            branchCount >= 2 &&
+            layerEventTypes.has(candidateType);
 
           // Check if elite_monster is too close to start (within 2 layers from start)
+          // For minCount events, be more lenient about placement restrictions
           const isEliteTooClose =
-            candidateType === 'elite_monster' && layer <= 2;
+            !isMinCountEvent && candidateType === 'elite_monster' && layer <= 2;
 
           if (!isDuplicateInLayer && !isEliteTooClose) {
             eventType = candidateType;
@@ -158,7 +173,8 @@ export class MapManager {
       }
     });
 
-    // Add minimum count events
+    // Add minimum count events - mark them as priority
+    const priorityEvents: EventType[] = [];
     typeKeys.forEach(type => {
       const typeConfig = config[type];
       if (typeConfig.minCount && typeConfig.minCount > 0) {
@@ -166,6 +182,7 @@ export class MapManager {
         const needToAdd = Math.max(0, typeConfig.minCount - currentCount);
         for (let i = 0; i < needToAdd; i++) {
           eventTypes.push(type);
+          priorityEvents.push(type); // Track priority events
         }
       }
     });
@@ -207,13 +224,38 @@ export class MapManager {
       }
     }
 
-    // Shuffle the array
-    for (let i = eventTypes.length - 1; i > 0; i--) {
+    // Shuffle the array but keep priority events prioritized
+    // First shuffle non-priority events
+    const nonPriorityEvents = eventTypes.filter(
+      type => !priorityEvents.includes(type)
+    );
+    for (let i = nonPriorityEvents.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [eventTypes[i], eventTypes[j]] = [eventTypes[j], eventTypes[i]];
+      [nonPriorityEvents[i], nonPriorityEvents[j]] = [
+        nonPriorityEvents[j],
+        nonPriorityEvents[i],
+      ];
     }
 
-    return eventTypes;
+    // Shuffle priority events separately
+    const shuffledPriorityEvents = [...priorityEvents];
+    for (let i = shuffledPriorityEvents.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledPriorityEvents[i], shuffledPriorityEvents[j]] = [
+        shuffledPriorityEvents[j],
+        shuffledPriorityEvents[i],
+      ];
+    }
+
+    // Combine: priority events first, then others
+    const finalEventTypes = [...shuffledPriorityEvents, ...nonPriorityEvents];
+
+    return finalEventTypes;
+  }
+
+  private isMinCountEvent(eventType: EventType, eventTypeConfig: any): boolean {
+    const config = eventTypeConfig[eventType];
+    return config && config.minCount && config.minCount > 0;
   }
 
   private connectLayersWithOrphanPrevention(

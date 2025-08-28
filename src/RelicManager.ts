@@ -21,13 +21,13 @@ export class RelicManager {
     }
   }
 
-  generateRelic(): Relic {
+  generateRelic(customRarityWeights?: Record<string, number>): Relic {
     if (!this.relicData) {
       throw new Error('Relic data not initialized');
     }
 
     // Choose rarity based on weights
-    const rarity = this.selectRarity();
+    const rarity = this.selectRarity(customRarityWeights);
 
     // Generate unique ID
     const id = `relic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -51,18 +51,23 @@ export class RelicManager {
     };
   }
 
-  generateMultipleRelics(count: number): Relic[] {
+  generateMultipleRelics(
+    count: number,
+    customRarityWeights?: Record<string, number>
+  ): Relic[] {
     const relics: Relic[] = [];
     for (let i = 0; i < count; i++) {
-      relics.push(this.generateRelic());
+      relics.push(this.generateRelic(customRarityWeights));
     }
     return relics;
   }
 
-  private selectRarity(): RelicRarity {
+  private selectRarity(
+    customRarityWeights?: Record<string, number>
+  ): RelicRarity {
     if (!this.relicData) throw new Error('Relic data not initialized');
 
-    const weights = this.relicData.rarityWeights;
+    const weights = customRarityWeights || this.relicData.rarityWeights;
     const totalWeight = Object.values(weights).reduce(
       (sum, weight) => sum + weight,
       0
