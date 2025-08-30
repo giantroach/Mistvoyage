@@ -26,6 +26,7 @@ import { BattleManager } from './BattleManager.js';
 import { NavigationManager } from './NavigationManager.js';
 import { CombatSystem } from './CombatSystem.js';
 import { RelicManager } from './RelicManager.js';
+import { WeaponManager } from './WeaponManager.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
@@ -116,8 +117,16 @@ export class MistvoyageGame {
         min: 2,
         max: 6,
       },
-      accuracy: 75,
-      cooldown: 3000,
+      handlingReq: 1,
+      accuracy: 85,
+      cooldown: {
+        min: 1500,
+        max: 1500,
+      },
+      critRate: 10,
+      critMultiplier: 2.0,
+      price: 25,
+      rarity: 'common',
       type: 'projectile',
     };
 
@@ -153,6 +162,7 @@ export class MistvoyageGame {
       await this.loadGameData();
       await this.battleManager.initialize();
       await this.relicManager.initialize();
+      await WeaponManager.initialize();
       this.setupEventListeners();
       this.startGame();
     } catch (error) {
@@ -299,6 +309,14 @@ export class MistvoyageGame {
     this.gameState.playerParameters.crew = ship.crewMax;
     this.gameState.playerParameters.speed = ship.baseSpeed;
 
+    // Initialize weapons with random generation
+    const weaponManager = WeaponManager.getInstance();
+    this.gameState.playerParameters.weapons = ship.initialWeapons.map(
+      weaponId => {
+        return weaponManager.generateWeapon(weaponId, 'common');
+      }
+    );
+
     this.gameState.gamePhase = 'chapter_start';
     this.generateChapterMap();
     this.updateDisplay();
@@ -358,7 +376,8 @@ export class MistvoyageGame {
 
   private showEvent(): void {
     // Get current node and display appropriate event
-    const currentNode = this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (currentNode && currentNode.eventType) {
       switch (currentNode.eventType) {
         case 'treasure':
@@ -560,74 +579,63 @@ export class MistvoyageGame {
     const choicesContainer = document.getElementById('choices-container');
 
     if (content && choicesContainer) {
+      const rarityColors: Record<string, string> = {
+        common: '#888',
+        uncommon: '#4CAF50',
+        rare: '#2196F3',
+        epic: '#9C27B0',
+        legendary: '#FF9800',
+      };
+
+      const cooldownText =
+        weapon.cooldown.min === weapon.cooldown.max
+          ? `${weapon.cooldown.min}ms`
+          : `${weapon.cooldown.min}-${weapon.cooldown.max}ms`;
+
       content.innerHTML = `
         <div class="weapon-detail">
-          <div class="detail-header">
-            <h2>🗡️ ${weapon.name}</h2>
-            <button class="close-detail-btn" onclick="window.gameInstance.closeDetailView()">✕</button>
-          </div>
+          <h3 style="color: ${rarityColors[weapon.rarity] || '#fff'}">
+            ${weapon.name} (${weapon.rarity.toUpperCase()})
+          </h3>
           <p class="weapon-description">${weapon.description}</p>
-          
           <div class="weapon-stats">
-            <h3>⚔️ ステータス</h3>
-            <div class="stat-grid">
-              <div class="stat-item">
-                <span class="stat-label">ダメージ:</span>
-                <span class="stat-value">${weapon.damage.min} - ${
+            <div class="stat-row">
+              <span class="stat-label">ダメージ:</span>
+              <span class="stat-value">${weapon.damage.min}-${
         weapon.damage.max
       }</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">命中率:</span>
-                <span class="stat-value">${weapon.accuracy}%</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">クールダウン:</span>
-                <span class="stat-value">${weapon.cooldown / 1000}秒</span>
-              </div>
-              ${
-                weapon.critRate
-                  ? `
-                <div class="stat-item">
-                  <span class="stat-label">クリティカル率:</span>
-                  <span class="stat-value">${weapon.critRate}%</span>
-                </div>
-              `
-                  : ''
-              }
-              ${
-                weapon.critMultiplier
-                  ? `
-                <div class="stat-item">
-                  <span class="stat-label">クリティカル倍率:</span>
-                  <span class="stat-value">${weapon.critMultiplier}x</span>
-                </div>
-              `
-                  : ''
-              }
-              <div class="stat-item">
-                <span class="stat-label">タイプ:</span>
-                <span class="stat-value">${weapon.type}</span>
-              </div>
-              ${
-                weapon.effect
-                  ? `
-                <div class="stat-item">
-                  <span class="stat-label">特殊効果:</span>
-                  <span class="stat-value">${weapon.effect}</span>
-                </div>
-              `
-                  : ''
-              }
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">必要クルー:</span>
+              <span class="stat-value">${weapon.handlingReq}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">命中精度:</span>
+              <span class="stat-value">${weapon.accuracy}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">クールダウン:</span>
+              <span class="stat-value">${cooldownText}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">クリティカル率:</span>
+              <span class="stat-value">${weapon.critRate}%</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">クリティカル倍率:</span>
+              <span class="stat-value">${weapon.critMultiplier}x</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">価格:</span>
+              <span class="stat-value">${weapon.price}金</span>
             </div>
           </div>
-        </div>
-      `;
+        </div>`;
 
       choicesContainer.innerHTML = '';
       const backBtn = document.createElement('button');
       backBtn.textContent = '⬅️ 戻る';
-      backBtn.className = 'choice-btn';
+      backBtn.className = 'choice-button';
       backBtn.addEventListener('click', () => {
         this.closeDetailView();
       });

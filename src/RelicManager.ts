@@ -158,14 +158,25 @@ export class RelicManager {
             weaponStats.damage.max
           ),
         },
+        handlingReq: 1,
         accuracy: this.randomBetween(
           weaponStats.accuracy.min,
           weaponStats.accuracy.max
         ),
-        cooldown: this.randomBetween(
-          weaponStats.cooldown.min,
-          weaponStats.cooldown.max
-        ),
+        cooldown: {
+          min: this.randomBetween(
+            weaponStats.cooldown.min,
+            weaponStats.cooldown.max
+          ),
+          max: this.randomBetween(
+            weaponStats.cooldown.min,
+            weaponStats.cooldown.max
+          ),
+        },
+        critRate: 25,
+        critMultiplier: 3.0,
+        price: 0, // Relics don't have prices
+        rarity: 'legendary',
         type: 'legendary',
       };
 

@@ -119,6 +119,13 @@ export interface Ship {
   specialRules?: string[];
 }
 
+export type WeaponRarity =
+  | 'common'
+  | 'uncommon'
+  | 'rare'
+  | 'epic'
+  | 'legendary';
+
 export interface Weapon {
   id: string;
   name: string;
@@ -127,12 +134,18 @@ export interface Weapon {
     min: number;
     max: number;
   };
+  handlingReq: number; // Required crew to operate this weapon
   accuracy: number;
-  cooldown: number;
-  type: string;
+  cooldown: {
+    min: number;
+    max: number;
+  };
+  critRate: number; // Critical hit rate (0-100)
+  critMultiplier: number; // Critical damage multiplier (e.g., 2.0 for double damage)
+  price: number;
+  rarity: WeaponRarity;
+  type?: string;
   effect?: string;
-  critRate?: number; // Critical hit rate (0-100)
-  critMultiplier?: number; // Critical damage multiplier (e.g., 2.0 for double damage)
 }
 
 // Battle system types

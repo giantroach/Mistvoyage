@@ -7,6 +7,7 @@ import {
   BattleAction,
   BattleEffect,
 } from './types.js';
+import { WeaponManager } from './WeaponManager.js';
 
 export class BattleManager {
   private weaponsData: any = null;
@@ -41,7 +42,7 @@ export class BattleManager {
       monsters,
       playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
         weapon,
-        lastUsed: Date.now() - weapon.cooldown, // Allow immediate attack
+        lastUsed: Date.now() - weapon.cooldown.max, // Allow immediate attack
       })),
       battleLog: [],
       startTime: Date.now(),
@@ -295,9 +296,21 @@ export class BattleManager {
     playerParams: any,
     effects: BattleEffect[]
   ): number {
-    let cooldown = weapon.cooldown;
+    // Get base cooldown (random between min and max)
+    const baseCooldown =
+      weapon.cooldown.min +
+      Math.random() * (weapon.cooldown.max - weapon.cooldown.min);
+    let cooldown = baseCooldown;
 
-    // Apply crew modifier
+    // Apply crew requirement penalty
+    const weaponManager = WeaponManager.getInstance();
+    const crewPenalty = weaponManager.calculateCrewPenalty(
+      playerParams.weapons,
+      playerParams.crew
+    );
+    cooldown *= 1 + crewPenalty;
+
+    // Apply general crew modifier (for insufficient crew overall)
     const crewRatio = playerParams.crew / playerParams.ship.crewMax;
     if (
       crewRatio <
