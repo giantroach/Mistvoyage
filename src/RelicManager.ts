@@ -65,6 +65,7 @@ export class RelicManager {
       rarity,
       effects,
       isLegendary: rarity === 'legendary',
+      price: this.calculateRelicPrice(rarity, effects),
     };
   }
 
@@ -305,6 +306,33 @@ export class RelicManager {
   private generateRelicDescription(effects: RelicEffect[]): string {
     const descriptions = effects.map(effect => effect.description);
     return descriptions.join('\\n');
+  }
+
+  private calculateRelicPrice(
+    rarity: RelicRarity,
+    effects: RelicEffect[]
+  ): number {
+    // Base prices by rarity
+    const basePrices = {
+      common: 25,
+      uncommon: 50,
+      rare: 100,
+      epic: 200,
+      legendary: 400,
+    };
+
+    let price = basePrices[rarity] || 50;
+
+    // Add price based on number of effects
+    const effectBonus = effects.length * 15;
+    price += effectBonus;
+
+    // Add randomness (-20% to +20%)
+    const variation = price * 0.2;
+    const randomVariation = (Math.random() - 0.5) * 2 * variation;
+    price = Math.floor(price + randomVariation);
+
+    return Math.max(10, price); // Minimum 10 gold
   }
 
   private randomBetween(min: number, max: number): number {

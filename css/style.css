@@ -996,3 +996,59 @@ button.active:hover {
 .debug-battle-btn:hover {
   background: #dd7755 !important;
 }
+
+/* ==== PORT INTERFACE STYLES ==== */
+.port-weapons,
+.port-relics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.weapon-item,
+.relic-item {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.weapon-item h4,
+.relic-item h4 {
+  color: #66ccff;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.weapon-item p,
+.relic-item p {
+  margin: 0.5rem 0;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.weapon-item .choice-btn,
+.relic-item .choice-btn {
+  margin-top: 0.5rem;
+  background-color: #4a7c59;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.weapon-item .choice-btn:hover,
+.relic-item .choice-btn:hover {
+  background-color: #5a8c69;
+}
+
+.weapon-item .choice-btn:disabled,
+.relic-item .choice-btn:disabled {
+  background-color: #555;
+  color: #999;
+  cursor: not-allowed;
+}

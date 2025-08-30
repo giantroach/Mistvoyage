@@ -257,6 +257,7 @@ export interface Relic {
   rarity: RelicRarity;
   effects: RelicEffect[];
   isLegendary?: boolean;
+  price?: number;
 }
 
 export interface RelicEffect {
