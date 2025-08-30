@@ -66,7 +66,9 @@ export class BattleManager {
       (c: any) => c.id === gameState.currentChapter
     );
     if (!chapterData?.bossMonster) {
-      throw new Error(`No boss monster defined for chapter ${gameState.currentChapter}`);
+      throw new Error(
+        `No boss monster defined for chapter ${gameState.currentChapter}`
+      );
     }
 
     const bossMonster = this.createBossMonster(chapterData.bossMonster);
@@ -517,7 +519,7 @@ export class BattleManager {
     if (playerAlive) {
       // Check if this was a boss battle
       const isBossBattle = this.isBossBattle(gameState, chaptersData);
-      
+
       if (isBossBattle) {
         // Boss victory - special rewards
         battleState.phase = 'victory';
@@ -554,14 +556,14 @@ export class BattleManager {
     if (!chaptersData?.chapters || !gameState.battleState?.monsters) {
       return false;
     }
-    
+
     const chapterData = chaptersData.chapters.find(
       (c: any) => c.id === gameState.currentChapter
     );
     if (!chapterData?.bossMonster) {
       return false;
     }
-    
+
     // Check if any of the defeated monsters was the boss
     return gameState.battleState.monsters.some(
       monster => monster.id === chapterData.bossMonster
@@ -572,14 +574,14 @@ export class BattleManager {
     if (!chaptersData?.chapters) {
       return [];
     }
-    
+
     const chapterData = chaptersData.chapters.find(
       (c: any) => c.id === gameState.currentChapter
     );
     if (!chapterData?.bossRewardRarities) {
       return [];
     }
-    
+
     // Return placeholder data that will be replaced by RelicManager in the UI
     return chapterData.bossRewardRarities.map((rarity: string) => ({
       rarity: rarity,

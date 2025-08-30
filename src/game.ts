@@ -752,7 +752,10 @@ export class MistvoyageGame {
       this.gameState.currentChapter
     );
 
-    console.log('generateChapterMap: New map generated for chapter', this.gameState.currentChapter);
+    console.log(
+      'generateChapterMap: New map generated for chapter',
+      this.gameState.currentChapter
+    );
 
     // Update node visibility using NavigationManager
     this.navigationManager.updateNodeVisibility();
@@ -1236,18 +1239,26 @@ export class MistvoyageGame {
 
     if (!content || !choicesContainer) return;
 
-    content.innerHTML = '<p>ボスを撃破しました！<br>報酬として以下のレリックから一つを選択してください：</p>';
+    content.innerHTML =
+      '<p>ボスを撃破しました！<br>報酬として以下のレリックから一つを選択してください：</p>';
 
     // Generate boss rewards using BattleManager
-    const rewards = this.battleManager.generateBossRewards(this.gameState, this.chaptersData);
-    
+    const rewards = this.battleManager.generateBossRewards(
+      this.gameState,
+      this.chaptersData
+    );
+
     // Generate actual relics using RelicManager
     const relicManager = this.getRelicManager();
-    const actualRelics = rewards.map(reward => relicManager.generateRelic(reward.rarity));
+    const actualRelics = rewards.map(reward =>
+      relicManager.generateRelic(reward.rarity)
+    );
 
     let choicesHtml = '';
     actualRelics.forEach((relic, index) => {
-      const effectsText = relic.effects.map(effect => effect.description).join('<br>');
+      const effectsText = relic.effects
+        .map(effect => effect.description)
+        .join('<br>');
       choicesHtml += `
         <div class="boss-reward-option">
           <button id="select-relic-${index}" class="boss-reward-btn">
@@ -1275,17 +1286,23 @@ export class MistvoyageGame {
   private selectBossReward(selectedRelic: any): void {
     console.log('selectBossReward called');
     console.log('Current chapter before:', this.gameState.currentChapter);
-    
+
     // Add selected relic to player inventory
-    if (this.gameState.playerParameters.relics.length < this.gameState.playerParameters.ship.storage) {
+    if (
+      this.gameState.playerParameters.relics.length <
+      this.gameState.playerParameters.ship.storage
+    ) {
       this.gameState.playerParameters.relics.push(selectedRelic);
       console.log('Added relic to inventory:', selectedRelic.name);
     }
 
     // Progress to next chapter or end game
     this.gameState.currentChapter++;
-    console.log('Current chapter after increment:', this.gameState.currentChapter);
-    
+    console.log(
+      'Current chapter after increment:',
+      this.gameState.currentChapter
+    );
+
     if (this.gameState.currentChapter > 3) {
       // Game completed
       console.log('Game completed - setting victory phase');
@@ -1293,24 +1310,24 @@ export class MistvoyageGame {
     } else {
       // Move to next chapter
       console.log('Moving to next chapter - going directly to navigation');
-      
+
       // Reset chapter progress
       console.log('Resetting chapter progress...');
       this.gameState.eventsCompleted = 0;
       this.gameState.visitedNodes.clear();
-      
+
       // Reset map scroll position for new chapter
       this.gameState.mapScrollPosition = 0;
       console.log('Reset map scroll position to 0');
-      
+
       console.log('Generating new chapter map...');
       this.generateChapterMap();
-      
+
       // Set starting node for new chapter
       this.gameState.currentNodeId = this.gameState.currentMap.startNodeId;
       console.log('Set starting node to:', this.gameState.currentNodeId);
       console.log('New map generated, current map:', this.gameState.currentMap);
-      
+
       // Go directly to navigation phase (skip chapter_start screen)
       this.gameState.gamePhase = 'navigation';
       console.log('Set game phase to navigation');
@@ -1319,15 +1336,21 @@ export class MistvoyageGame {
     // Clean up battle state
     this.gameState.battleState = undefined;
     console.log('Cleaned up battle state');
-    
+
     console.log('Calling updateDisplay...');
     this.updateDisplay();
-    
+
     // Additional scroll position reset after display update
     setTimeout(() => {
       if (this.gameState.gamePhase === 'navigation') {
-        const mapContainer = document.querySelector('.map-container.scrollable') as HTMLElement;
-        if (mapContainer && this.gameState.currentNodeId === 'start' && this.gameState.eventsCompleted === 0) {
+        const mapContainer = document.querySelector(
+          '.map-container.scrollable'
+        ) as HTMLElement;
+        if (
+          mapContainer &&
+          this.gameState.currentNodeId === 'start' &&
+          this.gameState.eventsCompleted === 0
+        ) {
           console.log('Additional scroll position reset to 0');
           mapContainer.scrollLeft = 0;
           this.gameState.mapScrollPosition = 0;

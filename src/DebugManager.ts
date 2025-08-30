@@ -233,21 +233,8 @@ export class DebugManager {
   }
 
   private renderMonsterSelection(): string {
-    // Get available encounters from chapter 1
-    const encounters = [
-      { id: 'single_slime', name: 'スライム単体', monsters: ['sea_slime'] },
-      { id: 'single_crab', name: '蟹単体', monsters: ['giant_crab'] },
-      {
-        id: 'double_slime',
-        name: 'スライム複数',
-        monsters: ['sea_slime', 'sea_slime'],
-      },
-      {
-        id: 'mixed_encounter',
-        name: '混合エンカウンター',
-        monsters: ['sea_slime', 'giant_crab'],
-      },
-    ];
+    // Generate encounters dynamically from monsters.json data
+    const encounters = this.generateEncounterOptions();
 
     return encounters
       .map(
@@ -430,20 +417,26 @@ export class DebugManager {
   }
 
   private createDebugMonsters(): any[] {
-    const encounters = [
-      { id: 'single_slime', monsters: ['sea_slime'] },
-      { id: 'single_crab', monsters: ['giant_crab'] },
-      { id: 'double_slime', monsters: ['sea_slime', 'sea_slime'] },
-      { id: 'mixed_encounter', monsters: ['sea_slime', 'giant_crab'] },
-    ];
+    const encounters = this.generateEncounterOptions();
+
+    console.log(
+      'Debug: Selected monster encounter:',
+      this.debugState.selectedMonsterEncounter
+    );
 
     const selectedEncounter = encounters.find(
       e => e.id === this.debugState.selectedMonsterEncounter
     );
 
     if (!selectedEncounter) {
+      console.error(
+        'Debug: Encounter not found:',
+        this.debugState.selectedMonsterEncounter
+      );
       return [];
     }
+
+    console.log('Debug: Found encounter:', selectedEncounter);
 
     // Create debug monsters manually
     const debugMonsters = selectedEncounter.monsters.map((monsterId, index) => {
@@ -469,8 +462,16 @@ export class DebugManager {
   }
 
   private getMonsterStats(monsterId: string): any {
-    const monsterStats: Record<string, any> = {
-      sea_slime: {
+    // Get monster data from BattleManager's loaded monsters.json data
+    const battleManager = this.gameInstance.getBattleManager();
+
+    // Access the monsters data through the private property (this is for debug purposes)
+    const monstersData = (battleManager as any).monstersData;
+
+    if (!monstersData || !monstersData.monsters) {
+      console.error('Debug: Monster data not loaded in BattleManager');
+      // Fallback to basic sea slime
+      return {
         name: '海のスライム',
         description: '弱い海洋生物',
         hp: 8,
@@ -481,22 +482,41 @@ export class DebugManager {
         chapters: [1],
         attack: 5,
         defense: 2,
-      },
-      giant_crab: {
-        name: '巨大蟹',
-        description: '硬い殻を持つ大型の蟹',
-        hp: 15,
-        speed: 2,
-        weapons: ['claw_pinch'],
-        goldReward: { min: 8, max: 15 },
-        difficulty: 2,
-        chapters: [1, 2],
-        attack: 8,
-        defense: 5,
-      },
-    };
+      };
+    }
 
-    return monsterStats[monsterId] || monsterStats.sea_slime;
+    const monsterData = monstersData.monsters[monsterId];
+    if (!monsterData) {
+      console.error(
+        `Debug: Monster stats not found for: ${monsterId}, using sea_slime as fallback`
+      );
+      return (
+        monstersData.monsters.sea_slime || {
+          name: '海のスライム',
+          description: '弱い海洋生物',
+          hp: 8,
+          speed: 3,
+          weapons: ['tentacle_slap'],
+          goldReward: { min: 3, max: 8 },
+          difficulty: 1,
+          chapters: [1],
+          attack: 5,
+          defense: 2,
+        }
+      );
+    }
+
+    console.log(
+      `Debug: Using monster stats from JSON for ${monsterId}:`,
+      monsterData
+    );
+
+    // Add default attack/defense if not present in JSON
+    return {
+      ...monsterData,
+      attack: monsterData.attack || Math.floor(monsterData.hp * 0.6),
+      defense: monsterData.defense || Math.floor(monsterData.hp * 0.3),
+    };
   }
 
   private startDebugBattleLoop(): void {
@@ -512,6 +532,62 @@ export class DebugManager {
     };
 
     battleUpdate();
+  }
+
+  private generateEncounterOptions(): Array<{
+    id: string;
+    name?: string;
+    monsters: string[];
+  }> {
+    const battleManager = this.gameInstance.getBattleManager();
+    const monstersData = (battleManager as any).monstersData;
+
+    if (!monstersData || !monstersData.monsters) {
+      console.error(
+        'Debug: Monster data not loaded, using fallback encounters'
+      );
+      return [
+        { id: 'single_slime', name: 'スライム単体', monsters: ['sea_slime'] },
+      ];
+    }
+
+    const encounters: Array<{ id: string; name?: string; monsters: string[] }> =
+      [];
+
+    // Generate single monster encounters for each available monster
+    Object.keys(monstersData.monsters).forEach(monsterId => {
+      const monster = monstersData.monsters[monsterId];
+      const isBoss = ['kraken_young', 'ghost_ship'].includes(monsterId);
+      const prefix = isBoss ? 'ボス：' : '';
+
+      encounters.push({
+        id: `single_${monsterId}`,
+        name: `${prefix}${monster.name}単体`,
+        monsters: [monsterId],
+      });
+    });
+
+    // Add some multi-monster encounters
+    encounters.push(
+      {
+        id: 'double_slime',
+        name: 'スライム複数',
+        monsters: ['sea_slime', 'sea_slime'],
+      },
+      {
+        id: 'mixed_basic',
+        name: '基本混合',
+        monsters: ['sea_slime', 'giant_crab'],
+      },
+      {
+        id: 'mixed_advanced',
+        name: '上級混合',
+        monsters: ['storm_shark', 'kraken_spawn'],
+      }
+    );
+
+    console.log('Debug: Generated encounters:', encounters);
+    return encounters;
   }
 
   private refreshDebugScreen(): void {
