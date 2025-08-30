@@ -24,7 +24,7 @@ Mistvoyageは霧に包まれた海域を航海するローグライクゲーム�
 - **デプロイ**: GitHub Pages対応
 - **データ保存**: LocalStorage
 - **コンテンツ管理**: JSON形式（チャプター、モンスター、武器、戦闘設定）
-- **アーキテクチャ**: モジュール化されたゲームシステム（MapManager, CombatSystem, BattleManager, NavigationManager, DisplayManager）
+- **アーキテクチャ**: モジュール化されたゲームシステム（MapManager, BattleManager, NavigationManager, DisplayManager, PortManager, WeaponManager, RelicManager）
 
 ## 開発・実行
 
@@ -61,7 +61,9 @@ npm run format
 │   ├── NavigationManager.ts # ナビゲーション管理
 │   ├── DisplayManager.ts   # 画面表示管理
 │   ├── SaveManager.ts     # セーブ・ロード機能
-│   └── RelicManager.ts    # レリックシステム管理
+│   ├── RelicManager.ts    # レリックシステム管理
+│   ├── PortManager.ts     # 港イベント・サービス管理
+│   └── WeaponManager.ts   # 武器生成・管理システム
 ├── dist/                  # コンパイル済みJavaScript
 ├── data/
 │   ├── game.json         # 基本ゲーム設定

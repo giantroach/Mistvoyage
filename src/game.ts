@@ -171,7 +171,7 @@ export class MistvoyageGame {
       await this.battleManager.initialize();
       await this.relicManager.initialize();
       await WeaponManager.initialize();
-      
+
       // Initialize PortManager after WeaponManager is ready
       this.portManager = new PortManager(
         this.gameState,
@@ -183,7 +183,7 @@ export class MistvoyageGame {
       if (this.chaptersData) {
         this.portManager.setChaptersData(this.chaptersData);
       }
-      
+
       this.setupEventListeners();
       this.startGame();
     } catch (error) {
@@ -1032,8 +1032,6 @@ export class MistvoyageGame {
     };
     return rarityNames[rarity] || rarity;
   }
-
-
 
   // Port management is now handled by PortManager
   public getPortManager(): PortManager {

@@ -27,6 +27,8 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/BattleManager.ts` - Advanced auto-battle system with weapon cooldowns
 - `src/SaveManager.ts` - Game save/load functionality using LocalStorage
 - `src/RelicManager.ts` - Relic system management and effects
+- `src/PortManager.ts` - Port event handling and services (ship repair, weapon/relic purchases)
+- `src/WeaponManager.ts` - Weapon generation and management system
 - `data/game.json` - Basic game settings and chapter definitions
 - `data/ships.json` - Ship statistics and special rules
 - `data/events.json` - Story event definitions (ports, treasure, bosses, etc.)
@@ -106,3 +108,4 @@ npm run deploy
 - **Map Generation**: MapManager creates tree structures with proper connections
 - **Display Updates**: Always call updateDisplay() after state changes
 - **Game Phases**: 'ship_selection' → 'navigation' → 'event'/'combat' → 'battle_result' → 'navigation'
+- **Manager Architecture**: Port events are handled by PortManager, weapons by WeaponManager, following modular design pattern

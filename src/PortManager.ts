@@ -55,7 +55,8 @@ export class PortManager {
 
     choicesContainer.innerHTML = `
       <button class="choice-btn" onclick="window.gameInstance.portManager.repairShip()" ${
-        this.gameState.playerParameters.hull >= this.gameState.playerParameters.ship.hullMax ||
+        this.gameState.playerParameters.hull >=
+          this.gameState.playerParameters.ship.hullMax ||
         this.gameState.playerParameters.money < 10
           ? 'disabled'
           : ''
@@ -80,7 +81,10 @@ export class PortManager {
 
     if (!storyDisplay || !choicesContainer) return;
 
-    if (this.gameState.playerParameters.hull >= this.gameState.playerParameters.ship.hullMax) {
+    if (
+      this.gameState.playerParameters.hull >=
+      this.gameState.playerParameters.ship.hullMax
+    ) {
       storyDisplay.innerHTML = `
         <h3>船体修復</h3>
         <p>船体は既に完璧な状態です。修復の必要はありません。</p>
@@ -108,8 +112,9 @@ export class PortManager {
 
     // Perform repair
     this.gameState.playerParameters.money -= 10;
-    this.gameState.playerParameters.hull = this.gameState.playerParameters.ship.hullMax;
-    
+    this.gameState.playerParameters.hull =
+      this.gameState.playerParameters.ship.hullMax;
+
     this.updateDisplayCallback();
 
     storyDisplay.innerHTML = `
@@ -159,14 +164,16 @@ export class PortManager {
             <button 
               class="choice-btn ${
                 this.gameState.playerParameters.money < weapon.price ||
-                this.gameState.playerParameters.weapons.length >= this.gameState.playerParameters.ship.weaponSlots
+                this.gameState.playerParameters.weapons.length >=
+                  this.gameState.playerParameters.ship.weaponSlots
                   ? 'disabled'
                   : ''
               }" 
               onclick="window.gameInstance.portManager.purchaseWeapon(${index})"
               ${
                 this.gameState.playerParameters.money < weapon.price ||
-                this.gameState.playerParameters.weapons.length >= this.gameState.playerParameters.ship.weaponSlots
+                this.gameState.playerParameters.weapons.length >=
+                  this.gameState.playerParameters.ship.weaponSlots
                   ? 'disabled'
                   : ''
               }
@@ -206,7 +213,10 @@ export class PortManager {
       return;
     }
 
-    if (this.gameState.playerParameters.weapons.length >= this.gameState.playerParameters.ship.weaponSlots) {
+    if (
+      this.gameState.playerParameters.weapons.length >=
+      this.gameState.playerParameters.ship.weaponSlots
+    ) {
       storyDisplay.innerHTML = `
         <h3>購入失敗</h3>
         <p>武器スロットが満杯です。</p>
@@ -259,7 +269,9 @@ export class PortManager {
               ${relic.effects
                 .map(
                   effect =>
-                    `<div class="effect ${effect.isLegendary ? 'legendary' : ''}">${effect.description}</div>`
+                    `<div class="effect ${
+                      effect.isLegendary ? 'legendary' : ''
+                    }">${effect.description}</div>`
                 )
                 .join('')}
             </div>
@@ -267,14 +279,16 @@ export class PortManager {
             <button 
               class="choice-btn ${
                 this.gameState.playerParameters.money < (relic.price || 50) ||
-                this.gameState.playerParameters.relics.length >= this.gameState.playerParameters.ship.storage
+                this.gameState.playerParameters.relics.length >=
+                  this.gameState.playerParameters.ship.storage
                   ? 'disabled'
                   : ''
               }" 
               onclick="window.gameInstance.portManager.purchaseRelic(${index})"
               ${
                 this.gameState.playerParameters.money < (relic.price || 50) ||
-                this.gameState.playerParameters.relics.length >= this.gameState.playerParameters.ship.storage
+                this.gameState.playerParameters.relics.length >=
+                  this.gameState.playerParameters.ship.storage
                   ? 'disabled'
                   : ''
               }
@@ -314,7 +328,10 @@ export class PortManager {
       return;
     }
 
-    if (this.gameState.playerParameters.relics.length >= this.gameState.playerParameters.ship.storage) {
+    if (
+      this.gameState.playerParameters.relics.length >=
+      this.gameState.playerParameters.ship.storage
+    ) {
       storyDisplay.innerHTML = `
         <h3>購入失敗</h3>
         <p>保管庫が満杯です。</p>
