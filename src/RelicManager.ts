@@ -10,6 +10,16 @@ import {
 
 export class RelicManager {
   private relicData: RelicData | null = null;
+  private static instance: RelicManager;
+
+  constructor() {}
+
+  static getInstance(): RelicManager {
+    if (!RelicManager.instance) {
+      RelicManager.instance = new RelicManager();
+    }
+    return RelicManager.instance;
+  }
 
   async initialize(): Promise<void> {
     try {
@@ -21,13 +31,20 @@ export class RelicManager {
     }
   }
 
-  generateRelic(customRarityWeights?: Record<string, number>): Relic {
+  generateRelic(rarityOrWeights?: RelicRarity | Record<string, number>): Relic {
     if (!this.relicData) {
       throw new Error('Relic data not initialized');
     }
 
-    // Choose rarity based on weights
-    const rarity = this.selectRarity(customRarityWeights);
+    // Choose rarity based on input
+    let rarity: RelicRarity;
+    if (typeof rarityOrWeights === 'string') {
+      // Direct rarity specification
+      rarity = rarityOrWeights;
+    } else {
+      // Use weights
+      rarity = this.selectRarity(rarityOrWeights);
+    }
 
     // Generate unique ID
     const id = `relic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

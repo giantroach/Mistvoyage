@@ -27,6 +27,7 @@ import { NavigationManager } from './NavigationManager.js';
 import { CombatSystem } from './CombatSystem.js';
 import { RelicManager } from './RelicManager.js';
 import { WeaponManager } from './WeaponManager.js';
+import { DebugManager } from './DebugManager.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
@@ -44,6 +45,7 @@ export class MistvoyageGame {
   private navigationManager: NavigationManager;
   private combatSystem: CombatSystem;
   private relicManager: RelicManager;
+  private debugManager: DebugManager;
   private pendingScrollInfo: any = null;
 
   constructor() {
@@ -52,6 +54,7 @@ export class MistvoyageGame {
     this.saveManager = new SaveManager();
     this.battleManager = new BattleManager();
     this.relicManager = new RelicManager();
+    this.debugManager = new DebugManager(this);
     this.navigationManager = new NavigationManager(
       this.gameState,
       this.displayManager
@@ -209,11 +212,16 @@ export class MistvoyageGame {
     const saveBtn = document.getElementById('save-btn');
     const loadBtn = document.getElementById('load-btn');
     const settingsBtn = document.getElementById('settings-btn');
+    const debugBtn = document.getElementById('debug-btn');
 
     if (saveBtn) saveBtn.addEventListener('click', () => this.saveGame());
     if (loadBtn) loadBtn.addEventListener('click', () => this.loadGame());
     if (settingsBtn)
       settingsBtn.addEventListener('click', () => this.showSettings());
+    if (debugBtn)
+      debugBtn.addEventListener('click', () =>
+        this.getDebugManager().toggleDebugMode()
+      );
   }
 
   private startGame(): void {
@@ -1154,6 +1162,28 @@ export class MistvoyageGame {
   private showError(message: string): void {
     this.displayManager.showError(message);
   }
+
+  // Public getter for debug manager
+  public getDebugManager(): DebugManager {
+    return this.debugManager;
+  }
+
+  // Public getters for managers (for debug access)
+  public getRelicManager(): RelicManager {
+    return this.relicManager;
+  }
+
+  public getWeaponManager(): WeaponManager {
+    return WeaponManager.getInstance();
+  }
+
+  public getBattleManager(): BattleManager {
+    return this.battleManager;
+  }
+
+  public getShipsData(): any {
+    return this.shipsData;
+  }
 }
 
 // ゲーム開始
@@ -1161,4 +1191,5 @@ document.addEventListener('DOMContentLoaded', () => {
   const game = new MistvoyageGame();
   // Make game instance globally accessible for onclick handlers
   (window as any).gameInstance = game;
+  (window as any).debugManager = game.getDebugManager();
 });
