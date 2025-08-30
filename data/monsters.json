@@ -69,6 +69,34 @@
       },
       "difficulty": 6,
       "chapters": [3]
+    },
+    "kraken_young": {
+      "id": "kraken_young",
+      "name": "若きクラーケン",
+      "description": "成長しつつある海の怪物",
+      "hp": 35,
+      "speed": 4,
+      "weapons": ["tentacle_whip", "ink_spray"],
+      "goldReward": {
+        "min": 30,
+        "max": 50
+      },
+      "difficulty": 4,
+      "chapters": [1]
+    },
+    "ghost_ship": {
+      "id": "ghost_ship",
+      "name": "幽霊船",
+      "description": "呪われた船と亡霊の乗組員",
+      "hp": 40,
+      "speed": 3,
+      "weapons": ["ghost_cannon", "spectral_ram"],
+      "goldReward": {
+        "min": 40,
+        "max": 60
+      },
+      "difficulty": 5,
+      "chapters": [2]
     }
   },
   "monsterWeapons": {
@@ -127,6 +155,19 @@
       "accuracy": 100,
       "cooldown": 8000,
       "effect": "fear"
+    },
+    "ghost_cannon": {
+      "name": "幽霊大砲",
+      "damage": { "min": 5, "max": 9 },
+      "accuracy": 75,
+      "cooldown": 4500,
+      "effect": "fear"
+    },
+    "spectral_ram": {
+      "name": "幽体衝突",
+      "damage": { "min": 4, "max": 6 },
+      "accuracy": 85,
+      "cooldown": 3500
     }
   }
 }

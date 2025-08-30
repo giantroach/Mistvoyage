@@ -287,6 +287,9 @@ export class MistvoyageGame {
       case 'battle_result':
         this.showBattleResult();
         break;
+      case 'boss_reward':
+        this.showBossReward();
+        break;
       default:
         console.error('Unknown game phase:', this.gameState.gamePhase);
     }
@@ -739,11 +742,17 @@ export class MistvoyageGame {
     const chapterConfig = this.eventConfig.eventConfigs[chapterConfigKey];
     if (!chapterConfig) return;
 
+    // Reset map scroll position before generating new map
+    this.gameState.mapScrollPosition = 0;
+    console.log('generateChapterMap: Reset map scroll position to 0');
+
     this.gameState.currentMap = this.mapManager.generateChapterMap(
       chapter,
       chapterConfig,
       this.gameState.currentChapter
     );
+
+    console.log('generateChapterMap: New map generated for chapter', this.gameState.currentChapter);
 
     // Update node visibility using NavigationManager
     this.navigationManager.updateNodeVisibility();
@@ -768,6 +777,9 @@ export class MistvoyageGame {
         ) {
           this.handleMonsterEvent();
           return; // Return early as battle will handle state changes
+        } else if (node.eventType === 'boss') {
+          this.handleBossEvent();
+          return; // Return early as boss battle will handle state changes
         } else if (node.eventType === 'treasure') {
           // Treasure events need special handling with event phase
           this.gameState.gamePhase = 'event';
@@ -820,7 +832,7 @@ export class MistvoyageGame {
   private handleMonsterEvent(): void {
     try {
       // Use BattleManager for proper auto-battle system
-      this.battleManager.initiateBattle(this.gameState);
+      this.battleManager.initiateBattle(this.gameState, this.chaptersData);
 
       // Start the battle loop
       this.startBattleUpdateLoop();
@@ -829,6 +841,12 @@ export class MistvoyageGame {
       this.updateDisplay();
     } catch (error) {
       console.error('Failed to start battle:', error);
+      console.error('Error details:', error);
+      console.error('Current chapter:', this.gameState.currentChapter);
+      console.error('Chapters data available:', !!this.chaptersData);
+      if (this.chaptersData) {
+        console.error('Chapters:', this.chaptersData.chapters);
+      }
       // Fallback to normal event processing
       this.processEvent('monster');
     }
@@ -837,7 +855,7 @@ export class MistvoyageGame {
   private startBattleUpdateLoop(): void {
     const battleUpdate = () => {
       if (this.gameState.battleState?.isActive) {
-        this.battleManager.updateBattle(this.gameState);
+        this.battleManager.updateBattle(this.gameState, this.chaptersData);
         this.updateDisplay();
         setTimeout(battleUpdate, 100); // Update every 100ms for smooth auto-battle
       }
@@ -1013,7 +1031,19 @@ export class MistvoyageGame {
     if (storyElement) {
       storyElement.textContent = 'ボスとの戦闘が始まります！';
     }
-    // TODO: Implement boss battle
+
+    try {
+      // Use BattleManager for boss battle system
+      this.battleManager.initiateBossBattle(this.gameState, this.chaptersData);
+      // Start the battle loop
+      this.startBattleUpdateLoop();
+      // Update display to show battle screen
+      this.updateDisplay();
+    } catch (error) {
+      console.error('Failed to start boss battle:', error);
+      // Fallback to generic event processing
+      this.handleGenericEvent('boss');
+    }
   }
 
   private handleGenericEvent(eventType: EventType): void {
@@ -1197,6 +1227,113 @@ export class MistvoyageGame {
 
   public getShipsData(): any {
     return this.shipsData;
+  }
+
+  private showBossReward(): void {
+    console.log('showBossReward called');
+    const content = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (!content || !choicesContainer) return;
+
+    content.innerHTML = '<p>ボスを撃破しました！<br>報酬として以下のレリックから一つを選択してください：</p>';
+
+    // Generate boss rewards using BattleManager
+    const rewards = this.battleManager.generateBossRewards(this.gameState, this.chaptersData);
+    
+    // Generate actual relics using RelicManager
+    const relicManager = this.getRelicManager();
+    const actualRelics = rewards.map(reward => relicManager.generateRelic(reward.rarity));
+
+    let choicesHtml = '';
+    actualRelics.forEach((relic, index) => {
+      const effectsText = relic.effects.map(effect => effect.description).join('<br>');
+      choicesHtml += `
+        <div class="boss-reward-option">
+          <button id="select-relic-${index}" class="boss-reward-btn">
+            <div class="relic-name">${relic.name} (${relic.rarity})</div>
+            <div class="relic-description">${relic.description}</div>
+            <div class="relic-effects">${effectsText}</div>
+          </button>
+        </div>
+      `;
+    });
+
+    choicesContainer.innerHTML = choicesHtml;
+
+    // Add event listeners for relic selection
+    actualRelics.forEach((relic, index) => {
+      const selectBtn = document.getElementById(`select-relic-${index}`);
+      if (selectBtn) {
+        selectBtn.addEventListener('click', () => {
+          this.selectBossReward(relic);
+        });
+      }
+    });
+  }
+
+  private selectBossReward(selectedRelic: any): void {
+    console.log('selectBossReward called');
+    console.log('Current chapter before:', this.gameState.currentChapter);
+    
+    // Add selected relic to player inventory
+    if (this.gameState.playerParameters.relics.length < this.gameState.playerParameters.ship.storage) {
+      this.gameState.playerParameters.relics.push(selectedRelic);
+      console.log('Added relic to inventory:', selectedRelic.name);
+    }
+
+    // Progress to next chapter or end game
+    this.gameState.currentChapter++;
+    console.log('Current chapter after increment:', this.gameState.currentChapter);
+    
+    if (this.gameState.currentChapter > 3) {
+      // Game completed
+      console.log('Game completed - setting victory phase');
+      this.gameState.gamePhase = 'victory';
+    } else {
+      // Move to next chapter
+      console.log('Moving to next chapter - going directly to navigation');
+      
+      // Reset chapter progress
+      console.log('Resetting chapter progress...');
+      this.gameState.eventsCompleted = 0;
+      this.gameState.visitedNodes.clear();
+      
+      // Reset map scroll position for new chapter
+      this.gameState.mapScrollPosition = 0;
+      console.log('Reset map scroll position to 0');
+      
+      console.log('Generating new chapter map...');
+      this.generateChapterMap();
+      
+      // Set starting node for new chapter
+      this.gameState.currentNodeId = this.gameState.currentMap.startNodeId;
+      console.log('Set starting node to:', this.gameState.currentNodeId);
+      console.log('New map generated, current map:', this.gameState.currentMap);
+      
+      // Go directly to navigation phase (skip chapter_start screen)
+      this.gameState.gamePhase = 'navigation';
+      console.log('Set game phase to navigation');
+    }
+
+    // Clean up battle state
+    this.gameState.battleState = undefined;
+    console.log('Cleaned up battle state');
+    
+    console.log('Calling updateDisplay...');
+    this.updateDisplay();
+    
+    // Additional scroll position reset after display update
+    setTimeout(() => {
+      if (this.gameState.gamePhase === 'navigation') {
+        const mapContainer = document.querySelector('.map-container.scrollable') as HTMLElement;
+        if (mapContainer && this.gameState.currentNodeId === 'start' && this.gameState.eventsCompleted === 0) {
+          console.log('Additional scroll position reset to 0');
+          mapContainer.scrollLeft = 0;
+          this.gameState.mapScrollPosition = 0;
+        }
+      }
+    }, 100);
   }
 }
 

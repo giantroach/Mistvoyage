@@ -795,6 +795,47 @@ button.active:hover {
   }
 }
 
+/* Boss Reward Styles */
+.boss-reward-option {
+  margin: 10px 0;
+}
+
+.boss-reward-btn {
+  width: 100%;
+  background: #2a2a2a;
+  border: 2px solid #555;
+  color: #e0e0e0;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boss-reward-btn:hover {
+  background: #3a3a3a;
+  border-color: #777;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.boss-reward-btn .relic-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #66ff66;
+  margin-bottom: 5px;
+}
+
+.boss-reward-btn .relic-description {
+  font-size: 14px;
+  color: #cccccc;
+  margin-bottom: 8px;
+}
+
+.boss-reward-btn .relic-effects {
+  font-size: 12px;
+  color: #aaaaaa;
+  line-height: 1.4;
+}
+
 /* Debug Mode Styles */
 .debug-screen {
   background: #1a1a1a;

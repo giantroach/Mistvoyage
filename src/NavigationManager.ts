@@ -234,7 +234,14 @@ export class NavigationManager {
       );
     }
 
-    const currentScrollLeft = this.gameState.mapScrollPosition || 0;
+    // For new chapters (when currentNodeId is 'start' and no events completed), force scroll to 0
+    const isNewChapter = this.gameState.currentNodeId === 'start' && this.gameState.eventsCompleted === 0;
+    const currentScrollLeft = isNewChapter ? 0 : (this.gameState.mapScrollPosition || 0);
+    
+    console.log('NavigationManager: Is new chapter:', isNewChapter);
+    console.log('NavigationManager: Current node:', this.gameState.currentNodeId);
+    console.log('NavigationManager: Events completed:', this.gameState.eventsCompleted);
+    console.log('NavigationManager: Using scroll position:', currentScrollLeft);
 
     content.innerHTML = `
       <h2>航海中</h2>
@@ -315,6 +322,16 @@ export class NavigationManager {
         newMapContainer.addEventListener('scroll', () => {
           this.gameState.mapScrollPosition = newMapContainer.scrollLeft;
         });
+
+        // Check if this is a new chapter and force scroll to 0
+        const isNewChapter = this.gameState.currentNodeId === 'start' && this.gameState.eventsCompleted === 0;
+        if (isNewChapter) {
+          console.log('NavigationManager: New chapter detected - forcing scroll to 0');
+          newMapContainer.scrollLeft = 0;
+          this.gameState.mapScrollPosition = 0;
+          mapDisplay.style.visibility = 'visible';
+          return;
+        }
 
         if (pendingScrollInfo) {
           console.log('NavigationManager: Handling node navigation scroll');

@@ -321,7 +321,8 @@ export type GamePhase =
   | 'combat'
   | 'game_over'
   | 'victory'
-  | 'battle_result';
+  | 'battle_result'
+  | 'boss_reward';
 
 // Combat system
 export interface CombatState {

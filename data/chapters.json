@@ -7,6 +7,8 @@
       "description": "あなたの冒険は比較的穏やかな海域から始まります。ここで基本的な航海技術と戦闘技術を学びましょう。",
       "requiredEvents": 5,
       "bossEvent": "kraken_young",
+      "bossMonster": "kraken_young",
+      "bossRewardRarities": ["common", "uncommon", "rare"],
       "encounters": [
         {
           "monsters": ["sea_slime"],
@@ -33,6 +35,8 @@
       "description": "より危険な海域に足を踏み入れます。嵐と強敵があなたを待ち受けています。",
       "requiredEvents": 6,
       "bossEvent": "ghost_ship",
+      "bossMonster": "ghost_ship",
+      "bossRewardRarities": ["uncommon", "rare", "epic"],
       "encounters": [
         {
           "monsters": ["giant_crab"],
@@ -67,6 +71,8 @@
       "description": "最も危険な海域。ここでの決断があなたの運命を決めます。",
       "requiredEvents": 7,
       "bossEvent": "leviathan",
+      "bossMonster": "leviathan",
+      "bossRewardRarities": ["rare", "epic", "legendary"],
       "encounters": [
         {
           "monsters": ["storm_shark"],

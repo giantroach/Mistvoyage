@@ -57,20 +57,78 @@ export class BattleManager {
     gameState.gamePhase = 'combat';
   }
 
+  initiateBossBattle(gameState: GameState, chaptersData?: any): void {
+    if (!chaptersData?.chapters) {
+      throw new Error('Chapters data required for boss battle');
+    }
+
+    const chapterData = chaptersData.chapters.find(
+      (c: any) => c.id === gameState.currentChapter
+    );
+    if (!chapterData?.bossMonster) {
+      throw new Error(`No boss monster defined for chapter ${gameState.currentChapter}`);
+    }
+
+    const bossMonster = this.createBossMonster(chapterData.bossMonster);
+
+    gameState.battleState = {
+      isActive: true,
+      phase: 'preparation',
+      monsters: [bossMonster],
+      playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
+        weapon,
+        lastUsed: Date.now() - weapon.cooldown.max,
+      })),
+      battleLog: [],
+      startTime: Date.now(),
+      playerEffects: [],
+      playerTurn: true,
+      turnCount: 1,
+    };
+
+    gameState.gamePhase = 'combat';
+  }
+
+  private createBossMonster(bossId: string): Monster {
+    const monsterData = this.monstersData.monsters[bossId];
+    if (!monsterData) {
+      throw new Error(`Boss monster ${bossId} not found`);
+    }
+
+    return {
+      ...monsterData,
+      maxHp: monsterData.hp,
+      effects: [],
+      attack: monsterData.attack || 10,
+      defense: monsterData.defense || 5,
+    };
+  }
+
   private selectEncounter(chapter: number, chaptersData?: any): any {
     let encounters;
 
+    console.log('selectEncounter called with chapter:', chapter);
+    console.log('chaptersData available:', !!chaptersData);
+
     if (chaptersData?.chapters) {
+      console.log('Using new chapters data structure');
       const chapterData = chaptersData.chapters.find(
         (c: any) => c.id === chapter
       );
+      console.log('Found chapter data:', chapterData);
       encounters = chapterData?.encounters;
+      console.log('Chapter encounters:', encounters);
     } else {
-      // Fallback to old monstersData structure for backward compatibility
+      console.log('Using fallback monstersData structure');
       encounters = this.monstersData.encounters?.[`chapter_${chapter}`];
+      console.log('Fallback encounters:', encounters);
     }
 
     if (!encounters || encounters.length === 0) {
+      console.error('No encounters found!');
+      console.error('Chapter:', chapter);
+      console.error('ChaptersData:', chaptersData);
+      console.error('MonstersData encounters:', this.monstersData?.encounters);
       throw new Error(`No encounters found for chapter ${chapter}`);
     }
 
@@ -105,7 +163,7 @@ export class BattleManager {
     });
   }
 
-  updateBattle(gameState: GameState): void {
+  updateBattle(gameState: GameState, chaptersData?: any): void {
     if (!gameState.battleState || !gameState.battleState.isActive) return;
 
     const battleState = gameState.battleState;
@@ -113,7 +171,7 @@ export class BattleManager {
 
     // Check if battle is over
     if (this.isBattleOver(gameState)) {
-      this.endBattle(gameState);
+      this.endBattle(gameState, chaptersData);
       return;
     }
 
@@ -452,16 +510,25 @@ export class BattleManager {
     return playerHull <= 0 || !monstersAlive;
   }
 
-  private endBattle(gameState: GameState): void {
+  private endBattle(gameState: GameState, chaptersData?: any): void {
     const battleState = gameState.battleState!;
     const playerAlive = gameState.playerParameters.hull > 0;
 
     if (playerAlive) {
-      // Victory - award gold
-      const goldReward = this.calculateGoldReward(battleState.monsters);
-      gameState.playerParameters.money += goldReward;
-      battleState.phase = 'victory';
-      gameState.gamePhase = 'battle_result'; // Set game phase to show result screen
+      // Check if this was a boss battle
+      const isBossBattle = this.isBossBattle(gameState, chaptersData);
+      
+      if (isBossBattle) {
+        // Boss victory - special rewards
+        battleState.phase = 'victory';
+        gameState.gamePhase = 'boss_reward'; // Special phase for relic selection
+      } else {
+        // Normal victory - award gold
+        const goldReward = this.calculateGoldReward(battleState.monsters);
+        gameState.playerParameters.money += goldReward;
+        battleState.phase = 'victory';
+        gameState.gamePhase = 'battle_result';
+      }
 
       // Add victory log entry
       battleState.battleLog.push({
@@ -481,6 +548,42 @@ export class BattleManager {
     }
 
     battleState.isActive = false;
+  }
+
+  private isBossBattle(gameState: GameState, chaptersData?: any): boolean {
+    if (!chaptersData?.chapters || !gameState.battleState?.monsters) {
+      return false;
+    }
+    
+    const chapterData = chaptersData.chapters.find(
+      (c: any) => c.id === gameState.currentChapter
+    );
+    if (!chapterData?.bossMonster) {
+      return false;
+    }
+    
+    // Check if any of the defeated monsters was the boss
+    return gameState.battleState.monsters.some(
+      monster => monster.id === chapterData.bossMonster
+    );
+  }
+
+  generateBossRewards(gameState: GameState, chaptersData?: any): any[] {
+    if (!chaptersData?.chapters) {
+      return [];
+    }
+    
+    const chapterData = chaptersData.chapters.find(
+      (c: any) => c.id === gameState.currentChapter
+    );
+    if (!chapterData?.bossRewardRarities) {
+      return [];
+    }
+    
+    // Return placeholder data that will be replaced by RelicManager in the UI
+    return chapterData.bossRewardRarities.map((rarity: string) => ({
+      rarity: rarity,
+    }));
   }
 
   private calculateGoldReward(monsters: Monster[]): number {
