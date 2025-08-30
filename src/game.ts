@@ -29,6 +29,7 @@ import { CombatSystem } from './CombatSystem.js';
 import { RelicManager } from './RelicManager.js';
 import { WeaponManager } from './WeaponManager.js';
 import { DebugManager } from './DebugManager.js';
+import { PortManager } from './PortManager.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
@@ -48,6 +49,7 @@ export class MistvoyageGame {
   private combatSystem: CombatSystem;
   private relicManager: RelicManager;
   private debugManager: DebugManager;
+  private portManager!: PortManager;
   private pendingScrollInfo: any = null;
 
   constructor() {
@@ -57,6 +59,7 @@ export class MistvoyageGame {
     this.battleManager = new BattleManager();
     this.relicManager = new RelicManager();
     this.debugManager = new DebugManager(this);
+    // PortManager will be initialized after WeaponManager is ready
     this.navigationManager = new NavigationManager(
       this.gameState,
       this.displayManager
@@ -168,6 +171,19 @@ export class MistvoyageGame {
       await this.battleManager.initialize();
       await this.relicManager.initialize();
       await WeaponManager.initialize();
+      
+      // Initialize PortManager after WeaponManager is ready
+      this.portManager = new PortManager(
+        this.gameState,
+        this.relicManager,
+        this.getWeaponManager(),
+        () => this.updateDisplay(),
+        () => this.completeEvent()
+      );
+      if (this.chaptersData) {
+        this.portManager.setChaptersData(this.chaptersData);
+      }
+      
       this.setupEventListeners();
       this.startGame();
     } catch (error) {
@@ -869,7 +885,7 @@ export class MistvoyageGame {
         this.handleTreasureEvent();
         break;
       case 'port':
-        this.handlePortEvent();
+        this.portManager.handlePortEvent();
         break;
       case 'boss':
         this.handleBossEvent();
@@ -1017,292 +1033,11 @@ export class MistvoyageGame {
     return rarityNames[rarity] || rarity;
   }
 
-  private handlePortEvent(): void {
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    // Get current chapter for port pricing configuration
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-
-    storyElement.innerHTML = `
-      <h2>港町への寄港</h2>
-      <p>小さな港町に到着しました。どのサービスを利用しますか？</p>
-      <p><strong>現在の状況:</strong></p>
-      <p>船体: ${this.gameState.playerParameters.hull}/${this.gameState.playerParameters.ship.hullMax} | 
-         所持金: ${this.gameState.playerParameters.money}金 | 
-         武器スロット: ${this.gameState.playerParameters.weapons.length}/${this.gameState.playerParameters.ship.weaponSlots} |
-         ストレージ: ${this.gameState.playerParameters.relics.length}/${this.gameState.playerParameters.ship.storage}</p>
-    `;
-
-    const repairCost = 10;
-    const canRepair =
-      this.gameState.playerParameters.money >= repairCost &&
-      this.gameState.playerParameters.hull <
-        this.gameState.playerParameters.ship.hullMax;
-
-    choicesContainer.innerHTML = `
-      <button class="choice-btn" onclick="window.gameInstance.repairShip()" ${
-        !canRepair ? 'disabled' : ''
-      }>
-        🔧 船体を修復 (10金)
-      </button>
-      <button class="choice-btn" onclick="window.gameInstance.showPortWeapons()">
-        ⚔️ 武器を購入
-      </button>
-      <button class="choice-btn" onclick="window.gameInstance.showPortRelics()">
-        🏺 レリックを購入
-      </button>
-      <button class="choice-btn" onclick="window.gameInstance.leavePort()">
-        ⛵ 港を出発する
-      </button>
-    `;
-  }
 
 
-  public repairShip(): void {
-    const repairCost = 10;
-    const repairAmount = 10;
-
-    if (
-      this.gameState.playerParameters.money >= repairCost &&
-      this.gameState.playerParameters.hull <
-        this.gameState.playerParameters.ship.hullMax
-    ) {
-      this.gameState.playerParameters.money -= repairCost;
-      const oldHull = this.gameState.playerParameters.hull;
-      this.gameState.playerParameters.hull = Math.min(
-        this.gameState.playerParameters.hull + repairAmount,
-        this.gameState.playerParameters.ship.hullMax
-      );
-      const actualRepair = this.gameState.playerParameters.hull - oldHull;
-
-      const storyElement = document.getElementById('story-text');
-      if (storyElement) {
-        storyElement.innerHTML = `
-          <h2>船体修復完了</h2>
-          <p>船体を${actualRepair}ポイント修復しました。${repairCost}金を支払いました。</p>
-          <p><strong>現在の船体:</strong> ${this.gameState.playerParameters.hull}/${this.gameState.playerParameters.ship.hullMax}</p>
-          <p><strong>残り所持金:</strong> ${this.gameState.playerParameters.money}金</p>
-        `;
-      }
-    }
-
-    // Return to port after delay
-    setTimeout(() => this.returnToPort(), 1500);
-  }
-
-  public showPortWeapons(): void {
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    // Generate 3 random weapons based on chapter rarity weights
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-
-    const portWeapons = this.getWeaponManager().generatePortWeapons(3);
-
-    storyElement.innerHTML = `
-      <h2>武器商人</h2>
-      <p>以下の武器が販売されています：</p>
-      <div class="port-weapons">
-        ${portWeapons
-          .map(
-            (weapon: any, index: number) => `
-          <div class="weapon-item">
-            <h4>${weapon.name} (${weapon.rarity})</h4>
-            <p>ダメージ: ${weapon.damage.min}-${weapon.damage.max} | 精度: ${
-              weapon.accuracy
-            }% | クールダウン: ${weapon.cooldown.min}-${
-              weapon.cooldown.max
-            }ms</p>
-            <p>価格: ${weapon.price}金</p>
-            <button class="choice-btn" onclick="window.gameInstance.buyWeapon(${index})" 
-                    ${
-                      this.gameState.playerParameters.money < weapon.price ||
-                      this.gameState.playerParameters.weapons.length >=
-                        this.gameState.playerParameters.ship.weaponSlots
-                        ? 'disabled'
-                        : ''
-                    }>
-              購入
-            </button>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-      <p><strong>現在の状況:</strong></p>
-      <p>所持金: ${this.gameState.playerParameters.money}金 | 
-         武器スロット: ${this.gameState.playerParameters.weapons.length}/${
-      this.gameState.playerParameters.ship.weaponSlots
-    }</p>
-    `;
-
-    // Store weapons for purchase
-    (this as any).currentPortWeapons = portWeapons;
-
-    choicesContainer.innerHTML = `
-      <button class="choice-btn" onclick="window.gameInstance.returnToPort()">
-        ⬅️ 港に戻る
-      </button>
-    `;
-  }
-
-  public buyWeapon(index: number): void {
-    const portWeapons = (this as any).currentPortWeapons;
-    if (!portWeapons || !portWeapons[index]) return;
-
-    const weapon = portWeapons[index];
-
-    if (
-      this.gameState.playerParameters.money >= weapon.price &&
-      this.gameState.playerParameters.weapons.length <
-        this.gameState.playerParameters.ship.weaponSlots
-    ) {
-      this.gameState.playerParameters.money -= weapon.price;
-      this.gameState.playerParameters.weapons.push(weapon);
-
-      const storyElement = document.getElementById('story-text');
-      if (storyElement) {
-        storyElement.innerHTML = `
-          <h2>武器購入完了</h2>
-          <p><strong>${weapon.name}</strong>を${weapon.price}金で購入しました！</p>
-          <p>武器スロット: ${this.gameState.playerParameters.weapons.length}/${this.gameState.playerParameters.ship.weaponSlots}</p>
-          <p>残り所持金: ${this.gameState.playerParameters.money}金</p>
-        `;
-      }
-
-      // Return to port after delay
-      setTimeout(() => this.returnToPort(), 1500);
-    }
-  }
-
-  public showPortRelics(): void {
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    // Generate 3 random relics based on chapter rarity weights
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-
-    const portRelics = this.getRelicManager().generateMultipleRelics(3);
-
-    storyElement.innerHTML = `
-      <h2>レリック商人</h2>
-      <p>以下のレリックが販売されています：</p>
-      <div class="port-relics">
-        ${portRelics
-          .map(
-            (relic, index) => `
-          <div class="relic-item">
-            <h4>${relic.name} (${relic.rarity})</h4>
-            <p>効果: ${relic.effects
-              .map((effect: any) => effect.description)
-              .join(', ')}</p>
-            <p>価格: ${relic.price || 50}金</p>
-            <button class="choice-btn" onclick="window.gameInstance.buyRelic(${index})" 
-                    ${
-                      this.gameState.playerParameters.money <
-                        (relic.price || 50) ||
-                      this.gameState.playerParameters.relics.length >=
-                        this.gameState.playerParameters.ship.storage
-                        ? 'disabled'
-                        : ''
-                    }>
-              購入
-            </button>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-      <p><strong>現在の状況:</strong></p>
-      <p>所持金: ${this.gameState.playerParameters.money}金 | 
-         ストレージ: ${this.gameState.playerParameters.relics.length}/${
-      this.gameState.playerParameters.ship.storage
-    }</p>
-    `;
-
-    // Store relics for purchase
-    (this as any).currentPortRelics = portRelics;
-
-    choicesContainer.innerHTML = `
-      <button class="choice-btn" onclick="window.gameInstance.returnToPort()">
-        ⬅️ 港に戻る
-      </button>
-    `;
-  }
-
-  public buyRelic(index: number): void {
-    const portRelics = (this as any).currentPortRelics;
-    if (!portRelics || !portRelics[index]) return;
-
-    const relic = portRelics[index];
-    const price = relic.price || 50;
-
-    if (
-      this.gameState.playerParameters.money >= price &&
-      this.gameState.playerParameters.relics.length <
-        this.gameState.playerParameters.ship.storage
-    ) {
-      this.gameState.playerParameters.money -= price;
-      this.gameState.playerParameters.relics.push(relic);
-
-      const storyElement = document.getElementById('story-text');
-      if (storyElement) {
-        storyElement.innerHTML = `
-          <h2>レリック購入完了</h2>
-          <p><strong>${relic.name}</strong>を${price}金で購入しました！</p>
-          <p>効果: ${relic.effects
-            .map((effect: any) => effect.description)
-            .join(', ')}</p>
-          <p>ストレージ: ${this.gameState.playerParameters.relics.length}/${
-          this.gameState.playerParameters.ship.storage
-        }</p>
-          <p>残り所持金: ${this.gameState.playerParameters.money}金</p>
-        `;
-      }
-
-      // Return to port after delay
-      setTimeout(() => this.returnToPort(), 1500);
-    }
-  }
-
-  public returnToPort(): void {
-    // Return to the main port screen
-    this.handlePortEvent();
-  }
-
-  public leavePort(): void {
-    // Complete the port event
-    this.gameState.eventsCompleted++;
-
-    // Check if chapter is complete
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-    if (chapter && this.gameState.eventsCompleted >= chapter.requiredEvents) {
-      // Enable boss node
-      const bossNode = this.gameState.currentMap.nodes['boss'];
-      if (bossNode) {
-        bossNode.isAccessible = true;
-        bossNode.isVisible = true;
-      }
-    }
-
-    // Return to navigation
-    this.gameState.gamePhase = 'navigation';
-    this.updateDisplay();
+  // Port management is now handled by PortManager
+  public getPortManager(): PortManager {
+    return this.portManager;
   }
 
   private handleBossEvent(): void {
