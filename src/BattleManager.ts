@@ -32,8 +32,11 @@ export class BattleManager {
     }
   }
 
-  initiateBattle(gameState: GameState): void {
-    const encounter = this.selectEncounter(gameState.currentChapter);
+  initiateBattle(gameState: GameState, chaptersData?: any): void {
+    const encounter = this.selectEncounter(
+      gameState.currentChapter,
+      chaptersData
+    );
     const monsters = this.createMonstersFromEncounter(encounter);
 
     gameState.battleState = {
@@ -54,8 +57,19 @@ export class BattleManager {
     gameState.gamePhase = 'combat';
   }
 
-  private selectEncounter(chapter: number): any {
-    const encounters = this.monstersData.encounters[`chapter_${chapter}`];
+  private selectEncounter(chapter: number, chaptersData?: any): any {
+    let encounters;
+
+    if (chaptersData?.chapters) {
+      const chapterData = chaptersData.chapters.find(
+        (c: any) => c.id === chapter
+      );
+      encounters = chapterData?.encounters;
+    } else {
+      // Fallback to old monstersData structure for backward compatibility
+      encounters = this.monstersData.encounters?.[`chapter_${chapter}`];
+    }
+
     if (!encounters || encounters.length === 0) {
       throw new Error(`No encounters found for chapter ${chapter}`);
     }

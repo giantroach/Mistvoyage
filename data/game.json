@@ -6,31 +6,5 @@
     "textSpeed": "normal",
     "maxChapters": 3,
     "eventsPerChapter": 5
-  },
-  "chapters": [
-    {
-      "id": 1,
-      "name": "穏やかな海域",
-      "difficulty": 1,
-      "description": "あなたの冒険は比較的穏やかな海域から始まります。ここで基本的な航海技術と戦闘技術を学びましょう。",
-      "requiredEvents": 5,
-      "bossEvent": "kraken_young"
-    },
-    {
-      "id": 2,
-      "name": "嵐の海域",
-      "difficulty": 2,
-      "description": "より危険な海域に足を踏み入れます。嵐と強敵があなたを待ち受けています。",
-      "requiredEvents": 6,
-      "bossEvent": "ghost_ship"
-    },
-    {
-      "id": 3,
-      "name": "深淵の海域",
-      "difficulty": 3,
-      "description": "最も危険な海域。ここでの決断があなたの運命を決めます。",
-      "requiredEvents": 7,
-      "bossEvent": "leviathan"
-    }
-  ]
+  }
 }

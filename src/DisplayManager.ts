@@ -1,4 +1,10 @@
-import { GameState, GameData, MapNode, EventType } from './types.js';
+import {
+  GameState,
+  GameData,
+  ChaptersData,
+  MapNode,
+  EventType,
+} from './types.js';
 import { MapManager } from './MapManager.js';
 
 export class DisplayManager {
@@ -10,7 +16,8 @@ export class DisplayManager {
 
   updateParameterDisplay(
     gameState: GameState,
-    gameData: GameData | null
+    gameData: GameData | null,
+    chaptersData?: ChaptersData | null
   ): void {
     const params = gameState.playerParameters;
 
@@ -38,7 +45,7 @@ export class DisplayManager {
     this.updateRelicsDisplay(params.relics);
 
     // Update game progress
-    const chapter = gameData?.chapters.find(
+    const chapter = chaptersData?.chapters.find(
       c => c.id === gameState.currentChapter
     );
     if (chapter) {

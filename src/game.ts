@@ -1,5 +1,6 @@
 import {
   GameData,
+  ChaptersData,
   ShipsData,
   EventsData,
   GameState,
@@ -31,6 +32,7 @@ import { DebugManager } from './DebugManager.js';
 
 export class MistvoyageGame {
   private gameData: GameData | null = null;
+  private chaptersData: ChaptersData | null = null;
   private shipsData: ShipsData | null = null;
   private eventsData: EventsData | null = null;
   private eventConfig: any = null;
@@ -183,6 +185,14 @@ export class MistvoyageGame {
     }
     this.gameData = await gameResponse.json();
 
+    const chaptersResponse = await fetch('data/chapters.json');
+    if (!chaptersResponse.ok) {
+      throw new Error(
+        `HTTP ${chaptersResponse.status}: ${chaptersResponse.statusText}`
+      );
+    }
+    this.chaptersData = await chaptersResponse.json();
+
     const shipsResponse = await fetch('data/ships.json');
     if (!shipsResponse.ok) {
       throw new Error(
@@ -331,9 +341,9 @@ export class MistvoyageGame {
   }
 
   private showChapterStart(): void {
-    if (!this.gameData) return;
+    if (!this.chaptersData) return;
 
-    const chapter = this.gameData.chapters.find(
+    const chapter = this.chaptersData.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
     if (!chapter) return;
@@ -720,7 +730,7 @@ export class MistvoyageGame {
   // ==================== MAP GENERATION ====================
 
   private generateChapterMap(): void {
-    const chapter = this.gameData?.chapters.find(
+    const chapter = this.chaptersData?.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
     if (!chapter || !this.eventConfig) return;
@@ -771,7 +781,7 @@ export class MistvoyageGame {
           this.gameState.eventsCompleted++;
 
           // Check if chapter is complete
-          const chapter = this.gameData?.chapters.find(
+          const chapter = this.chaptersData?.chapters.find(
             c => c.id === this.gameState.currentChapter
           );
           if (
@@ -1021,7 +1031,7 @@ export class MistvoyageGame {
     this.gameState.eventsCompleted++;
 
     // Check if chapter is complete
-    const chapter = this.gameData?.chapters.find(
+    const chapter = this.chaptersData?.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
     if (chapter && this.gameState.eventsCompleted >= chapter.requiredEvents) {
@@ -1093,7 +1103,7 @@ export class MistvoyageGame {
     this.gameState.eventsCompleted++;
 
     // Check if chapter is complete
-    const chapter = this.gameData?.chapters.find(
+    const chapter = this.chaptersData?.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
     if (chapter && this.gameState.eventsCompleted >= chapter.requiredEvents) {
@@ -1136,7 +1146,11 @@ export class MistvoyageGame {
   // ==================== PARAMETER DISPLAY ====================
 
   private updateParameterDisplay(): void {
-    this.displayManager.updateParameterDisplay(this.gameState, this.gameData);
+    this.displayManager.updateParameterDisplay(
+      this.gameState,
+      this.gameData,
+      this.chaptersData
+    );
   }
 
   // ==================== SAVE/LOAD SYSTEM ====================

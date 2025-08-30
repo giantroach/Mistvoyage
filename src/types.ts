@@ -3,6 +3,9 @@ export interface GameData {
   title: string;
   version: string;
   settings: GameSettings;
+}
+
+export interface ChaptersData {
   chapters: Chapter[];
 }
 
@@ -22,6 +25,11 @@ export interface GameSettings {
 }
 
 // Chapter and map structure
+export interface Encounter {
+  monsters: string[];
+  weight: number;
+}
+
 export interface Chapter {
   id: number;
   name: string;
@@ -29,6 +37,7 @@ export interface Chapter {
   description: string;
   requiredEvents: number;
   bossEvent: string;
+  encounters: Encounter[];
 }
 
 export interface MapNode {
