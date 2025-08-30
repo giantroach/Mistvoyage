@@ -37,7 +37,33 @@ export interface Chapter {
   description: string;
   requiredEvents: number;
   bossEvent: string;
+  bossMonster: string;
+  bossRewardRarities: string[];
+  eventTypes: {
+    monster: EventTypeConfig;
+    elite_monster: EventTypeConfig;
+    port: EventTypeConfig;
+    treasure: TreasureEventTypeConfig;
+    unknown: EventTypeConfig;
+  };
   encounters: Encounter[];
+}
+
+export interface EventTypeConfig {
+  weight: number;
+  fixedCount: number;
+  minCount?: number;
+  maxCount?: number;
+}
+
+export interface TreasureEventTypeConfig extends EventTypeConfig {
+  rarityWeights: {
+    common: number;
+    uncommon: number;
+    rare: number;
+    epic: number;
+    legendary: number;
+  };
 }
 
 export interface MapNode {
@@ -60,15 +86,13 @@ export interface ChapterMap {
   startNodeId: string;
   bossNodeId: string;
   totalLayers: number;
-  eventTypeConfig: EventTypeConfig;
-}
-
-export interface EventTypeConfig {
-  monster: { weight: number; fixedCount?: number };
-  elite_monster: { weight: number; fixedCount?: number };
-  port: { weight: number; fixedCount?: number };
-  treasure: { weight: number; fixedCount?: number };
-  unknown: { weight: number; fixedCount?: number };
+  eventTypeConfig: {
+    monster: { weight: number; fixedCount?: number };
+    elite_monster: { weight: number; fixedCount?: number };
+    port: { weight: number; fixedCount?: number };
+    treasure: { weight: number; fixedCount?: number };
+    unknown: { weight: number; fixedCount?: number };
+  };
 }
 
 // Event system

@@ -30,7 +30,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `data/game.json` - Basic game settings and chapter definitions
 - `data/ships.json` - Ship statistics and special rules
 - `data/events.json` - Story event definitions (ports, treasure, bosses, etc.)
-- `data/event_config.json` - Chapter configuration and event type weights
+- `data/chapters.json` - Chapter definitions, event type configurations, and monster encounters (consolidated)
 - `data/monsters.json` - Monster stats, encounters, and weapon definitions
 - `data/weapons.json` - Weapon statistics and effects
 - `data/battle_config.json` - Combat calculation modifiers and balancing

@@ -67,7 +67,6 @@ npm run format
 │   ├── game.json         # 基本ゲーム設定
 │   ├── ships.json        # 船舶データ
 │   ├── events.json       # イベントデータ
-│   ├── event_config.json # チャプター設定
 │   ├── monsters.json     # モンスターデータ
 │   ├── weapons.json      # 武器データ
 │   ├── battle_config.json # 戦闘設定
@@ -113,7 +112,6 @@ JSONファイルを編集してゲーム内容をカスタマイズできます�
 - `data/game.json` - 基本ゲーム設定（タイトル、バージョン、チャプター定義）
 - `data/ships.json` - 船舶ステータスと特殊ルール
 - `data/events.json` - イベント定義（港、宝、ボス等のストーリーイベント）
-- `data/event_config.json` - チャプター設定とイベント出現率
 - `data/monsters.json` - モンスターデータと戦闘組み合わせ  
 - `data/weapons.json` - 武器性能とエフェクト
 - `data/battle_config.json` - 戦闘計算の各種補正値

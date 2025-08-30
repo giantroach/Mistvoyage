@@ -35,7 +35,7 @@ export class MistvoyageGame {
   private chaptersData: ChaptersData | null = null;
   private shipsData: ShipsData | null = null;
   private eventsData: EventsData | null = null;
-  private eventConfig: any = null;
+  // eventConfig is now integrated into chaptersData
   private gameState: GameState = this.initializeGameState();
   private isMapVisible: boolean = false;
 
@@ -91,11 +91,11 @@ export class MistvoyageGame {
       bossNodeId: 'boss',
       totalLayers: 0,
       eventTypeConfig: {
-        monster: { weight: 40 },
-        elite_monster: { weight: 15 },
-        port: { weight: 20 },
-        treasure: { weight: 10 },
-        unknown: { weight: 15 },
+        monster: { weight: 40, fixedCount: 0 },
+        elite_monster: { weight: 15, fixedCount: 0 },
+        port: { weight: 20, fixedCount: 0 },
+        treasure: { weight: 10, fixedCount: 0 },
+        unknown: { weight: 15, fixedCount: 0 },
       },
     };
   }
@@ -209,13 +209,7 @@ export class MistvoyageGame {
     }
     this.eventsData = await eventsResponse.json();
 
-    const configResponse = await fetch('data/event_config.json');
-    if (!configResponse.ok) {
-      throw new Error(
-        `HTTP ${configResponse.status}: ${configResponse.statusText}`
-      );
-    }
-    this.eventConfig = await configResponse.json();
+    // event_config.json data is now integrated into chapters.json
   }
 
   private setupEventListeners(): void {
@@ -736,11 +730,7 @@ export class MistvoyageGame {
     const chapter = this.chaptersData?.chapters.find(
       c => c.id === this.gameState.currentChapter
     );
-    if (!chapter || !this.eventConfig) return;
-
-    const chapterConfigKey = `chapter_${this.gameState.currentChapter}`;
-    const chapterConfig = this.eventConfig.eventConfigs[chapterConfigKey];
-    if (!chapterConfig) return;
+    if (!chapter) return;
 
     // Reset map scroll position before generating new map
     this.gameState.mapScrollPosition = 0;
@@ -748,7 +738,7 @@ export class MistvoyageGame {
 
     this.gameState.currentMap = this.mapManager.generateChapterMap(
       chapter,
-      chapterConfig,
+      chapter, // Use chapter data which now includes eventTypes
       this.gameState.currentChapter
     );
 
@@ -892,9 +882,10 @@ export class MistvoyageGame {
     if (!storyElement || !choicesContainer) return;
 
     // Get chapter-specific rarity weights
-    const chapterConfigKey = `chapter_${this.gameState.currentChapter}`;
-    const chapterConfig = this.eventConfig?.eventConfigs[chapterConfigKey];
-    const treasureConfig = chapterConfig?.eventTypes?.treasure;
+    const chapter = this.chaptersData?.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    const treasureConfig = chapter?.eventTypes?.treasure;
     const customRarityWeights = treasureConfig?.rarityWeights;
 
     // Generate 3 random relics using chapter-specific weights

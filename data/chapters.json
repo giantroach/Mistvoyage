@@ -8,7 +8,31 @@
       "requiredEvents": 5,
       "bossEvent": "kraken_young",
       "bossMonster": "kraken_young",
-      "bossRewardRarities": ["common", "uncommon", "rare"],
+      "bossRewardRarities": ["epic"],
+      "eventTypes": {
+        "monster": { "weight": 40, "fixedCount": 0 },
+        "elite_monster": {
+          "weight": 15,
+          "fixedCount": 0,
+          "minCount": 0,
+          "maxCount": 2
+        },
+        "port": { "weight": 20, "fixedCount": 2 },
+        "treasure": {
+          "weight": 10,
+          "fixedCount": 0,
+          "minCount": 1,
+          "maxCount": 2,
+          "rarityWeights": {
+            "common": 60,
+            "uncommon": 30,
+            "rare": 8,
+            "epic": 2,
+            "legendary": 0
+          }
+        },
+        "unknown": { "weight": 15, "fixedCount": 0 }
+      },
       "encounters": [
         {
           "monsters": ["sea_slime"],
@@ -36,7 +60,31 @@
       "requiredEvents": 6,
       "bossEvent": "ghost_ship",
       "bossMonster": "ghost_ship",
-      "bossRewardRarities": ["uncommon", "rare", "epic"],
+      "bossRewardRarities": ["epic"],
+      "eventTypes": {
+        "monster": { "weight": 35, "fixedCount": 0 },
+        "elite_monster": {
+          "weight": 25,
+          "fixedCount": 1,
+          "minCount": 1,
+          "maxCount": 3
+        },
+        "port": { "weight": 15, "fixedCount": 2 },
+        "treasure": {
+          "weight": 15,
+          "fixedCount": 0,
+          "minCount": 1,
+          "maxCount": 3,
+          "rarityWeights": {
+            "common": 45,
+            "uncommon": 35,
+            "rare": 15,
+            "epic": 4,
+            "legendary": 1
+          }
+        },
+        "unknown": { "weight": 10, "fixedCount": 0 }
+      },
       "encounters": [
         {
           "monsters": ["giant_crab"],
@@ -72,7 +120,31 @@
       "requiredEvents": 7,
       "bossEvent": "leviathan",
       "bossMonster": "leviathan",
-      "bossRewardRarities": ["rare", "epic", "legendary"],
+      "bossRewardRarities": ["legendary"],
+      "eventTypes": {
+        "monster": { "weight": 30, "fixedCount": 0 },
+        "elite_monster": {
+          "weight": 30,
+          "fixedCount": 2,
+          "minCount": 2,
+          "maxCount": 4
+        },
+        "port": { "weight": 10, "fixedCount": 1 },
+        "treasure": {
+          "weight": 20,
+          "fixedCount": 1,
+          "minCount": 1,
+          "maxCount": 3,
+          "rarityWeights": {
+            "common": 30,
+            "uncommon": 35,
+            "rare": 25,
+            "epic": 8,
+            "legendary": 2
+          }
+        },
+        "unknown": { "weight": 10, "fixedCount": 0 }
+      },
       "encounters": [
         {
           "monsters": ["storm_shark"],
