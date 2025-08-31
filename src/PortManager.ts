@@ -156,7 +156,9 @@ export class PortManager {
             <p>${weapon.description}</p>
             <p>ダメージ: ${weapon.damage.min}-${weapon.damage.max}</p>
             <p>命中率: ${weapon.accuracy}%</p>
-            <p>クールダウン: ${weapon.cooldown.min}-${weapon.cooldown.max}秒</p>
+            <p>クールダウン: ${(weapon.cooldown.min / 1000).toFixed(1)}-${(
+              weapon.cooldown.max / 1000
+            ).toFixed(1)}秒</p>
             <p>クリティカル率: ${weapon.critRate}%</p>
             <p>クリティカル倍率: ${weapon.critMultiplier}x</p>
             <p>必要操舵: ${weapon.handlingReq}</p>
