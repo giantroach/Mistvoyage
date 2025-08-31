@@ -270,10 +270,10 @@ export class MistvoyageGame {
     }
 
     // Close modal when clicking outside of it
-    window.addEventListener('click', (event) => {
+    window.addEventListener('click', event => {
       const debugModal = document.getElementById('debug-modal');
       const settingsModal = document.getElementById('settings-modal');
-      
+
       if (event.target === debugModal) {
         debugModal.style.display = 'none';
       }
@@ -490,8 +490,8 @@ export class MistvoyageGame {
           <div class="status-bars">
             <div class="health-bar">
               <span>Hull: ${playerParams.hull}/${
-      playerParams.ship.hullMax
-    }</span>
+                playerParams.ship.hullMax
+              }</span>
               <div class="bar">
                 <div class="fill" style="width: ${
                   (playerParams.hull / playerParams.ship.hullMax) * 100
@@ -604,8 +604,8 @@ export class MistvoyageGame {
         <div class="current-status">
           <h3>📊 現在のステータス</h3>
           <p><strong>Hull:</strong> ${playerParams.hull}/${
-      playerParams.ship.hullMax
-    }</p>
+            playerParams.ship.hullMax
+          }</p>
           <p><strong>ゴールド:</strong> ${playerParams.money}</p>
         </div>
       </div>
@@ -672,8 +672,8 @@ export class MistvoyageGame {
             <div class="stat-row">
               <span class="stat-label">ダメージ:</span>
               <span class="stat-value">${weapon.damage.min}-${
-        weapon.damage.max
-      }</span>
+                weapon.damage.max
+              }</span>
             </div>
             <div class="stat-row">
               <span class="stat-label">必要クルー:</span>

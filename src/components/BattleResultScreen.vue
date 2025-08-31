@@ -77,7 +77,9 @@ const goldReward = computed(() => {
   text-align: center;
 }
 
-.victory-summary, .rewards, .current-status {
+.victory-summary,
+.rewards,
+.current-status {
   margin: 1.5rem 0;
   padding: 1rem;
   background-color: #2a2a2a;
@@ -85,7 +87,9 @@ const goldReward = computed(() => {
   border: 1px solid #444;
 }
 
-.victory-summary h3, .rewards h3, .current-status h3 {
+.victory-summary h3,
+.rewards h3,
+.current-status h3 {
   color: #66ccff;
   margin-bottom: 1rem;
   border-bottom: 1px solid #444;

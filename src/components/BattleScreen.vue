@@ -123,7 +123,8 @@ const statusColor = computed(() => {
   padding: 1rem;
 }
 
-.player-status, .enemies-status {
+.player-status,
+.enemies-status {
   margin: 1rem 0;
   padding: 1rem;
   background-color: #2a2a2a;

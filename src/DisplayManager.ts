@@ -272,18 +272,18 @@ export class DisplayManager {
             let strokeWidth = isCurrentPath
               ? '3'
               : isDistantConnection
-              ? '1'
-              : '2';
+                ? '1'
+                : '2';
             let strokeColor = isCurrentPath
               ? '#66ccff'
               : isDistantConnection
-              ? '#999'
-              : '#666';
+                ? '#999'
+                : '#666';
             let opacity = isCurrentPath
               ? '1'
               : isDistantConnection
-              ? '0.8'
-              : '0.9';
+                ? '0.8'
+                : '0.9';
 
             svgConnections += `<line x1="${x1}" y1="${y1}" `;
             svgConnections += `x2="${x2}" y2="${y2}" `;

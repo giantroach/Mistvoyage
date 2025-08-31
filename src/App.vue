@@ -54,6 +54,47 @@
         @continue-battle="handleContinueBattle"
       />
 
+      <!-- Port Components -->
+      <PortScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'port' &&
+          portView === 'main'
+        "
+        :player-params="gameState.playerParameters"
+        @repair-ship="handleRepairShip"
+        @show-weapons="handleShowWeapons"
+        @show-relics="handleShowRelics"
+        @leave-port="handleLeavePort"
+      />
+
+      <WeaponShop
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'port' &&
+          portView === 'weapons'
+        "
+        :player-params="gameState.playerParameters"
+        :weapons="portWeapons"
+        @purchase-weapon="handlePurchaseWeapon"
+        @back-to-port="handleBackToPort"
+      />
+
+      <RelicShop
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'port' &&
+          portView === 'relics'
+        "
+        :player-params="gameState.playerParameters"
+        :relics="portRelics"
+        @purchase-relic="handlePurchaseRelic"
+        @back-to-port="handleBackToPort"
+      />
+
       <!-- Legacy DOM-based game content -->
       <div v-else>
         <!-- Debug info -->
@@ -63,6 +104,21 @@
         >
           <p>Current gamePhase: {{ gameState.gamePhase }}</p>
           <p>BattleState exists: {{ !!gameState.battleState }}</p>
+          <p>Current nodeId: {{ gameState.currentNodeId }}</p>
+          <p>Current map exists: {{ !!gameState.currentMap }}</p>
+          <p>
+            Map nodes count:
+            {{
+              gameState.currentMap
+                ? Object.keys(gameState.currentMap.nodes).length
+                : 0
+            }}
+          </p>
+          <p>Current node exists: {{ !!getCurrentNode(gameState) }}</p>
+          <p v-if="getCurrentNode(gameState)">
+            Node event type: {{ getCurrentNode(gameState)?.eventType }}
+          </p>
+          <p>Port view: {{ portView }}</p>
         </div>
 
         <div id="story-display">
@@ -195,10 +251,24 @@ import { onMounted, ref, watch, watchEffect, nextTick } from 'vue';
 import { MistvoyageGame } from './game';
 import BattleScreen from './components/BattleScreen.vue';
 import BattleResultScreen from './components/BattleResultScreen.vue';
-import type { GameState } from './types';
+import PortScreen from './components/PortScreen.vue';
+import WeaponShop from './components/WeaponShop.vue';
+import RelicShop from './components/RelicShop.vue';
+import type { GameState, Weapon, Relic } from './types';
 
 let game: MistvoyageGame | null = null;
 const gameState = ref<GameState | null>(null);
+
+// Port state management
+const portView = ref<'main' | 'weapons' | 'relics'>('main');
+const portWeapons = ref<Weapon[]>([]);
+const portRelics = ref<Relic[]>([]);
+
+// Helper function to get current node
+const getCurrentNode = (state: GameState) => {
+  if (!state || !state.currentMap || !state.currentNodeId) return null;
+  return state.currentMap.nodes[state.currentNodeId] || null;
+};
 
 // Update gameState reactively
 const updateGameState = () => {
@@ -234,6 +304,78 @@ const handleContinueBattle = async () => {
   }
 };
 
+// Port event handlers
+const handleRepairShip = () => {
+  if (game && game.getPortManager()) {
+    game.getPortManager().repairShip();
+    updateGameState();
+  }
+};
+
+const handleShowWeapons = () => {
+  console.log('handleShowWeapons called');
+  if (game && game.getPortManager()) {
+    console.log('Generating port weapons...');
+    portWeapons.value = game.getPortManager().generatePortWeapons();
+    portView.value = 'weapons';
+    console.log('Port view changed to weapons, weapons:', portWeapons.value.length);
+  } else {
+    console.log('Game or PortManager not available');
+  }
+};
+
+const handleShowRelics = () => {
+  console.log('handleShowRelics called');
+  if (game && game.getPortManager()) {
+    console.log('Generating port relics...');
+    portRelics.value = game.getPortManager().generatePortRelics();
+    portView.value = 'relics';
+    console.log('Port view changed to relics, relics:', portRelics.value.length);
+  } else {
+    console.log('Game or PortManager not available');
+  }
+};
+
+const handlePurchaseWeapon = (index: number) => {
+  if (game && game.getPortManager()) {
+    const success = game.getPortManager().purchaseWeapon(index);
+    if (success) {
+      updateGameState();
+      portView.value = 'main';
+    }
+  }
+};
+
+const handlePurchaseRelic = (index: number) => {
+  if (game && game.getPortManager()) {
+    const success = game.getPortManager().purchaseRelic(index);
+    if (success) {
+      updateGameState();
+      portView.value = 'main';
+    }
+  }
+};
+
+const handleBackToPort = () => {
+  portView.value = 'main';
+};
+
+const handleLeavePort = async () => {
+  console.log('handleLeavePort called');
+  if (game && game.getPortManager()) {
+    game.getPortManager().leavePort();
+    portView.value = 'main';
+    updateGameState();
+    
+    // Wait for Vue to re-render and show the legacy DOM elements
+    await nextTick();
+    
+    // Force update the display to show navigation
+    game.updateDisplay();
+    console.log('Port exit completed, should show navigation');
+  }
+};
+
 onMounted(async () => {
   game = new MistvoyageGame();
   await game.initialize();
@@ -249,14 +391,40 @@ onMounted(async () => {
   setInterval(updateGameState, 100);
 });
 
+// Track previous game phase to detect transitions
+let previousGamePhase = ref<string>('');
+let previousNodeType = ref<string>('');
+
 // Watch gameState changes for debugging
 watchEffect(() => {
   if (gameState.value) {
+    const currentNode = getCurrentNode(gameState.value);
     console.log('Vue gameState changed:', {
       gamePhase: gameState.value.gamePhase,
       hasBattleState: !!gameState.value.battleState,
+      currentNodeType: currentNode?.eventType,
+      portView: portView.value,
     });
+
+    // Reset port view only when ENTERING a port event (not while already in it)
+    if (
+      gameState.value.gamePhase === 'event' &&
+      currentNode?.eventType === 'port' &&
+      (previousGamePhase.value !== 'event' || previousNodeType.value !== 'port')
+    ) {
+      console.log('Entering port event - resetting port view to main');
+      portView.value = 'main';
+    }
+    
+    // Update previous state
+    previousGamePhase.value = gameState.value.gamePhase;
+    previousNodeType.value = currentNode?.eventType || '';
   }
+});
+
+// Watch portView changes
+watchEffect(() => {
+  console.log('Port view changed to:', portView.value);
 });
 </script>
 
