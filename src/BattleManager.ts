@@ -8,11 +8,17 @@ import {
   BattleEffect,
 } from './types.js';
 import { WeaponManager } from './WeaponManager.js';
+import { WeatherManager } from './WeatherManager.js';
 
 export class BattleManager {
   private weaponsData: any = null;
   private monstersData: any = null;
   private battleConfig: any = null;
+  private weatherManager: WeatherManager;
+
+  constructor() {
+    this.weatherManager = WeatherManager.getInstance();
+  }
 
   async initialize(): Promise<void> {
     try {
@@ -428,12 +434,18 @@ export class BattleManager {
     return sight < config.threshold ? config.penalty : 1.0;
   }
 
-  private getWeatherModifier(weather: string): any {
-    const weatherKey = this.getWeatherKey(weather);
-    return (
-      this.battleConfig.battleConfig.weatherModifiers[weatherKey] ||
-      this.battleConfig.battleConfig.weatherModifiers.clear
-    );
+  private getWeatherModifier(weather: any): any {
+    // Use WeatherManager for accurate weather effects
+    const weatherEffects = this.weatherManager.getWeatherEffects(weather);
+
+    // Convert to multiplier format for compatibility
+    const accuracyMultiplier = 1 + weatherEffects.accuracy / 100; // Convert percentage to multiplier
+
+    return {
+      sightMultiplier: accuracyMultiplier,
+      speedMultiplier: weather.value >= 10 ? 0.9 : 1.0, // Reduced speed in bad weather
+      cooldownReduction: 1.0,
+    };
   }
 
   private getWeatherKey(weather: string): string {

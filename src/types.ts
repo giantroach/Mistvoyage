@@ -105,6 +105,21 @@ export type EventType =
   | 'start'
   | 'unknown';
 
+// Weather system types
+export type WeatherType = '' | 'fog' | 'rain';
+
+export interface Weather {
+  value: number; // 0-20, weather intensity
+  type: WeatherType; // weather type set when value >= 10
+  displayName: string; // human readable weather name
+}
+
+export interface WeatherEffect {
+  speed: number; // speed modifier
+  accuracy: number; // accuracy modifier (percentage)
+  sight: number; // sight modifier
+}
+
 export interface GameEvent {
   id: string;
   type: EventType;
@@ -317,7 +332,7 @@ export interface PlayerParameters {
   money: number;
   crew: number;
   sight: number;
-  weather: WeatherType;
+  weather: Weather;
   relics: Relic[];
   weapons: Weapon[];
 

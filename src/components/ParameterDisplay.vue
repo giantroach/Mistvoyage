@@ -12,7 +12,9 @@
     </div>
     <div class="parameter-group secondary">
       <span id="sight-display">視界: {{ playerParams.sight }}</span>
-      <span id="weather-display">天候: {{ playerParams.weather }}</span>
+      <span id="weather-display"
+        >天候: {{ playerParams.weather.displayName }}</span
+      >
       <span id="storage-display"
         >保管庫: {{ playerParams.relics.length }}/{{
           playerParams.ship.storage

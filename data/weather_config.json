@@ -1,0 +1,66 @@
+{
+  "weather_config": {
+    "progression": {
+      "increment_per_move": 1,
+      "min_value": 0,
+      "max_value": 20,
+      "type_threshold": 10,
+      "severe_threshold": 15,
+      "storm_threshold": 20
+    },
+    "display_names": {
+      "clear": "快晴",
+      "cloudy": "曇り",
+      "fog": "霧",
+      "heavy_fog": "濃霧",
+      "rain": "雨",
+      "heavy_rain": "大雨",
+      "storm": "嵐"
+    },
+    "weather_effects": {
+      "clear": {
+        "speed": 0,
+        "accuracy": 0,
+        "sight": 0,
+        "description": "晴天時の基準値"
+      },
+      "cloudy": {
+        "speed": 0,
+        "accuracy": 0,
+        "sight": 0,
+        "description": "曇り時、効果なし"
+      },
+      "rain": {
+        "speed": -1,
+        "accuracy": -10,
+        "sight": 0,
+        "description": "雨時の効果"
+      },
+      "heavy_rain": {
+        "speed": -2,
+        "accuracy": -20,
+        "sight": 0,
+        "description": "大雨時の効果"
+      },
+      "fog": {
+        "speed": 0,
+        "accuracy": -15,
+        "sight": -5,
+        "description": "霧時の効果"
+      },
+      "heavy_fog": {
+        "speed": 0,
+        "accuracy": -30,
+        "sight": -10,
+        "description": "濃霧時の効果"
+      },
+      "storm": {
+        "speed": -2,
+        "accuracy": -30,
+        "sight": -10,
+        "description": "嵐時の効果（weather値20で発生）"
+      }
+    },
+    "random_types": ["fog", "rain"]
+  }
+}

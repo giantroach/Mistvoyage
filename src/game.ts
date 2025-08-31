@@ -14,7 +14,7 @@ import {
   Ship,
   Weapon,
   Relic,
-  WeatherType,
+  Weather,
   PlayerParameters,
   SaveData,
   CombatState,
@@ -28,6 +28,7 @@ import { NavigationManager } from './NavigationManager.js';
 import { CombatSystem } from './CombatSystem.js';
 import { RelicManager } from './RelicManager.js';
 import { WeaponManager } from './WeaponManager.js';
+import { WeatherManager } from './WeatherManager.js';
 import { DebugManager } from './DebugManager.js';
 import { PortManager } from './PortManager.js';
 
@@ -37,7 +38,7 @@ export class MistvoyageGame {
   private shipsData: ShipsData | null = null;
   private eventsData: EventsData | null = null;
   // eventConfig is now integrated into chaptersData
-  private gameState: GameState = this.initializeGameState();
+  private gameState: GameState;
   private isMapVisible: boolean = false;
 
   // Manager instances
@@ -48,11 +49,18 @@ export class MistvoyageGame {
   private navigationManager: NavigationManager;
   private combatSystem: CombatSystem;
   private relicManager: RelicManager;
+  private weatherManager: WeatherManager;
   private debugManager: DebugManager;
   private portManager!: PortManager;
   private pendingScrollInfo: any = null;
 
   constructor() {
+    // Initialize WeatherManager first since it's needed during initialization
+    this.weatherManager = WeatherManager.getInstance();
+
+    // Initialize game state after WeatherManager is ready
+    this.gameState = this.initializeGameState();
+
     this.mapManager = new MapManager();
     this.displayManager = new DisplayManager(this.mapManager);
     this.saveManager = new SaveManager();
@@ -146,7 +154,7 @@ export class MistvoyageGame {
       money: 50,
       crew: defaultShip.crewMax,
       sight: 15,
-      weather: '晴れ' as WeatherType,
+      weather: { value: 0, type: '', displayName: '快晴' }, // Will be properly initialized in init()
       relics: [],
       weapons: [defaultWeapon],
 
@@ -172,6 +180,12 @@ export class MistvoyageGame {
   private async init(): Promise<void> {
     try {
       await this.loadGameData();
+      await this.weatherManager.initialize();
+
+      // Properly initialize weather after WeatherManager is ready
+      this.gameState.playerParameters.weather =
+        this.weatherManager.initializeWeather();
+
       await this.battleManager.initialize();
       await this.relicManager.initialize();
       await WeaponManager.initialize();
@@ -836,6 +850,12 @@ export class MistvoyageGame {
     );
 
     if (success) {
+      // Progress weather when moving to a new node
+      this.gameState.playerParameters.weather =
+        this.weatherManager.progressWeather(
+          this.gameState.playerParameters.weather
+        );
+
       const node = this.gameState.currentMap.nodes[nodeId];
       if (node && node.eventType) {
         // Process event based on type

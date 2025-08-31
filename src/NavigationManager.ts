@@ -1,13 +1,17 @@
 import { GameState, MapNode } from './types';
 import { DisplayManager } from './DisplayManager';
+import { WeatherManager } from './WeatherManager';
 
 export class NavigationManager {
   private pendingScrollInfo: any = null;
+  private weatherManager: WeatherManager;
 
   constructor(
     private gameState: GameState,
     private displayManager: DisplayManager
-  ) {}
+  ) {
+    this.weatherManager = WeatherManager.getInstance();
+  }
 
   public navigateToNode(
     nodeId: string,
@@ -173,10 +177,12 @@ export class NavigationManager {
   }
 
   private getVisibleNodes(currentNode: MapNode): string[] {
-    const sightRange = Math.max(
-      1,
-      Math.floor(this.gameState.playerParameters.sight / 5)
+    // Apply weather effects to sight
+    const effectiveSight = this.weatherManager.getEffectiveSight(
+      this.gameState.playerParameters.sight,
+      this.gameState.playerParameters.weather
     );
+    const sightRange = Math.max(1, Math.floor(effectiveSight / 5));
     const visibleNodes = [this.gameState.currentNodeId];
 
     for (const nodeId in this.gameState.currentMap.nodes) {
@@ -202,10 +208,12 @@ export class NavigationManager {
   ): void {
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-    const sightRange = Math.min(
-      3,
-      Math.max(1, Math.floor(this.gameState.playerParameters.sight / 5))
+    // Apply weather effects to sight
+    const effectiveSight = this.weatherManager.getEffectiveSight(
+      this.gameState.playerParameters.sight,
+      this.gameState.playerParameters.weather
     );
+    const sightRange = Math.min(3, Math.max(1, Math.floor(effectiveSight / 5)));
 
     // Check if the navigation display already exists
     const existingNavigation =

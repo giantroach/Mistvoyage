@@ -34,7 +34,10 @@ export class DisplayManager {
       `乗組員: ${params.crew}/${params.ship.crewMax}`
     );
     this.updateParameterElement('sight-display', `視界: ${params.sight}`);
-    this.updateParameterElement('weather-display', `天候: ${params.weather}`);
+    this.updateParameterElement(
+      'weather-display',
+      `天候: ${params.weather.displayName}`
+    );
     this.updateParameterElement(
       'storage-display',
       `保管庫: ${params.relics.length}/${params.ship.storage}`
