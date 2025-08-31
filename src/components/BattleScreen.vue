@@ -46,9 +46,7 @@
 
     <div class="battle-log">
       <h3>📜 戦闘ログ</h3>
-      <div class="log-content">
-        <p v-for="(log, index) in recentLogs" :key="index">{{ log }}</p>
-      </div>
+      <div class="log-content" v-html="formattedBattleLog"></div>
     </div>
 
     <div class="turn-info">
@@ -85,6 +83,45 @@ const props = defineProps<Props>();
 
 const recentLogs = computed(() => {
   return props.battleState.battleLog.slice(-5);
+});
+
+const formattedBattleLog = computed(() => {
+  return recentLogs.value
+    .map(entry => {
+      if (typeof entry === 'string') {
+        return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
+      } else if (entry.actorType && entry.weaponName) {
+        const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
+        const result = entry.hit ? 
+          (entry.critical ? `${entry.damage}ダメージ (クリティカル!)` : `${entry.damage}ダメージ`) : 
+          'ミス';
+        const backgroundColor =
+          entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
+        return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${
+          entry.actorType === 'player' ? '#66ff66' : '#ff6666'
+        };">${actor}の${entry.weaponName}: ${result}</p>`;
+      } else if (entry.type === 'status') {
+        // Handle status messages
+        return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ffcc00;">${entry.message}</p>`;
+      } else if (entry.type === 'victory') {
+        // Handle victory messages
+        return `<p style="background-color: #2a4a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #66ff66; font-weight: bold;">${entry.message}</p>`;
+      } else if (entry.type === 'defeat') {
+        // Handle defeat messages
+        return `<p style="background-color: #4a2a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ff6666; font-weight: bold;">${entry.message}</p>`;
+      }
+      // For unknown entries, try to extract useful information instead of raw JSON
+      let message = 'Unknown event';
+      if (entry.message) {
+        message = entry.message;
+      } else if (entry.description) {
+        message = entry.description;
+      } else if (entry.text) {
+        message = entry.text;
+      }
+      return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ccc;">${message}</p>`;
+    })
+    .join('');
 });
 
 const turnStatus = computed(() => {
