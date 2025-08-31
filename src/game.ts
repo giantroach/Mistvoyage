@@ -1411,6 +1411,10 @@ export class MistvoyageGame {
       console.log('Set starting node to:', this.gameState.currentNodeId);
       console.log('New map generated, current map:', this.gameState.currentMap);
 
+      // Update node visibility for new chapter
+      this.navigationManager.updateNodeVisibility();
+      console.log('Updated node visibility for new chapter');
+
       // Go directly to navigation phase (skip chapter_start screen)
       this.gameState.gamePhase = 'navigation';
       console.log('Set game phase to navigation');
