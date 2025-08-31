@@ -21,7 +21,8 @@ export class DisplayManager {
   ): void {
     const params = gameState.playerParameters;
 
-    // Update public parameters display
+    // Vue components handle parameter display now
+    // Only update legacy DOM elements if they exist (for backwards compatibility)
     this.updateParameterElement(
       'hull-display',
       `船体: ${params.hull}/${params.ship.hullMax}`
@@ -373,6 +374,12 @@ export class DisplayManager {
   }
 
   showSaveStatus(message: string, isError: boolean = false): void {
+    // Try Vue component first, fallback to legacy DOM
+    if ((window as any).gameInstance?.showVueStatus) {
+      (window as any).gameInstance.showVueStatus(message, isError);
+      return;
+    }
+
     const statusElement = document.getElementById('save-status');
     if (statusElement) {
       statusElement.textContent = message;

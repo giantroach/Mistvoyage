@@ -92,9 +92,11 @@ const formattedBattleLog = computed(() => {
         return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
       } else if (entry.actorType && entry.weaponName) {
         const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
-        const result = entry.hit ? 
-          (entry.critical ? `${entry.damage}ダメージ (クリティカル!)` : `${entry.damage}ダメージ`) : 
-          'ミス';
+        const result = entry.hit
+          ? entry.critical
+            ? `${entry.damage}ダメージ (クリティカル!)`
+            : `${entry.damage}ダメージ`
+          : 'ミス';
         const backgroundColor =
           entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
         return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${

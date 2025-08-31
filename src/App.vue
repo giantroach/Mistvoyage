@@ -10,7 +10,19 @@
           <button id="debug-btn">🔧 デバッグ</button>
         </div>
       </div>
-      <div id="parameters-display">
+      <!-- Parameter Display Component -->
+      <ParameterDisplay
+        v-if="gameState"
+        :player-params="gameState.playerParameters"
+        :current-chapter="gameState.currentChapter"
+        :events-completed="gameState.eventsCompleted"
+        :chapters-data="chaptersData"
+        @show-weapon-detail="handleShowWeaponDetail"
+        @show-relic-detail="handleShowRelicDetail"
+      />
+
+      <!-- Fallback for when gameState is not loaded -->
+      <div v-else id="parameters-display">
         <div class="parameter-group primary">
           <span id="hull-display">船体: --/--</span>
           <span id="food-display">食料: --</span>
@@ -96,9 +108,9 @@
       />
 
       <!-- Legacy DOM-based game content -->
-      <div 
+      <div
         v-else-if="
-          !gameState || 
+          !gameState ||
           gameState.gamePhase === 'ship_selection' ||
           gameState.gamePhase === 'chapter_start' ||
           gameState.gamePhase === 'navigation' ||
@@ -109,9 +121,15 @@
         "
       >
         <!-- Debug info for boss reward phase -->
-        <div 
+        <div
           v-if="gameState && gameState.gamePhase === 'boss_reward'"
-          style="background: #8B4513; color: white; padding: 10px; margin: 10px; font-size: 14px;"
+          style="
+            background: #8b4513;
+            color: white;
+            padding: 10px;
+            margin: 10px;
+            font-size: 14px;
+          "
         >
           <p><strong>BOSS REWARD PHASE ACTIVE</strong></p>
           <p>Boss reward selection should appear below</p>
@@ -150,27 +168,25 @@
       </div>
 
       <!-- Fallback for unknown game phases -->
-      <div v-else style="background: red; color: white; padding: 20px; margin: 10px;">
+      <div
+        v-else
+        style="background: red; color: white; padding: 20px; margin: 10px"
+      >
         <h2>Unknown Game Phase</h2>
         <p v-if="gameState">Current phase: {{ gameState.gamePhase }}</p>
         <p v-else>Game state not available</p>
       </div>
 
-      <div id="cooldown-display" class="cooldown-container">
-        <div id="player-cooldowns" class="cooldown-section">
-          <h4>自分の武器</h4>
-          <div id="player-weapon-bars" class="weapon-bars"></div>
-        </div>
-        <div id="monster-cooldowns" class="cooldown-section">
-          <h4>敵の攻撃状況</h4>
-          <div id="monster-weapon-bars" class="weapon-bars"></div>
-        </div>
-      </div>
+      <!-- Cooldown Display Component -->
+      <CooldownDisplay v-if="cooldownData" :cooldown-data="cooldownData" />
     </main>
 
-    <div id="status-bar">
-      <span id="save-status"></span>
-    </div>
+    <!-- Status Display Component -->
+    <StatusDisplay
+      ref="statusDisplay"
+      :message="statusMessage"
+      :is-error="statusIsError"
+    />
 
     <!-- Debug Modal -->
     <div id="debug-modal" class="modal">
@@ -280,7 +296,10 @@ import BattleResultScreen from './components/BattleResultScreen.vue';
 import PortScreen from './components/PortScreen.vue';
 import WeaponShop from './components/WeaponShop.vue';
 import RelicShop from './components/RelicShop.vue';
-import type { GameState, Weapon, Relic } from './types';
+import ParameterDisplay from './components/ParameterDisplay.vue';
+import CooldownDisplay from './components/CooldownDisplay.vue';
+import StatusDisplay from './components/StatusDisplay.vue';
+import type { GameState, Weapon, Relic, ChaptersData } from './types';
 
 let game: MistvoyageGame | null = null;
 const gameState = ref<GameState | null>(null);
@@ -289,6 +308,13 @@ const gameState = ref<GameState | null>(null);
 const portView = ref<'main' | 'weapons' | 'relics'>('main');
 const portWeapons = ref<Weapon[]>([]);
 const portRelics = ref<Relic[]>([]);
+
+// New component state management
+const chaptersData = ref<ChaptersData | null>(null);
+const cooldownData = ref<any>(null);
+const statusMessage = ref<string>('');
+const statusIsError = ref<boolean>(false);
+const statusDisplay = ref<any>(null);
 
 // Helper function to get current node
 const getCurrentNode = (state: GameState) => {
@@ -344,7 +370,10 @@ const handleShowWeapons = () => {
     console.log('Generating port weapons...');
     portWeapons.value = game.getPortManager().generatePortWeapons();
     portView.value = 'weapons';
-    console.log('Port view changed to weapons, weapons:', portWeapons.value.length);
+    console.log(
+      'Port view changed to weapons, weapons:',
+      portWeapons.value.length
+    );
   } else {
     console.log('Game or PortManager not available');
   }
@@ -356,7 +385,10 @@ const handleShowRelics = () => {
     console.log('Generating port relics...');
     portRelics.value = game.getPortManager().generatePortRelics();
     portView.value = 'relics';
-    console.log('Port view changed to relics, relics:', portRelics.value.length);
+    console.log(
+      'Port view changed to relics, relics:',
+      portRelics.value.length
+    );
   } else {
     console.log('Game or PortManager not available');
   }
@@ -392,23 +424,53 @@ const handleLeavePort = async () => {
     game.getPortManager().leavePort();
     portView.value = 'main';
     updateGameState();
-    
+
     // Wait for Vue to re-render and show the legacy DOM elements
     await nextTick();
-    
+
     // Force update the display to show navigation
     game.updateDisplay();
     console.log('Port exit completed, should show navigation');
   }
 };
 
+// New component event handlers
+const handleShowWeaponDetail = (weapon: any) => {
+  if (game) {
+    game.showWeaponDetail(weapon);
+  }
+};
+
+const handleShowRelicDetail = (relic: any) => {
+  if (game) {
+    game.showRelicDetail(relic);
+  }
+};
+
+// Status display methods
+const showSaveStatus = (message: string, isError = false) => {
+  statusMessage.value = message;
+  statusIsError.value = isError;
+};
+
 onMounted(async () => {
   game = new MistvoyageGame();
   await game.initialize();
 
+  // Load chapters data
+  try {
+    const response = await fetch('./data/chapters.json');
+    chaptersData.value = await response.json();
+  } catch (error) {
+    console.error('Failed to load chapters data:', error);
+  }
+
   // Make game instance globally accessible for onclick handlers
   (window as any).gameInstance = game;
   (window as any).debugManager = game.getDebugManager();
+
+  // Add Vue-specific methods to game instance
+  (window as any).gameInstance.showVueStatus = showSaveStatus;
 
   // Setup reactive state updates
   updateGameState();
@@ -431,7 +493,7 @@ watchEffect(() => {
     //   currentNodeType: currentNode?.eventType,
     //   portView: portView.value,
     // });
- 
+
     // Force update display when entering boss_reward phase
     if (
       gameState.value.gamePhase === 'boss_reward' &&
@@ -454,7 +516,7 @@ watchEffect(() => {
       console.log('Entering port event - resetting port view to main');
       portView.value = 'main';
     }
-    
+
     // Update previous state
     previousGamePhase.value = gameState.value.gamePhase;
     previousNodeType.value = currentNode?.eventType || '';
