@@ -69,6 +69,10 @@ export class RelicManager {
     };
   }
 
+  generateRandomRelic(): Relic {
+    return this.generateRelic();
+  }
+
   generateMultipleRelics(
     count: number,
     customRarityWeights?: Record<string, number>

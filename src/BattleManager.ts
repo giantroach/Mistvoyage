@@ -97,6 +97,41 @@ export class BattleManager {
     gameState.gamePhase = 'combat';
   }
 
+  initiateDebugBattle(gameState: GameState, enemyId: string): void {
+    if (!this.monstersData) {
+      throw new Error('Monsters data not initialized');
+    }
+
+    const monsterData = this.monstersData.monsters[enemyId];
+    if (!monsterData) {
+      throw new Error(`Monster ${enemyId} not found`);
+    }
+
+    // Create a single monster using the same logic as createMonstersFromEncounter
+    const monster = {
+      ...monsterData,
+      maxHp: monsterData.hp,
+      effects: [],
+    };
+
+    gameState.battleState = {
+      isActive: true,
+      phase: 'preparation',
+      monsters: [monster],
+      playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
+        weapon,
+        lastUsed: Date.now() - weapon.cooldown.max, // Allow immediate attack
+      })),
+      battleLog: [`「${monsterData.name}」との戦闘開始！`],
+      startTime: Date.now(),
+      playerEffects: [],
+      playerTurn: true,
+      turnCount: 1,
+    };
+
+    gameState.gamePhase = 'combat';
+  }
+
   private createBossMonster(bossId: string): Monster {
     const monsterData = this.monstersData.monsters[bossId];
     if (!monsterData) {
@@ -125,10 +160,7 @@ export class BattleManager {
     }
 
     if (!encounters || encounters.length === 0) {
-      console.error('No encounters found!');
-      console.error('Chapter:', chapter);
-      console.error('ChaptersData:', chaptersData);
-      console.error('MonstersData encounters:', this.monstersData?.encounters);
+      console.error('No encounters found for chapter:', chapter);
       throw new Error(`No encounters found for chapter ${chapter}`);
     }
 

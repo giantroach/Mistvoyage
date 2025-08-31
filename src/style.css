@@ -1128,20 +1128,6 @@ button.active:hover {
   padding-bottom: 0.5rem;
 }
 
-.debug-btn {
-  background-color: #4a7c59;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  margin: 0.25rem;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.debug-btn:hover {
-  background-color: #5a8c69;
-}
 
 .setting-item {
   margin-bottom: 1rem;

@@ -164,71 +164,8 @@
       :is-error="statusIsError"
     />
 
-    <!-- Debug Modal -->
-    <div id="debug-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>デバッグパネル</h2>
-          <button class="close-btn" id="close-debug">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="debug-section">
-            <h3>基本操作</h3>
-            <button class="debug-btn" id="debug-gain-exp">経験値+100</button>
-            <button class="debug-btn" id="debug-gain-money">資金+1000</button>
-            <button class="debug-btn" id="debug-heal">完全回復</button>
-            <button class="debug-btn" id="debug-restore-food">
-              食料満タン
-            </button>
-          </div>
-
-          <div class="debug-section">
-            <h3>武器・アイテム</h3>
-            <button class="debug-btn" id="debug-add-weapon">
-              ランダム武器追加
-            </button>
-            <button class="debug-btn" id="debug-add-relic">
-              ランダムレリック追加
-            </button>
-            <button class="debug-btn" id="debug-clear-weapons">
-              武器全削除
-            </button>
-            <button class="debug-btn" id="debug-clear-relics">
-              レリック全削除
-            </button>
-          </div>
-
-          <div class="debug-section">
-            <h3>戦闘関連</h3>
-            <button class="debug-btn" id="debug-win-battle">戦闘勝利</button>
-            <button class="debug-btn" id="debug-toggle-god-mode">
-              無敵モード切替
-            </button>
-          </div>
-
-          <div class="debug-section">
-            <h3>情報表示</h3>
-            <button class="debug-btn" id="debug-show-state">
-              ゲーム状態表示
-            </button>
-            <button class="debug-btn" id="debug-show-weapons">
-              武器一覧表示
-            </button>
-            <button class="debug-btn" id="debug-show-relics">
-              レリック一覧表示
-            </button>
-          </div>
-
-          <div class="debug-section">
-            <h3>章・進行</h3>
-            <button class="debug-btn" id="debug-next-chapter">次の章へ</button>
-            <button class="debug-btn" id="debug-complete-chapter">
-              現在章完了
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Debug Panel Component -->
+    <DebugPanel />
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal">
@@ -276,6 +213,7 @@ import TempleScreen from './components/TempleScreen.vue';
 import ParameterDisplay from './components/ParameterDisplay.vue';
 import CooldownDisplay from './components/CooldownDisplay.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
+import DebugPanel from './components/DebugPanel.vue';
 import type { GameState, Weapon, Relic, ChaptersData } from './types';
 
 let game: MistvoyageGame | null = null;

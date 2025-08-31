@@ -419,10 +419,6 @@ export class DebugManager {
   private createDebugMonsters(): any[] {
     const encounters = this.generateEncounterOptions();
 
-    console.log(
-      'Debug: Selected monster encounter:',
-      this.debugState.selectedMonsterEncounter
-    );
 
     const selectedEncounter = encounters.find(
       e => e.id === this.debugState.selectedMonsterEncounter
@@ -436,7 +432,6 @@ export class DebugManager {
       return [];
     }
 
-    console.log('Debug: Found encounter:', selectedEncounter);
 
     // Create debug monsters manually
     const debugMonsters = selectedEncounter.monsters.map((monsterId, index) => {
@@ -469,7 +464,6 @@ export class DebugManager {
     const monstersData = (battleManager as any).monstersData;
 
     if (!monstersData || !monstersData.monsters) {
-      console.error('Debug: Monster data not loaded in BattleManager');
       // Fallback to basic sea slime
       return {
         name: '海のスライム',
@@ -506,10 +500,6 @@ export class DebugManager {
       );
     }
 
-    console.log(
-      `Debug: Using monster stats from JSON for ${monsterId}:`,
-      monsterData
-    );
 
     // Add default attack/defense if not present in JSON
     return {
@@ -586,7 +576,6 @@ export class DebugManager {
       }
     );
 
-    console.log('Debug: Generated encounters:', encounters);
     return encounters;
   }
 

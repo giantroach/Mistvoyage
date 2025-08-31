@@ -49,6 +49,7 @@ export class MistvoyageGame {
   private navigationManager: NavigationManager;
   private combatSystem: CombatSystem;
   private relicManager: RelicManager;
+  private weaponManager: WeaponManager;
   private weatherManager: WeatherManager;
   private debugManager: DebugManager;
   private portManager!: PortManager;
@@ -189,6 +190,7 @@ export class MistvoyageGame {
       await this.battleManager.initialize();
       await this.relicManager.initialize();
       await WeaponManager.initialize();
+      this.weaponManager = WeaponManager.getInstance();
 
       // Initialize PortManager after WeaponManager is ready
       this.portManager = new PortManager(
@@ -257,9 +259,12 @@ export class MistvoyageGame {
     if (settingsBtn)
       settingsBtn.addEventListener('click', () => this.showSettings());
     if (debugBtn)
-      debugBtn.addEventListener('click', () =>
-        this.getDebugManager().toggleDebugMode()
-      );
+      debugBtn.addEventListener('click', () => {
+        const debugModal = document.getElementById('debug-modal');
+        if (debugModal) {
+          debugModal.style.display = 'block';
+        }
+      });
 
     // Modal close buttons
     const closeDebugBtn = document.getElementById('close-debug');
@@ -295,6 +300,280 @@ export class MistvoyageGame {
         settingsModal.style.display = 'none';
       }
     });
+
+    // Debug panel button event listeners
+    this.setupDebugButtonListeners();
+  }
+
+  private setupDebugButtonListeners(): void {
+    // Basic operations
+    const debugGainExp = document.getElementById('debug-gain-exp');
+    const debugGainMoney = document.getElementById('debug-gain-money');
+    const debugHeal = document.getElementById('debug-heal');
+    const debugRestoreFood = document.getElementById('debug-restore-food');
+
+    if (debugGainExp) {
+      debugGainExp.replaceWith(debugGainExp.cloneNode(true)); // Remove existing event listeners
+      const newDebugGainExp = document.getElementById('debug-gain-exp');
+      newDebugGainExp?.addEventListener('click', () => {
+        this.gameState.playerParameters.experience += 100;
+        this.updateDisplay();
+        this.showSaveStatus('経験値+100を追加しました');
+      });
+    }
+
+    if (debugGainMoney) {
+      debugGainMoney.replaceWith(debugGainMoney.cloneNode(true));
+      const newDebugGainMoney = document.getElementById('debug-gain-money');
+      newDebugGainMoney?.addEventListener('click', () => {
+        this.gameState.playerParameters.money += 1000;
+        this.updateDisplay();
+        this.showSaveStatus('資金+1000を追加しました');
+      });
+    }
+
+    if (debugHeal) {
+      debugHeal.replaceWith(debugHeal.cloneNode(true));
+      const newDebugHeal = document.getElementById('debug-heal');
+      newDebugHeal?.addEventListener('click', () => {
+        this.gameState.playerParameters.hull = this.gameState.playerParameters.maxHull;
+        this.updateDisplay();
+        this.showSaveStatus('船体を完全回復しました');
+      });
+    }
+
+    if (debugRestoreFood) {
+      debugRestoreFood.replaceWith(debugRestoreFood.cloneNode(true));
+      const newDebugRestoreFood = document.getElementById('debug-restore-food');
+      newDebugRestoreFood?.addEventListener('click', () => {
+        this.gameState.playerParameters.food = 100;
+        this.updateDisplay();
+        this.showSaveStatus('食料を満タンにしました');
+      });
+    }
+
+    // Weapons & Items
+    const debugAddWeapon = document.getElementById('debug-add-weapon');
+    const debugAddRelic = document.getElementById('debug-add-relic');
+    const debugClearWeapons = document.getElementById('debug-clear-weapons');
+    const debugClearRelics = document.getElementById('debug-clear-relics');
+
+    if (debugAddWeapon) {
+      debugAddWeapon.replaceWith(debugAddWeapon.cloneNode(true)); // Remove existing event listeners
+      const newDebugAddWeapon = document.getElementById('debug-add-weapon');
+      newDebugAddWeapon?.addEventListener('click', () => {
+        const weaponTypeSelect = document.getElementById('weapon-type-select') as HTMLSelectElement;
+        const weaponRaritySelect = document.getElementById('weapon-rarity-select') as HTMLSelectElement;
+        
+        if (weaponTypeSelect && weaponRaritySelect) {
+          const selectedType = weaponTypeSelect.value;
+          const selectedRarity = weaponRaritySelect.value as any; // WeaponRarity type
+          
+          try {
+            const newWeapon = this.weaponManager.generateWeapon(selectedType, selectedRarity);
+            this.gameState.playerParameters.weapons.push(newWeapon);
+            this.updateDisplay();
+            this.showSaveStatus(`武器「${newWeapon.name}」(${selectedRarity})を追加しました`);
+          } catch (error) {
+            this.showSaveStatus(`武器生成エラー: ${error}`, true);
+          }
+        } else {
+          this.showSaveStatus('武器選択UIが見つかりません', true);
+        }
+      });
+    }
+
+    if (debugAddRelic) {
+      debugAddRelic.replaceWith(debugAddRelic.cloneNode(true));
+      const newDebugAddRelic = document.getElementById('debug-add-relic');
+      newDebugAddRelic?.addEventListener('click', () => {
+        const relicRaritySelect = document.getElementById('relic-rarity-select') as HTMLSelectElement;
+        
+        if (relicRaritySelect) {
+          const selectedRarity = relicRaritySelect.value as any; // RelicRarity type
+          
+          try {
+            const newRelic = this.relicManager.generateRelic(selectedRarity);
+            this.gameState.playerParameters.relics.push(newRelic);
+            this.updateDisplay();
+            this.showSaveStatus(`レリック「${newRelic.name}」(${selectedRarity})を追加しました`);
+          } catch (error) {
+            this.showSaveStatus(`レリック生成エラー: ${error}`, true);
+          }
+        } else {
+          this.showSaveStatus('レリック選択UIが見つかりません', true);
+        }
+      });
+    }
+
+    if (debugClearWeapons) {
+      debugClearWeapons.replaceWith(debugClearWeapons.cloneNode(true));
+      const newDebugClearWeapons = document.getElementById('debug-clear-weapons');
+      newDebugClearWeapons?.addEventListener('click', () => {
+        this.gameState.playerParameters.weapons = [];
+        this.updateDisplay();
+        this.showSaveStatus('すべての武器を削除しました');
+      });
+    }
+
+    if (debugClearRelics) {
+      debugClearRelics.replaceWith(debugClearRelics.cloneNode(true));
+      const newDebugClearRelics = document.getElementById('debug-clear-relics');
+      newDebugClearRelics?.addEventListener('click', () => {
+        this.gameState.playerParameters.relics = [];
+        this.updateDisplay();
+        this.showSaveStatus('すべてのレリックを削除しました');
+      });
+    }
+
+    // Combat related
+    const debugStartBattle = document.getElementById('debug-start-battle');
+    const debugWinBattle = document.getElementById('debug-win-battle');
+    const debugToggleGodMode = document.getElementById('debug-toggle-god-mode');
+
+    if (debugStartBattle) {
+      debugStartBattle.replaceWith(debugStartBattle.cloneNode(true));
+      const newDebugStartBattle = document.getElementById('debug-start-battle');
+      newDebugStartBattle?.addEventListener('click', () => {
+        const enemySelect = document.getElementById('enemy-select') as HTMLSelectElement;
+        
+        if (enemySelect) {
+          const selectedEnemy = enemySelect.value;
+          try {
+            this.startDebugBattle(selectedEnemy);
+            this.showSaveStatus(`「${enemySelect.options[enemySelect.selectedIndex].text}」との戦闘を開始しました`);
+          } catch (error) {
+            this.showSaveStatus(`戦闘開始エラー: ${error}`, true);
+          }
+        } else {
+          this.showSaveStatus('敵選択UIが見つかりません', true);
+        }
+      });
+    }
+
+    if (debugWinBattle) {
+      debugWinBattle.replaceWith(debugWinBattle.cloneNode(true));
+      const newDebugWinBattle = document.getElementById('debug-win-battle');
+      newDebugWinBattle?.addEventListener('click', () => {
+        if (this.gameState.battleState?.isActive) {
+          this.gameState.battleState.isActive = false;
+          this.gameState.battleState.result = 'victory';
+          this.gameState.gamePhase = 'battle_result';
+          this.updateDisplay();
+          this.showSaveStatus('戦闘に勝利しました');
+        } else {
+          this.showSaveStatus('現在戦闘中ではありません', true);
+        }
+      });
+    }
+
+    if (debugToggleGodMode) {
+      debugToggleGodMode.replaceWith(debugToggleGodMode.cloneNode(true));
+      const newDebugToggleGodMode = document.getElementById('debug-toggle-god-mode');
+      newDebugToggleGodMode?.addEventListener('click', () => {
+        // Toggle god mode (implement as needed)
+        this.showSaveStatus('無敵モード機能は未実装です');
+      });
+    }
+
+    // Information display
+    const debugShowState = document.getElementById('debug-show-state');
+    const debugShowWeapons = document.getElementById('debug-show-weapons');
+    const debugShowRelics = document.getElementById('debug-show-relics');
+
+    if (debugShowState) {
+      debugShowState.replaceWith(debugShowState.cloneNode(true));
+      const newDebugShowState = document.getElementById('debug-show-state');
+      newDebugShowState?.addEventListener('click', () => {
+        this.showSaveStatus('ゲーム状態をコンソールに出力しました');
+      });
+    }
+
+    if (debugShowWeapons) {
+      debugShowWeapons.replaceWith(debugShowWeapons.cloneNode(true));
+      const newDebugShowWeapons = document.getElementById('debug-show-weapons');
+      newDebugShowWeapons?.addEventListener('click', () => {
+        this.showSaveStatus('武器一覧をコンソールに出力しました');
+      });
+    }
+
+    if (debugShowRelics) {
+      debugShowRelics.replaceWith(debugShowRelics.cloneNode(true));
+      const newDebugShowRelics = document.getElementById('debug-show-relics');
+      newDebugShowRelics?.addEventListener('click', () => {
+        this.showSaveStatus('レリック一覧をコンソールに出力しました');
+      });
+    }
+
+    // Chapter & Progress
+    const debugNextChapter = document.getElementById('debug-next-chapter');
+    const debugCompleteChapter = document.getElementById('debug-complete-chapter');
+
+    if (debugNextChapter) {
+      debugNextChapter.replaceWith(debugNextChapter.cloneNode(true));
+      const newDebugNextChapter = document.getElementById('debug-next-chapter');
+      newDebugNextChapter?.addEventListener('click', () => {
+        if (this.gameState.currentChapter < 3) {
+          this.gameState.currentChapter++;
+          this.gameState.eventsCompleted = 0;
+          this.gameState.visitedNodes.clear();
+          this.gameState.currentNodeId = 'start';
+          this.gameState.gamePhase = 'chapter_start';
+          this.updateDisplay();
+          this.showSaveStatus(`第${this.gameState.currentChapter}章に進みました`);
+        } else {
+          this.showSaveStatus('最終章です', true);
+        }
+      });
+    }
+
+    if (debugCompleteChapter) {
+      debugCompleteChapter.replaceWith(debugCompleteChapter.cloneNode(true));
+      const newDebugCompleteChapter = document.getElementById('debug-complete-chapter');
+      newDebugCompleteChapter?.addEventListener('click', () => {
+        const requiredEvents = this.chaptersData.chapters.find(
+          c => c.id === this.gameState.currentChapter
+        )?.requiredEvents || 3;
+        this.gameState.eventsCompleted = requiredEvents;
+        this.updateDisplay();
+        this.showSaveStatus('現在章を完了状態にしました');
+      });
+    }
+  }
+
+  private startDebugBattle(enemyId: string): void {
+    try {
+      // Close debug modal if open
+      const debugModal = document.getElementById('debug-modal');
+      if (debugModal) {
+        debugModal.style.display = 'none';
+      }
+
+      // Use BattleManager for proper auto-battle system
+      this.battleManager.initiateDebugBattle(this.gameState, enemyId);
+
+      // Start the battle loop
+      this.startBattleUpdateLoop();
+
+      // Update display to show battle screen
+      this.updateDisplay();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private showSaveStatus(message: string, isError: boolean = false): void {
+    // Display status message to user
+    if ((window as any).gameInstance?.showVueStatus) {
+      (window as any).gameInstance.showVueStatus(message, isError);
+    } else {
+      // Fallback to DisplayManager if Vue status not available
+      if (this.displayManager) {
+        this.displayManager.showSaveStatus(message, isError);
+      } else {
+        // Fallback message display - no console logging needed
+      }
+    }
   }
 
   private startGame(): void {
@@ -925,12 +1204,6 @@ export class MistvoyageGame {
       this.updateDisplay();
     } catch (error) {
       console.error('Failed to start battle:', error);
-      console.error('Error details:', error);
-      console.error('Current chapter:', this.gameState.currentChapter);
-      console.error('Chapters data available:', !!this.chaptersData);
-      if (this.chaptersData) {
-        console.error('Chapters:', this.chaptersData.chapters);
-      }
       // Fallback to normal event processing
       this.processEvent('monster');
     }
@@ -1321,7 +1594,7 @@ export class MistvoyageGame {
   }
 
   public getWeaponManager(): WeaponManager {
-    return WeaponManager.getInstance();
+    return this.weaponManager;
   }
 
   public getBattleManager(): BattleManager {
