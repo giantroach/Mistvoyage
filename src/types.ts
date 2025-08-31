@@ -246,6 +246,20 @@ export interface BattleState {
   // Additional properties for the new combat system
   playerTurn: boolean;
   turnCount: number;
+  // Weapon cooldown tracking
+  weaponCooldowns?: {
+    player?: { [weaponId: string]: WeaponCooldownInfo };
+    monsters?: {
+      [monsterId: string]: { [weaponName: string]: WeaponCooldownInfo };
+    };
+  };
+}
+
+export interface WeaponCooldownInfo {
+  cooldownPercent: number;
+  remainingTime: number;
+  isReady: boolean;
+  lastFired?: number;
 }
 
 export type RelicRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';

@@ -8,7 +8,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 
 ## Architecture
 
-- **Tech Stack**: TypeScript, HTML5, CSS3 (compiled to JavaScript ES2020)
+- **Tech Stack**: Vue 3 + TypeScript + Vite (modern development stack)
 - **Game Engine**: Modular `MistvoyageGame` class in `src/game.ts` with specialized managers
 - **Content System**: JSON-based chapters, monsters, weapons, and battle configuration
 - **Save System**: LocalStorage-based persistence
@@ -58,14 +58,14 @@ The game uses multiple JSON files:
 # Install dependencies
 npm install
 
-# Build TypeScript files
+# Start development server with hot reload
+npm run dev
+
+# Build for production
 npm run build
 
-# Watch mode for development
-npm run watch
-
-# Start local development server (builds first)
-npm run dev
+# Preview production build
+npm run preview
 
 # Format code with Prettier (2-space indentation)
 npm run format

@@ -129,8 +129,8 @@ export class DebugManager {
         }')">
           <strong>${ship.name}</strong><br>
           Hull: ${ship.hullMax} | Crew: ${ship.crewMax} | Speed: ${
-          ship.baseSpeed
-        }<br>
+            ship.baseSpeed
+          }<br>
           Storage: ${ship.storage} | Weapon Slots: ${ship.weaponSlots}
         </button>
       </div>

@@ -21,7 +21,8 @@ export class DisplayManager {
   ): void {
     const params = gameState.playerParameters;
 
-    // Update public parameters display
+    // Vue components handle parameter display now
+    // Only update legacy DOM elements if they exist (for backwards compatibility)
     this.updateParameterElement(
       'hull-display',
       `船体: ${params.hull}/${params.ship.hullMax}`
@@ -272,18 +273,18 @@ export class DisplayManager {
             let strokeWidth = isCurrentPath
               ? '3'
               : isDistantConnection
-              ? '1'
-              : '2';
+                ? '1'
+                : '2';
             let strokeColor = isCurrentPath
               ? '#66ccff'
               : isDistantConnection
-              ? '#999'
-              : '#666';
+                ? '#999'
+                : '#666';
             let opacity = isCurrentPath
               ? '1'
               : isDistantConnection
-              ? '0.8'
-              : '0.9';
+                ? '0.8'
+                : '0.9';
 
             svgConnections += `<line x1="${x1}" y1="${y1}" `;
             svgConnections += `x2="${x2}" y2="${y2}" `;
@@ -373,6 +374,12 @@ export class DisplayManager {
   }
 
   showSaveStatus(message: string, isError: boolean = false): void {
+    // Try Vue component first, fallback to legacy DOM
+    if ((window as any).gameInstance?.showVueStatus) {
+      (window as any).gameInstance.showVueStatus(message, isError);
+      return;
+    }
+
     const statusElement = document.getElementById('save-status');
     if (statusElement) {
       statusElement.textContent = message;

@@ -8,7 +8,7 @@
       "requiredEvents": 5,
       "bossEvent": "kraken_young",
       "bossMonster": "kraken_young",
-      "bossRewardRarities": ["epic"],
+      "bossRewardRarities": ["rare", "epic", "epic"],
       "eventTypes": {
         "monster": { "weight": 40, "fixedCount": 0 },
         "elite_monster": {
@@ -60,7 +60,7 @@
       "requiredEvents": 6,
       "bossEvent": "ghost_ship",
       "bossMonster": "ghost_ship",
-      "bossRewardRarities": ["epic"],
+      "bossRewardRarities": ["rare", "epic", "legendary"],
       "eventTypes": {
         "monster": { "weight": 35, "fixedCount": 0 },
         "elite_monster": {
@@ -120,7 +120,7 @@
       "requiredEvents": 7,
       "bossEvent": "leviathan",
       "bossMonster": "leviathan",
-      "bossRewardRarities": ["legendary"],
+      "bossRewardRarities": ["epic", "legendary", "legendary"],
       "eventTypes": {
         "monster": { "weight": 30, "fixedCount": 0 },
         "elite_monster": {

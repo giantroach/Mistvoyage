@@ -165,6 +165,10 @@ export class MistvoyageGame {
     };
   }
 
+  public async initialize(): Promise<void> {
+    return this.init();
+  }
+
   private async init(): Promise<void> {
     try {
       await this.loadGameData();
@@ -242,6 +246,41 @@ export class MistvoyageGame {
       debugBtn.addEventListener('click', () =>
         this.getDebugManager().toggleDebugMode()
       );
+
+    // Modal close buttons
+    const closeDebugBtn = document.getElementById('close-debug');
+    const closeSettingsBtn = document.getElementById('close-settings');
+
+    if (closeDebugBtn) {
+      closeDebugBtn.addEventListener('click', () => {
+        const debugModal = document.getElementById('debug-modal');
+        if (debugModal) {
+          debugModal.style.display = 'none';
+        }
+      });
+    }
+
+    if (closeSettingsBtn) {
+      closeSettingsBtn.addEventListener('click', () => {
+        const settingsModal = document.getElementById('settings-modal');
+        if (settingsModal) {
+          settingsModal.style.display = 'none';
+        }
+      });
+    }
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', event => {
+      const debugModal = document.getElementById('debug-modal');
+      const settingsModal = document.getElementById('settings-modal');
+
+      if (event.target === debugModal) {
+        debugModal.style.display = 'none';
+      }
+      if (event.target === settingsModal) {
+        settingsModal.style.display = 'none';
+      }
+    });
   }
 
   private startGame(): void {
@@ -451,8 +490,8 @@ export class MistvoyageGame {
           <div class="status-bars">
             <div class="health-bar">
               <span>Hull: ${playerParams.hull}/${
-      playerParams.ship.hullMax
-    }</span>
+                playerParams.ship.hullMax
+              }</span>
               <div class="bar">
                 <div class="fill" style="width: ${
                   (playerParams.hull / playerParams.ship.hullMax) * 100
@@ -510,16 +549,36 @@ export class MistvoyageGame {
           return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
         } else if (entry.actorType && entry.weaponName) {
           const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
-          const result = entry.hit ? `${entry.damage}ダメージ` : 'ミス';
+          const result = entry.hit
+            ? entry.critical
+              ? `${entry.damage}ダメージ (クリティカル!)`
+              : `${entry.damage}ダメージ`
+            : 'ミス';
           const backgroundColor =
             entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
           return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${
             entry.actorType === 'player' ? '#66ff66' : '#ff6666'
           };">${actor}の${entry.weaponName}: ${result}</p>`;
+        } else if (entry.type === 'status') {
+          // Handle status messages
+          return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ffcc00;">${entry.message}</p>`;
+        } else if (entry.type === 'victory') {
+          // Handle victory messages
+          return `<p style="background-color: #2a4a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #66ff66; font-weight: bold;">${entry.message}</p>`;
+        } else if (entry.type === 'defeat') {
+          // Handle defeat messages
+          return `<p style="background-color: #4a2a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ff6666; font-weight: bold;">${entry.message}</p>`;
         }
-        return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${JSON.stringify(
-          entry
-        )}</p>`;
+        // For unknown entries, try to extract useful information instead of raw JSON
+        let message = 'Unknown event';
+        if (entry.message) {
+          message = entry.message;
+        } else if (entry.description) {
+          message = entry.description;
+        } else if (entry.text) {
+          message = entry.text;
+        }
+        return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ccc;">${message}</p>`;
       })
       .join('');
   }
@@ -565,8 +624,8 @@ export class MistvoyageGame {
         <div class="current-status">
           <h3>📊 現在のステータス</h3>
           <p><strong>Hull:</strong> ${playerParams.hull}/${
-      playerParams.ship.hullMax
-    }</p>
+            playerParams.ship.hullMax
+          }</p>
           <p><strong>ゴールド:</strong> ${playerParams.money}</p>
         </div>
       </div>
@@ -633,8 +692,8 @@ export class MistvoyageGame {
             <div class="stat-row">
               <span class="stat-label">ダメージ:</span>
               <span class="stat-value">${weapon.damage.min}-${
-        weapon.damage.max
-      }</span>
+                weapon.damage.max
+              }</span>
             </div>
             <div class="stat-row">
               <span class="stat-label">必要クルー:</span>
@@ -1212,16 +1271,31 @@ export class MistvoyageGame {
   }
 
   private showSettings(): void {
-    alert('設定画面（未実装）');
+    const settingsModal = document.getElementById('settings-modal');
+    if (settingsModal) {
+      settingsModal.style.display = 'block';
+    }
   }
 
   private showError(message: string): void {
     this.displayManager.showError(message);
   }
 
-  // Public getter for debug manager
+  // Public getters
   public getDebugManager(): DebugManager {
     return this.debugManager;
+  }
+
+  public getGameState(): GameState {
+    return this.gameState;
+  }
+
+  public getCombatSystem(): CombatSystem {
+    return this.combatSystem;
+  }
+
+  public continueBattleFromUI(): void {
+    this.combatSystem.continueBattle();
   }
 
   // Public getters for managers (for debug access)
@@ -1256,11 +1330,17 @@ export class MistvoyageGame {
       this.gameState,
       this.chaptersData
     );
+    console.log('Boss rewards generated:', rewards.length, rewards);
 
     // Generate actual relics using RelicManager
     const relicManager = this.getRelicManager();
     const actualRelics = rewards.map(reward =>
       relicManager.generateRelic(reward.rarity)
+    );
+    console.log(
+      'Actual relics generated:',
+      actualRelics.length,
+      actualRelics.map(r => r.name)
     );
 
     let choicesHtml = '';
@@ -1337,6 +1417,10 @@ export class MistvoyageGame {
       console.log('Set starting node to:', this.gameState.currentNodeId);
       console.log('New map generated, current map:', this.gameState.currentMap);
 
+      // Update node visibility for new chapter
+      this.navigationManager.updateNodeVisibility();
+      console.log('Updated node visibility for new chapter');
+
       // Go directly to navigation phase (skip chapter_start screen)
       this.gameState.gamePhase = 'navigation';
       console.log('Set game phase to navigation');
@@ -1369,10 +1453,4 @@ export class MistvoyageGame {
   }
 }
 
-// ゲーム開始
-document.addEventListener('DOMContentLoaded', () => {
-  const game = new MistvoyageGame();
-  // Make game instance globally accessible for onclick handlers
-  (window as any).gameInstance = game;
-  (window as any).debugManager = game.getDebugManager();
-});
+// Vue環境ではApp.vueでゲームを初期化するため、このコードは不要
