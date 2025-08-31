@@ -44,6 +44,7 @@ export interface Chapter {
     elite_monster: EventTypeConfig;
     port: EventTypeConfig;
     treasure: TreasureEventTypeConfig;
+    temple: EventTypeConfig;
     unknown: EventTypeConfig;
   };
   encounters: Encounter[];
@@ -101,6 +102,7 @@ export type EventType =
   | 'elite_monster'
   | 'port'
   | 'treasure'
+  | 'temple'
   | 'boss'
   | 'start'
   | 'unknown';

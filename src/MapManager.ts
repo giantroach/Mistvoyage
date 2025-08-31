@@ -255,7 +255,7 @@ export class MapManager {
 
   private isMinCountEvent(eventType: EventType, eventTypeConfig: any): boolean {
     const config = eventTypeConfig[eventType];
-    return config && config.minCount && config.minCount > 0;
+    return config && ((config.minCount && config.minCount > 0) || (config.fixedCount && config.fixedCount > 0));
   }
 
   private connectLayersWithOrphanPrevention(

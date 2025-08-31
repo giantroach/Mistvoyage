@@ -31,7 +31,8 @@
             "legendary": 0
           }
         },
-        "unknown": { "weight": 15, "fixedCount": 0 }
+        "temple": { "weight": 5, "fixedCount": 1 },
+        "unknown": { "weight": 10, "fixedCount": 0 }
       },
       "encounters": [
         {
@@ -83,7 +84,8 @@
             "legendary": 1
           }
         },
-        "unknown": { "weight": 10, "fixedCount": 0 }
+        "temple": { "weight": 5, "fixedCount": 1 },
+        "unknown": { "weight": 5, "fixedCount": 0 }
       },
       "encounters": [
         {
@@ -143,7 +145,8 @@
             "legendary": 2
           }
         },
-        "unknown": { "weight": 10, "fixedCount": 0 }
+        "temple": { "weight": 5, "fixedCount": 1 },
+        "unknown": { "weight": 5, "fixedCount": 0 }
       },
       "encounters": [
         {

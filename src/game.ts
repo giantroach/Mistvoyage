@@ -878,6 +878,11 @@ export class MistvoyageGame {
           this.gameState.gamePhase = 'event';
           this.processEvent(node.eventType);
           // Don't complete the event immediately - let player use services
+        } else if (node.eventType === 'temple') {
+          // Temple events need special handling like treasure and port events
+          this.gameState.gamePhase = 'event';
+          this.processEvent(node.eventType);
+          // Don't complete the event immediately - let player use temple
         } else {
           // Process other event types here
           this.processEvent(node.eventType);
@@ -965,6 +970,9 @@ export class MistvoyageGame {
         break;
       case 'port':
         this.portManager.handlePortEvent();
+        break;
+      case 'temple':
+        this.handleTempleEvent();
         break;
       case 'boss':
         this.handleBossEvent();
@@ -1115,6 +1123,25 @@ export class MistvoyageGame {
   // Port management is now handled by PortManager
   public getPortManager(): PortManager {
     return this.portManager;
+  }
+
+  public getWeatherManager(): WeatherManager {
+    return this.weatherManager;
+  }
+
+  // Temple event methods
+  public offerPrayer(): void {
+    console.log('offerPrayer called');
+    // Reset weather to clear state
+    this.gameState.playerParameters.weather =
+      this.weatherManager.initializeWeather();
+    console.log('Weather reset to:', this.gameState.playerParameters.weather);
+  }
+
+  private handleTempleEvent(): void {
+    console.log('handleTempleEvent called');
+    // Temple events are handled by Vue components, just set the phase
+    this.gameState.gamePhase = 'event';
   }
 
   private handleBossEvent(): void {

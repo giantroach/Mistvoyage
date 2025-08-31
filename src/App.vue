@@ -107,6 +107,19 @@
         @back-to-port="handleBackToPort"
       />
 
+      <!-- Temple Screen -->
+      <TempleScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'temple'
+        "
+        :player-params="gameState.playerParameters"
+        :weather-effects="getWeatherEffects(gameState.playerParameters.weather)"
+        @offer-prayer="handleOfferPrayer"
+        @leave-temple="handleLeaveTemple"
+      />
+
       <!-- Legacy DOM-based game content -->
       <div
         v-else-if="
@@ -296,6 +309,7 @@ import BattleResultScreen from './components/BattleResultScreen.vue';
 import PortScreen from './components/PortScreen.vue';
 import WeaponShop from './components/WeaponShop.vue';
 import RelicShop from './components/RelicShop.vue';
+import TempleScreen from './components/TempleScreen.vue';
 import ParameterDisplay from './components/ParameterDisplay.vue';
 import CooldownDisplay from './components/CooldownDisplay.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
@@ -320,6 +334,13 @@ const statusDisplay = ref<any>(null);
 const getCurrentNode = (state: GameState) => {
   if (!state || !state.currentMap || !state.currentNodeId) return null;
   return state.currentMap.nodes[state.currentNodeId] || null;
+};
+
+const getWeatherEffects = (weather: any) => {
+  if (game && game.getWeatherManager()) {
+    return game.getWeatherManager().getWeatherEffects(weather);
+  }
+  return { speed: 0, accuracy: 0, sight: 0 };
 };
 
 // Update gameState reactively
@@ -431,6 +452,28 @@ const handleLeavePort = async () => {
     // Force update the display to show navigation
     game.updateDisplay();
     console.log('Port exit completed, should show navigation');
+  }
+};
+
+// Temple event handlers
+const handleOfferPrayer = async () => {
+  console.log('handleOfferPrayer called');
+  if (game) {
+    game.offerPrayer();
+    updateGameState();
+  }
+};
+
+const handleLeaveTemple = async () => {
+  console.log('handleLeaveTemple called');
+  if (game) {
+    game.completeEvent();
+    updateGameState();
+    // Wait for Vue to re-render and show the legacy DOM elements
+    await nextTick();
+    // Force update the display to show navigation
+    game.updateDisplay();
+    console.log('Temple exit completed, should show navigation');
   }
 };
 

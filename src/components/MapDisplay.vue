@@ -278,6 +278,8 @@ const getEventTypeName = (eventType: string) => {
       return '宝箱';
     case 'port':
       return '港';
+    case 'temple':
+      return '寺院';
     case 'event':
       return 'イベント';
     case 'boss':
