@@ -96,7 +96,26 @@
       />
 
       <!-- Legacy DOM-based game content -->
-      <div v-else>
+      <div 
+        v-else-if="
+          !gameState || 
+          gameState.gamePhase === 'ship_selection' ||
+          gameState.gamePhase === 'chapter_start' ||
+          gameState.gamePhase === 'navigation' ||
+          gameState.gamePhase === 'event' ||
+          gameState.gamePhase === 'boss_reward' ||
+          gameState.gamePhase === 'game_over' ||
+          gameState.gamePhase === 'victory'
+        "
+      >
+        <!-- Debug info for boss reward phase -->
+        <div 
+          v-if="gameState && gameState.gamePhase === 'boss_reward'"
+          style="background: #8B4513; color: white; padding: 10px; margin: 10px; font-size: 14px;"
+        >
+          <p><strong>BOSS REWARD PHASE ACTIVE</strong></p>
+          <p>Boss reward selection should appear below</p>
+        </div>
         <!-- Debug info -->
         <div
           v-if="gameState"
@@ -128,6 +147,13 @@
         <div id="choices-container">
           <!-- 選択肢がここに動的に表示される -->
         </div>
+      </div>
+
+      <!-- Fallback for unknown game phases -->
+      <div v-else style="background: red; color: white; padding: 20px; margin: 10px;">
+        <h2>Unknown Game Phase</h2>
+        <p v-if="gameState">Current phase: {{ gameState.gamePhase }}</p>
+        <p v-else>Game state not available</p>
       </div>
 
       <div id="cooldown-display" class="cooldown-container">
@@ -274,11 +300,11 @@ const getCurrentNode = (state: GameState) => {
 const updateGameState = () => {
   if (game) {
     const newState = game.getGameState();
-    console.log(
-      'Vue updateGameState:',
-      newState.gamePhase,
-      !!newState.battleState
-    );
+    // console.log(
+    //   'Vue updateGameState:',
+    //   newState.gamePhase,
+    //   !!newState.battleState
+    // );
     gameState.value = JSON.parse(JSON.stringify(newState));
   }
 };
@@ -399,12 +425,25 @@ let previousNodeType = ref<string>('');
 watchEffect(() => {
   if (gameState.value) {
     const currentNode = getCurrentNode(gameState.value);
-    console.log('Vue gameState changed:', {
-      gamePhase: gameState.value.gamePhase,
-      hasBattleState: !!gameState.value.battleState,
-      currentNodeType: currentNode?.eventType,
-      portView: portView.value,
-    });
+    // console.log('Vue gameState changed:', {
+    //   gamePhase: gameState.value.gamePhase,
+    //   hasBattleState: !!gameState.value.battleState,
+    //   currentNodeType: currentNode?.eventType,
+    //   portView: portView.value,
+    // });
+ 
+    // Force update display when entering boss_reward phase
+    if (
+      gameState.value.gamePhase === 'boss_reward' &&
+      previousGamePhase.value !== 'boss_reward'
+    ) {
+      console.log('Entering boss_reward phase - forcing updateDisplay');
+      nextTick(() => {
+        if (game) {
+          game.updateDisplay();
+        }
+      });
+    }
 
     // Reset port view only when ENTERING a port event (not while already in it)
     if (
