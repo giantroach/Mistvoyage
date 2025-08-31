@@ -185,6 +185,9 @@ export class BattleManager {
 
     // Update effects
     this.updateEffects(gameState, currentTime);
+
+    // Update cooldown information in battle state
+    this.updateCooldownInfo(gameState, currentTime);
   }
 
   private processPlayerWeapons(
@@ -681,5 +684,67 @@ export class BattleManager {
       }));
 
     return { playerWeapons, monsters };
+  }
+
+  private updateCooldownInfo(gameState: GameState, currentTime: number): void {
+    if (!gameState.battleState) return;
+
+    const battleState = gameState.battleState;
+    const playerParams = gameState.playerParameters;
+
+    // Initialize cooldown data if not exists
+    if (!battleState.weaponCooldowns) {
+      battleState.weaponCooldowns = { player: {}, monsters: {} };
+    }
+
+    // Update player weapon cooldowns
+    battleState.playerWeapons.forEach(weaponState => {
+      const timeSinceLastUse = currentTime - weaponState.lastUsed;
+      const effectiveCooldown = this.calculateEffectiveCooldown(
+        weaponState.weapon,
+        playerParams,
+        battleState.playerEffects
+      );
+      const remainingTime = Math.max(0, effectiveCooldown - timeSinceLastUse);
+      const cooldownPercent =
+        effectiveCooldown > 0
+          ? Math.max(0, 100 - (timeSinceLastUse / effectiveCooldown) * 100)
+          : 0;
+      const isReady = remainingTime <= 0;
+
+      if (!battleState.weaponCooldowns.player) {
+        battleState.weaponCooldowns.player = {};
+      }
+
+      battleState.weaponCooldowns.player[weaponState.weapon.id] = {
+        cooldownPercent,
+        remainingTime,
+        isReady,
+        lastFired: weaponState.lastUsed,
+      };
+    });
+
+    // Update monster weapon cooldowns (simplified version)
+    battleState.monsters.forEach(monster => {
+      if (monster.hp > 0) {
+        if (!battleState.weaponCooldowns.monsters) {
+          battleState.weaponCooldowns.monsters = {};
+        }
+
+        if (!battleState.weaponCooldowns.monsters[monster.id]) {
+          battleState.weaponCooldowns.monsters[monster.id] = {};
+        }
+
+        // For monsters, we'll track weapon activity status
+        monster.weapons.forEach(weapon => {
+          battleState.weaponCooldowns.monsters![monster.id][weapon.name] = {
+            cooldownPercent: 0, // Simplified for monsters
+            remainingTime: 0,
+            isReady: true, // Monsters are always ready for simplicity
+            lastFired: currentTime,
+          };
+        });
+      }
+    });
   }
 }
