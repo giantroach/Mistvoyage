@@ -10,21 +10,27 @@ Mistvoyageは霧に包まれた海域を航海するローグライクゲーム�
 
 - 🌐 **オフライン対応**: インターネット接続なしでプレイ可能
 - 💾 **自動セーブ**: LocalStorageを使用したセーブ・ロード機能
-- 🗺️ **ランダムマップ**: 各チャプターで自動生成される航海マップ
+- 🗺️ **ランダムマップ**: 各チャプターで自動生成される航海マップ（最大4分岐）
 - ⚔️ **オートバトル**: 戦闘は自動進行、戦闘ログを観察して楽しむ
 - 🚢 **船舶選択**: 異なる性能を持つ船から選択して航海
+- 🌦️ **天候システム**: 進行とともに悪化する天候と戦闘・航海への影響
+- 🏛️ **寺院システム**: 祈りを捧げて天候をリセット
 - 📱 **レスポンシブ**: モバイル端末でも快適にプレイ
 - ⚙️ **JSON設定**: ゲーム内容の追加・編集が容易
 - 🎯 **RPG要素**: レベルアップ、武器、レリック、パラメータ管理
+- 🔧 **デバッグツール**: 開発・テスト用の包括的なデバッグパネル
+- ⚛️ **Vue 3**: モダンなリアクティブUI、コンポーネントベース
 
 ## 技術仕様
 
-- **フロントエンド**: TypeScript, HTML5, CSS3
+- **フロントエンド**: Vue 3 + TypeScript + Vite
+- **UI Components**: Single File Components (SFC) with scoped styling
+- **状態管理**: Reactive data with Vue 3 Composition API
 - **コンパイル**: TypeScript → JavaScript (ES2020)
 - **デプロイ**: GitHub Pages対応
 - **データ保存**: LocalStorage
-- **コンテンツ管理**: JSON形式（チャプター、モンスター、武器、戦闘設定）
-- **アーキテクチャ**: モジュール化されたゲームシステム（MapManager, BattleManager, NavigationManager, DisplayManager, PortManager, WeaponManager, RelicManager）
+- **コンテンツ管理**: JSON形式（チャプター、モンスター、武器、戦闘設定、天候設定）
+- **アーキテクチャ**: モジュール化されたゲームシステム（MapManager, BattleManager, NavigationManager, DisplayManager, PortManager, WeaponManager, RelicManager, WeatherManager, DebugManager）
 
 ## 開発・実行
 
@@ -53,29 +59,46 @@ npm run format
 /
 ├── index.html              # メインゲーム画面
 ├── src/
+│   ├── App.vue            # メインVueアプリケーション
 │   ├── game.ts            # メインゲームエンジン
 │   ├── types.ts           # TypeScript型定義
+│   ├── style.css          # メインスタイルシート
+│   ├── components/        # Vueコンポーネント
+│   │   ├── BattleScreen.vue        # 戦闘画面
+│   │   ├── BattleResultScreen.vue  # 戦闘結果画面
+│   │   ├── PortScreen.vue          # 港画面
+│   │   ├── WeaponShop.vue          # 武器購入画面
+│   │   ├── RelicShop.vue           # レリック購入画面
+│   │   ├── TempleScreen.vue        # 寺院画面
+│   │   ├── ParameterDisplay.vue    # パラメータ表示
+│   │   ├── MapDisplay.vue          # マップ表示
+│   │   ├── CooldownDisplay.vue     # クールダウン表示
+│   │   ├── StatusDisplay.vue       # ステータス表示
+│   │   └── DebugPanel.vue          # デバッグパネル
 │   ├── MapManager.ts      # マップ生成・管理
-│   ├── CombatSystem.ts    # 戦闘システム（簡易RPG風）
 │   ├── BattleManager.ts   # バトルシステム（オートバトル）
 │   ├── NavigationManager.ts # ナビゲーション管理
 │   ├── DisplayManager.ts   # 画面表示管理
 │   ├── SaveManager.ts     # セーブ・ロード機能
 │   ├── RelicManager.ts    # レリックシステム管理
 │   ├── PortManager.ts     # 港イベント・サービス管理
-│   └── WeaponManager.ts   # 武器生成・管理システム
-├── dist/                  # コンパイル済みJavaScript
+│   ├── WeaponManager.ts   # 武器生成・管理システム
+│   ├── WeatherManager.ts  # 天候システム管理
+│   └── DebugManager.ts    # デバッグツール管理
+├── dist/                  # ビルド出力（Vite）
 ├── data/
 │   ├── game.json         # 基本ゲーム設定
 │   ├── ships.json        # 船舶データ
 │   ├── events.json       # イベントデータ
+│   ├── chapters.json     # チャプター設定・エンカウンター
 │   ├── monsters.json     # モンスターデータ
 │   ├── weapons.json      # 武器データ
 │   ├── battle_config.json # 戦闘設定
-│   └── relics.json       # レリックデータ
-├── css/style.css         # スタイルシート
+│   ├── relics.json       # レリックデータ
+│   └── weather_config.json # 天候設定
 ├── spec.md              # ゲーム仕様書
 ├── CLAUDE.md            # Claude開発用指示
+├── vite.config.ts       # Vite設定
 ├── tsconfig.json        # TypeScript設定
 └── package.json         # パッケージ設定
 ```
@@ -85,13 +108,14 @@ npm run format
 ### チャプター構成
 - **Chapter 1-3**: 各チャプターには異なる難易度の海域
 - **必要イベント数**: チャプターごとに規定数のイベントクリアでボス出現
-- **ランダムマップ**: ツリー構造で最大3分岐のマップを自動生成
+- **ランダムマップ**: ツリー構造で最大4分岐のマップを自動生成
 
 ### イベントタイプ
 - **🔴 モンスター**: 通常の戦闘イベント
 - **🟡 エリートモンスター**: 強力な敵との戦闘
 - **🟢 港**: 補給・修理・買い物
 - **🟠 宝**: レリック入手
+- **🏛️ 寺院**: 祈りを捧げて天候リセット
 - **🟣 ボス**: チャプター最終戦
 - **❓ ???**: Sight不足で詳細不明
 
@@ -105,6 +129,12 @@ npm run format
 - **公開パラメータ**: Hull, Food, Money, Crew, Sight, Weather等
 - **非公開パラメータ**: Speed, Karma等
 - **RPG要素**: Level, Health, Attack, Defense, Experience
+- **天候システム**: 0-20スケールの天候悪化、戦闘・航海への影響
+
+### 天候システム
+- **天候進行**: イベント選択ごとに+1で悪化（0→快晴、10→霧/雨選択、15→濃霧/大雨、20→嵐）
+- **戦闘影響**: 雨系は速度・命中率低下、霧系は命中率・視界低下、嵐は全て低下
+- **寺院での回復**: 祈りを捧げることで天候値を0にリセット可能
 
 ## ゲーム内容の編集
 

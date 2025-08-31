@@ -14,21 +14,44 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - **Save System**: LocalStorage-based persistence
 - **Deployment**: Static files for GitHub Pages
 - **Combat System**: Auto-battle with weapon cooldowns and statistical calculations
+- **Weather System**: Dynamic weather progression affecting combat and navigation
+- **Temple System**: Weather reset functionality through prayer offerings
+- **Debug System**: Comprehensive debug panel for testing and development
 
 ### Core Components
 
+#### Game Engine
 - `index.html` - Main game interface with dynamic content display
 - `src/game.ts` - Main game orchestration and state management
 - `src/types.ts` - TypeScript type definitions for all game data structures
+
+#### Managers
 - `src/MapManager.ts` - Procedural map generation and node management
 - `src/NavigationManager.ts` - Navigation logic, node visibility, and scroll management
 - `src/DisplayManager.ts` - UI rendering and visual updates
-- `src/CombatSystem.ts` - Simple RPG-style combat (legacy, being replaced)
 - `src/BattleManager.ts` - Advanced auto-battle system with weapon cooldowns
 - `src/SaveManager.ts` - Game save/load functionality using LocalStorage
 - `src/RelicManager.ts` - Relic system management and effects
 - `src/PortManager.ts` - Port event handling and services (ship repair, weapon/relic purchases)
 - `src/WeaponManager.ts` - Weapon generation and management system
+- `src/WeatherManager.ts` - Weather progression and effects system
+- `src/DebugManager.ts` - Development and testing utilities
+
+#### Vue Components
+- `src/App.vue` - Main Vue application component
+- `src/components/BattleScreen.vue` - Combat interface and battle logs
+- `src/components/BattleResultScreen.vue` - Post-battle results and rewards
+- `src/components/PortScreen.vue` - Port services main interface
+- `src/components/WeaponShop.vue` - Weapon purchasing interface
+- `src/components/RelicShop.vue` - Relic purchasing interface
+- `src/components/TempleScreen.vue` - Temple prayer and weather reset interface
+- `src/components/ParameterDisplay.vue` - Player statistics display
+- `src/components/MapDisplay.vue` - Interactive navigation map
+- `src/components/CooldownDisplay.vue` - Weapon cooldown visualization
+- `src/components/StatusDisplay.vue` - Status messages and notifications
+- `src/components/DebugPanel.vue` - Debug tools and testing interface
+
+#### Data Files
 - `data/game.json` - Basic game settings and chapter definitions
 - `data/ships.json` - Ship statistics and special rules
 - `data/events.json` - Story event definitions (ports, treasure, bosses, etc.)
@@ -37,7 +60,10 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `data/weapons.json` - Weapon statistics and effects
 - `data/battle_config.json` - Combat calculation modifiers and balancing
 - `data/relics.json` - Relic effects, rarities, and generation configuration
-- `css/style.css` - Dark theme styling optimized for Japanese text
+- `data/weather_config.json` - Weather progression settings and effects
+
+#### Styling
+- `src/style.css` - Dark theme styling optimized for Japanese text
 
 ### Game Data Structure
 
@@ -82,24 +108,28 @@ npm run deploy
 
 ## Key Features
 
-- **Procedural Map Generation**: Tree-structured maps with up to 3 branches per layer
+- **Procedural Map Generation**: Tree-structured maps with up to 4 branches per layer
 - **Auto-Battle Combat**: Weapon-based combat with cooldowns, accuracy, and damage calculations  
 - **Navigation System**: Node visibility based on Sight parameter, accessible node connections
 - **RPG Progression**: Level, health, attack, defense with experience-based advancement
 - **Parameter Management**: Public parameters (Hull, Food, Money) and hidden parameters (Speed, Karma)
-- **Weather System**: Weather affects combat accuracy and movement speed
+- **Weather System**: Progressive weather deterioration (0-20 scale) affecting combat accuracy, sight, and speed
+- **Temple System**: Prayer offerings to reset weather conditions
 - **Save/Load**: Complete game state persistence to LocalStorage
-- **Event System**: Monster encounters, elite battles, ports, treasure, and boss fights
+- **Event System**: Monster encounters, elite battles, ports, treasure, temple, and boss fights
 - **Relic System**: Collectible items with various effects from stat boosts to legendary abilities
+- **Debug System**: Comprehensive testing tools for weapons, relics, enemies, and game state
+- **Vue 3 Components**: Modern reactive UI with component-based architecture
 
 ## Game Flow
 
 1. **Ship Selection**: Choose starting ship with different stats and weapons
-2. **Chapter Navigation**: Explore procedurally generated maps
-3. **Event Processing**: Handle different event types (combat, treasure, ports)
-4. **Auto-Battle**: Watch combat logs as weapons automatically fire
-5. **Progression**: Gain experience, level up, earn gold, collect relics
-6. **Chapter Completion**: Defeat boss after completing required events
+2. **Chapter Navigation**: Explore procedurally generated maps with weather progression
+3. **Event Processing**: Handle different event types (combat, treasure, ports, temples)
+4. **Auto-Battle**: Watch combat logs as weapons automatically fire with cooldown management
+5. **Weather Management**: Monitor weather deterioration and use temples to reset conditions
+6. **Progression**: Gain experience, level up, earn gold, collect relics
+7. **Chapter Completion**: Defeat boss after completing required events
 
 ## Important Implementation Notes
 
@@ -108,4 +138,9 @@ npm run deploy
 - **Map Generation**: MapManager creates tree structures with proper connections
 - **Display Updates**: Always call updateDisplay() after state changes
 - **Game Phases**: 'ship_selection' → 'navigation' → 'event'/'combat' → 'battle_result' → 'navigation'
-- **Manager Architecture**: Port events are handled by PortManager, weapons by WeaponManager, following modular design pattern
+- **Manager Architecture**: Modular design with specialized managers for different systems
+- **Vue Components**: Event-driven communication between Vue components and game engine
+- **Weather System**: WeatherManager handles progressive weather deterioration and effects
+- **Debug Tools**: DebugPanel component provides comprehensive testing capabilities
+- **Configuration**: Weather effects externalized to JSON for easy adjustment
+- **Temple Events**: Integrated into event system with weather reset functionality
