@@ -1,0 +1,1165 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Hiragino Sans', 'ヒラギノ角ゴシック', 'Yu Gothic', 'YuGothic',
+    sans-serif;
+  background-color: #1a1a1a;
+  color: #e0e0e0;
+  line-height: 1.6;
+}
+
+/* Cooldown Bar Styles */
+.cooldown-container {
+  display: none;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-radius: 6px;
+  border: 1px solid #555;
+}
+
+.cooldown-container.visible {
+  display: block;
+}
+
+.cooldown-section {
+  margin-bottom: 12px;
+}
+
+.cooldown-section h4 {
+  color: #66ccff;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+  border-bottom: 1px solid #444;
+  padding-bottom: 3px;
+}
+
+.weapon-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weapon-cooldown-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  background-color: #333;
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+.weapon-name {
+  min-width: 100px;
+  font-weight: bold;
+  color: #e0e0e0;
+  font-size: 0.85em;
+}
+
+.cooldown-bar {
+  flex: 1;
+  height: 16px;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #666;
+  position: relative;
+}
+
+.cooldown-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
+  transition: width 0.3s ease;
+  border-radius: 9px;
+}
+
+.cooldown-ready {
+  background-color: #44ff44 !important;
+}
+
+.cooldown-text {
+  min-width: 50px;
+  text-align: right;
+  font-size: 0.8em;
+  color: #ccc;
+}
+
+.monster-weapon-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  background-color: #2a1a1a;
+  border-radius: 4px;
+  border: 1px solid #665555;
+  margin-bottom: 5px;
+}
+
+.monster-name {
+  min-width: 100px;
+  font-weight: bold;
+  color: #ffaa66;
+}
+
+.monster-weapon-status {
+  flex: 1;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.weapon-status-indicator {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  border: 1px solid;
+}
+
+.weapon-active {
+  background-color: #ff4444;
+  color: white;
+  border-color: #ff6666;
+}
+
+.weapon-inactive {
+  background-color: #444;
+  color: #aaa;
+  border-color: #666;
+}
+
+/* Battle UI Styles */
+.monster-status {
+  margin: 15px 0;
+}
+
+.monster-hp {
+  margin: 8px 0;
+}
+
+.monster-hp span {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.hp-bar {
+  width: 100%;
+  height: 20px;
+  background-color: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #555;
+}
+
+.hp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
+  transition: width 0.3s ease;
+}
+
+.battle-log {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.battle-log h4 {
+  margin-bottom: 8px;
+  color: #ffaa44;
+}
+
+.battle-log p {
+  margin: 2px 0;
+  font-size: 0.9em;
+  opacity: 0.9;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* Player attack log styling */
+.log-player {
+  background-color: rgba(102, 255, 102, 0.15);
+  border-left: 3px solid #66ff66;
+  color: #66ff66;
+}
+
+/* Monster attack log styling */
+.log-monster {
+  border-left: 3px solid;
+  padding-left: 6px;
+}
+
+.log-monster-0 {
+  background-color: rgba(255, 102, 102, 0.15);
+  border-left-color: #ff6666;
+  color: #ff6666;
+}
+
+.log-monster-1 {
+  background-color: rgba(255, 165, 102, 0.15);
+  border-left-color: #ffa566;
+  color: #ffa566;
+}
+
+.log-monster-2 {
+  background-color: rgba(255, 102, 255, 0.15);
+  border-left-color: #ff66ff;
+  color: #ff66ff;
+}
+
+.log-monster-3 {
+  background-color: rgba(102, 165, 255, 0.15);
+  border-left-color: #66a5ff;
+  color: #66a5ff;
+}
+
+/* Battle result screen styles */
+.battle-rewards {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: rgba(255, 215, 0, 0.1);
+  border-radius: 5px;
+  border-left: 3px solid #ffd700;
+}
+
+.battle-rewards h3 {
+  margin-bottom: 8px;
+  color: #ffd700;
+}
+
+.battle-log-complete {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #2a2a2a;
+  border-radius: 5px;
+}
+
+/* Results screen specific battle log styling */
+.battle-result .battle-log {
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  background: none;
+}
+
+#game-container {
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background-color: #2c2c2c;
+  padding: 1rem;
+  border-bottom: 2px solid #444;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  color: #66ccff;
+  font-size: 1.8rem;
+}
+
+#parameters-display {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.parameter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem;
+  background-color: #3a3a3a;
+  border-radius: 4px;
+  border: 1px solid #555;
+}
+
+.parameter-group span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#game-controls {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+button {
+  background-color: #444;
+  color: #e0e0e0;
+  border: 1px solid #666;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+button:active {
+  background-color: #333;
+}
+
+button.active {
+  background-color: #66ccff;
+  color: #1a1a1a;
+}
+
+button.active:hover {
+  background-color: #77ddff;
+}
+
+#game-main {
+  flex: 1;
+  padding: 1rem;
+}
+
+#story-display {
+  background-color: #2a2a2a;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border: 1px solid #444;
+  position: relative;
+}
+
+.story-header {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+}
+
+#story-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  min-height: 120px;
+}
+
+#choices-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.choice-btn {
+  background-color: #3a3a3a;
+  color: #e0e0e0;
+  border: 1px solid #555;
+  padding: 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.choice-btn:hover {
+  background-color: #4a4a4a;
+  border-color: #66ccff;
+  transform: translateX(5px);
+}
+
+/* Relic Choice Styles */
+.relic-choice {
+  text-align: left;
+}
+
+.relic-choice-content {
+  width: 100%;
+}
+
+.relic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.relic-name {
+  font-weight: bold;
+  color: #e0e0e0;
+}
+
+.relic-rarity {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.rarity-common {
+  background-color: #666;
+  color: white;
+}
+
+.rarity-uncommon {
+  background-color: #4a9f4a;
+  color: white;
+}
+
+.rarity-rare {
+  background-color: #4a7ccc;
+  color: white;
+}
+
+.rarity-epic {
+  background-color: #8b4a9f;
+  color: white;
+}
+
+.rarity-legendary {
+  background-color: #cc8b4a;
+  color: white;
+}
+
+.relic-effects {
+  font-size: 0.9em;
+  color: #ccc;
+}
+
+.effect-line {
+  margin: 2px 0;
+  padding-left: 8px;
+}
+
+#status-bar {
+  background-color: #2c2c2c;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  color: #bbb;
+}
+
+#save-status {
+  color: #66ccff;
+}
+
+/* Map display styles */
+#map-display.hidden {
+  display: none;
+}
+
+#map-display.visible {
+  display: block;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-container {
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.map-container.scrollable {
+  overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
+  height: 500px;
+  white-space: nowrap;
+  scroll-behavior: smooth;
+}
+
+.map-container h3 {
+  color: #66ccff;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.map-layer {
+  position: absolute;
+  top: 0;
+  width: 180px;
+  height: 500px;
+  padding: 0;
+  background-color: rgba(42, 42, 42, 0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(68, 68, 68, 0.5);
+  overflow: visible;
+}
+
+.layer-label {
+  color: #999;
+  font-size: 0.9rem;
+  text-align: center;
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  font-weight: bold;
+}
+
+.layer-nodes {
+  position: relative;
+  width: 180px;
+  height: 500px;
+  margin-top: 0;
+  padding: 0;
+  overflow: visible;
+}
+
+.map-node {
+  background-color: #333;
+  color: #ccc;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 2px solid #555;
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: default;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  word-break: break-word;
+  white-space: normal;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.map-node.current {
+  background-color: #1a4a6b;
+  border-color: #66ccff;
+  color: #fff;
+  box-shadow: 0 0 10px rgba(102, 204, 255, 0.3);
+}
+
+.map-node.accessible {
+  background-color: #2a4a2a;
+  border-color: #66ff66;
+  color: #e0ffe0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.map-node.accessible:hover {
+  background-color: #3a5a3a;
+  border-color: #77ff77;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(102, 255, 102, 0.5);
+  z-index: 10;
+  position: relative;
+}
+
+.map-node.visited {
+  background-color: #4a3a2a;
+  border-color: #cc9966;
+  color: #ffeacc;
+}
+
+.map-node.visited.current {
+  background-color: #5a4a3a;
+  border-color: #66ccff;
+}
+
+.map-node.distant {
+  opacity: 0.6;
+  background-color: #2a2a2a;
+  border-color: #444;
+}
+
+.map-connection.distant {
+  opacity: 0.7;
+  stroke: #888;
+  stroke-width: 1;
+}
+
+/* Clickable weapons and relics */
+.clickable-weapon,
+.clickable-relic {
+  color: #66ccff;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.clickable-weapon:hover,
+.clickable-relic:hover {
+  background-color: rgba(102, 204, 255, 0.1);
+  color: #88ddff;
+}
+
+/* Weapon and relic detail screens */
+.weapon-detail,
+.relic-detail {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.close-detail-btn {
+  background-color: #cc4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.close-detail-btn:hover {
+  background-color: #dd5555;
+}
+
+.weapon-description,
+.relic-description {
+  font-style: italic;
+  margin-bottom: 1.5rem;
+  color: #ccc;
+}
+
+.weapon-stats,
+.relic-effects {
+  background-color: #333;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #444;
+}
+
+.stat-label {
+  font-weight: bold;
+  color: #aaa;
+}
+
+.stat-value {
+  color: #66ccff;
+}
+
+.effects-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+}
+
+.effects-list li {
+  padding: 0.3rem 0;
+  color: #e0e0e0;
+}
+
+/* SVG connection lines */
+.map-connections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.map-connection {
+  stroke: #666;
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.map-connection.active {
+  stroke: #66ccff;
+  stroke-width: 3;
+  opacity: 1;
+}
+
+/* Ensure nodes are above the SVG lines */
+.map-layer {
+  z-index: 2;
+}
+
+.map-node {
+  z-index: 3;
+  position: relative;
+}
+
+@media (max-width: 600px) {
+  .map-container {
+    padding: 0.5rem;
+  }
+
+  .layer-nodes {
+    gap: 0.3rem;
+  }
+
+  .map-node {
+    min-width: 60px;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 600px) {
+  #game-container {
+    margin: 0;
+  }
+
+  #parameters-display {
+    grid-template-columns: 1fr;
+    gap: 0.3rem;
+  }
+
+  .parameter-group {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.3rem;
+  }
+
+  .parameter-group span {
+    font-size: 0.8rem;
+  }
+
+  #game-main {
+    padding: 0.75rem;
+  }
+
+  #story-display {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  #story-text {
+    font-size: 0.9rem;
+    min-height: 100px;
+  }
+
+  .choice-btn {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Boss Reward Styles */
+.boss-reward-option {
+  margin: 10px 0;
+}
+
+.boss-reward-btn {
+  width: 100%;
+  background: #2a2a2a;
+  border: 2px solid #555;
+  color: #e0e0e0;
+  padding: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boss-reward-btn:hover {
+  background: #3a3a3a;
+  border-color: #777;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+.boss-reward-btn .relic-name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #66ff66;
+  margin-bottom: 5px;
+}
+
+.boss-reward-btn .relic-description {
+  font-size: 14px;
+  color: #cccccc;
+  margin-bottom: 8px;
+}
+
+.boss-reward-btn .relic-effects {
+  font-size: 12px;
+  color: #aaaaaa;
+  line-height: 1.4;
+}
+
+/* Debug Mode Styles */
+.debug-screen {
+  background: #1a1a1a;
+  border: 2px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.debug-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.debug-section {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.debug-section h3 {
+  color: #66ff66;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.debug-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.debug-controls select,
+.debug-controls button {
+  background: #333;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.debug-controls button:hover {
+  background: #444;
+  border-color: #777;
+}
+
+.debug-items-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.debug-weapon-item,
+.debug-relic-item {
+  background: #333;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.weapon-info,
+.relic-info {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.remove-btn {
+  background: #cc4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #dd5555;
+}
+
+.debug-ship-container,
+.debug-monster-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* Add subtle indication for unselected items */
+.debug-ship-option:not(.selected) .debug-ship-btn,
+.debug-monster-option:not(.selected) .debug-monster-btn {
+  opacity: 0.7;
+}
+
+.debug-ship-option:not(.selected) .debug-ship-btn:hover,
+.debug-monster-option:not(.selected) .debug-monster-btn:hover {
+  opacity: 1;
+}
+
+.debug-ship-option,
+.debug-monster-option {
+  flex: 1;
+  min-width: 200px;
+}
+
+.debug-ship-btn,
+.debug-monster-btn {
+  width: 100%;
+  background: #333;
+  color: #fff;
+  border: 1px solid #666;
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.debug-ship-btn:hover,
+.debug-monster-btn:hover {
+  background: #444;
+  border-color: #777;
+}
+
+.debug-ship-option.selected .debug-ship-btn,
+.debug-monster-option.selected .debug-monster-btn {
+  background: #4a6741 !important;
+  border: 2px solid #66ff66 !important;
+  box-shadow: 0 0 10px rgba(102, 255, 102, 0.3);
+  transform: translateY(-2px);
+}
+
+.debug-ship-option.selected .debug-ship-btn:before,
+.debug-monster-option.selected .debug-monster-btn:before {
+  content: '✓ 選択中 ';
+  color: #66ff66;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+.debug-battle-btn {
+  background: #cc6644 !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+.debug-battle-btn:hover {
+  background: #dd7755 !important;
+}
+
+/* ==== PORT INTERFACE STYLES ==== */
+.port-weapons,
+.port-relics {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.weapon-item,
+.relic-item {
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.weapon-item h4,
+.relic-item h4 {
+  color: #66ccff;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.weapon-item p,
+.relic-item p {
+  margin: 0.5rem 0;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.weapon-item .choice-btn,
+.relic-item .choice-btn {
+  margin-top: 0.5rem;
+  background-color: #4a7c59;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.weapon-item .choice-btn:hover,
+.relic-item .choice-btn:hover {
+  background-color: #5a8c69;
+}
+
+.weapon-item .choice-btn:disabled,
+.relic-item .choice-btn:disabled {
+  background-color: #555;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #2a2a2a;
+  margin: 5% auto;
+  padding: 0;
+  border: 1px solid #555;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 800px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background-color: #333;
+  padding: 1rem;
+  border-bottom: 1px solid #555;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #66ccff;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  color: #fff;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.debug-section {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #222;
+  border-radius: 6px;
+  border: 1px solid #444;
+}
+
+.debug-section h3 {
+  color: #66ccff;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #444;
+  padding-bottom: 0.5rem;
+}
+
+.debug-btn {
+  background-color: #4a7c59;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.debug-btn:hover {
+  background-color: #5a8c69;
+}
+
+.setting-item {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.setting-item label {
+  color: #ccc;
+  font-size: 1rem;
+}
+
+.setting-item input,
+.setting-item select {
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 0.5rem;
+}

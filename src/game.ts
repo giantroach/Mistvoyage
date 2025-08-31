@@ -165,6 +165,10 @@ export class MistvoyageGame {
     };
   }
 
+  public async initialize(): Promise<void> {
+    return this.init();
+  }
+
   private async init(): Promise<void> {
     try {
       await this.loadGameData();
@@ -242,6 +246,41 @@ export class MistvoyageGame {
       debugBtn.addEventListener('click', () =>
         this.getDebugManager().toggleDebugMode()
       );
+
+    // Modal close buttons
+    const closeDebugBtn = document.getElementById('close-debug');
+    const closeSettingsBtn = document.getElementById('close-settings');
+
+    if (closeDebugBtn) {
+      closeDebugBtn.addEventListener('click', () => {
+        const debugModal = document.getElementById('debug-modal');
+        if (debugModal) {
+          debugModal.style.display = 'none';
+        }
+      });
+    }
+
+    if (closeSettingsBtn) {
+      closeSettingsBtn.addEventListener('click', () => {
+        const settingsModal = document.getElementById('settings-modal');
+        if (settingsModal) {
+          settingsModal.style.display = 'none';
+        }
+      });
+    }
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', (event) => {
+      const debugModal = document.getElementById('debug-modal');
+      const settingsModal = document.getElementById('settings-modal');
+      
+      if (event.target === debugModal) {
+        debugModal.style.display = 'none';
+      }
+      if (event.target === settingsModal) {
+        settingsModal.style.display = 'none';
+      }
+    });
   }
 
   private startGame(): void {
@@ -1212,7 +1251,10 @@ export class MistvoyageGame {
   }
 
   private showSettings(): void {
-    alert('設定画面（未実装）');
+    const settingsModal = document.getElementById('settings-modal');
+    if (settingsModal) {
+      settingsModal.style.display = 'block';
+    }
   }
 
   private showError(message: string): void {
@@ -1369,10 +1411,4 @@ export class MistvoyageGame {
   }
 }
 
-// ゲーム開始
-document.addEventListener('DOMContentLoaded', () => {
-  const game = new MistvoyageGame();
-  // Make game instance globally accessible for onclick handlers
-  (window as any).gameInstance = game;
-  (window as any).debugManager = game.getDebugManager();
-});
+// Vue環境ではApp.vueでゲームを初期化するため、このコードは不要

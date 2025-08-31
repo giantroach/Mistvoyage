@@ -4,69 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mistvoyage</title>
-    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <div id="game-container">
-      <header>
-        <div class="header-top">
-          <h1>Mistvoyage</h1>
-          <div id="game-controls">
-            <button id="save-btn">セーブ</button>
-            <button id="load-btn">ロード</button>
-            <button id="settings-btn">設定</button>
-            <button id="debug-btn">🔧 デバッグ</button>
-          </div>
-        </div>
-        <div id="parameters-display">
-          <div class="parameter-group primary">
-            <span id="hull-display">船体: --/--</span>
-            <span id="food-display">食料: --</span>
-            <span id="money-display">資金: --</span>
-            <span id="crew-display">乗組員: --/--</span>
-          </div>
-          <div class="parameter-group secondary">
-            <span id="sight-display">視界: --</span>
-            <span id="weather-display">天候: --</span>
-            <span id="storage-display">保管庫: --/--</span>
-          </div>
-          <div class="parameter-group equipment">
-            <span id="weapons-display">武器: --</span>
-            <span id="relics-display">レリック: --</span>
-          </div>
-          <div class="parameter-group progress">
-            <span id="chapter-display">チャプター: --</span>
-            <span id="progress-display">進行: --/--</span>
-          </div>
-        </div>
-      </header>
-
-      <main id="game-main">
-        <div id="story-display">
-          <div id="story-text"></div>
-        </div>
-
-        <div id="choices-container">
-          <!-- 選択肢がここに動的に表示される -->
-        </div>
-
-        <div id="cooldown-display" class="cooldown-container">
-          <div id="player-cooldowns" class="cooldown-section">
-            <h4>自分の武器</h4>
-            <div id="player-weapon-bars" class="weapon-bars"></div>
-          </div>
-          <div id="monster-cooldowns" class="cooldown-section">
-            <h4>敵の攻撃状況</h4>
-            <div id="monster-weapon-bars" class="weapon-bars"></div>
-          </div>
-        </div>
-      </main>
-
-      <div id="status-bar">
-        <span id="save-status"></span>
-      </div>
-    </div>
-
-    <script src="dist/game.js" type="module"></script>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
