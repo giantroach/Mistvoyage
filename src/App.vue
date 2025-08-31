@@ -34,12 +34,44 @@
     </header>
 
     <main id="game-main">
-      <div id="story-display">
-        <div id="story-text"></div>
-      </div>
+      <!-- Vue Component Integration -->
+      <BattleScreen
+        v-if="
+          gameState && gameState.gamePhase === 'combat' && gameState.battleState
+        "
+        :battle-state="gameState.battleState"
+        :player-params="gameState.playerParameters"
+      />
 
-      <div id="choices-container">
-        <!-- 選択肢がここに動的に表示される -->
+      <BattleResultScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'battle_result' &&
+          gameState.battleState
+        "
+        :battle-state="gameState.battleState"
+        :player-params="gameState.playerParameters"
+        @continue-battle="handleContinueBattle"
+      />
+
+      <!-- Legacy DOM-based game content -->
+      <div v-else>
+        <!-- Debug info -->
+        <div
+          v-if="gameState"
+          style="background: #444; padding: 10px; margin: 10px; font-size: 12px"
+        >
+          <p>Current gamePhase: {{ gameState.gamePhase }}</p>
+          <p>BattleState exists: {{ !!gameState.battleState }}</p>
+        </div>
+
+        <div id="story-display">
+          <div id="story-text"></div>
+        </div>
+
+        <div id="choices-container">
+          <!-- 選択肢がここに動的に表示される -->
+        </div>
       </div>
 
       <div id="cooldown-display" class="cooldown-container">
@@ -71,34 +103,54 @@
             <button class="debug-btn" id="debug-gain-exp">経験値+100</button>
             <button class="debug-btn" id="debug-gain-money">資金+1000</button>
             <button class="debug-btn" id="debug-heal">完全回復</button>
-            <button class="debug-btn" id="debug-restore-food">食料満タン</button>
+            <button class="debug-btn" id="debug-restore-food">
+              食料満タン
+            </button>
           </div>
 
           <div class="debug-section">
             <h3>武器・アイテム</h3>
-            <button class="debug-btn" id="debug-add-weapon">ランダム武器追加</button>
-            <button class="debug-btn" id="debug-add-relic">ランダムレリック追加</button>
-            <button class="debug-btn" id="debug-clear-weapons">武器全削除</button>
-            <button class="debug-btn" id="debug-clear-relics">レリック全削除</button>
+            <button class="debug-btn" id="debug-add-weapon">
+              ランダム武器追加
+            </button>
+            <button class="debug-btn" id="debug-add-relic">
+              ランダムレリック追加
+            </button>
+            <button class="debug-btn" id="debug-clear-weapons">
+              武器全削除
+            </button>
+            <button class="debug-btn" id="debug-clear-relics">
+              レリック全削除
+            </button>
           </div>
 
           <div class="debug-section">
             <h3>戦闘関連</h3>
             <button class="debug-btn" id="debug-win-battle">戦闘勝利</button>
-            <button class="debug-btn" id="debug-toggle-god-mode">無敵モード切替</button>
+            <button class="debug-btn" id="debug-toggle-god-mode">
+              無敵モード切替
+            </button>
           </div>
 
           <div class="debug-section">
             <h3>情報表示</h3>
-            <button class="debug-btn" id="debug-show-state">ゲーム状態表示</button>
-            <button class="debug-btn" id="debug-show-weapons">武器一覧表示</button>
-            <button class="debug-btn" id="debug-show-relics">レリック一覧表示</button>
+            <button class="debug-btn" id="debug-show-state">
+              ゲーム状態表示
+            </button>
+            <button class="debug-btn" id="debug-show-weapons">
+              武器一覧表示
+            </button>
+            <button class="debug-btn" id="debug-show-relics">
+              レリック一覧表示
+            </button>
           </div>
 
           <div class="debug-section">
             <h3>章・進行</h3>
             <button class="debug-btn" id="debug-next-chapter">次の章へ</button>
-            <button class="debug-btn" id="debug-complete-chapter">現在章完了</button>
+            <button class="debug-btn" id="debug-complete-chapter">
+              現在章完了
+            </button>
           </div>
         </div>
       </div>
@@ -139,19 +191,73 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { MistvoyageGame } from './game'
+import { onMounted, ref, watch, watchEffect, nextTick } from 'vue';
+import { MistvoyageGame } from './game';
+import BattleScreen from './components/BattleScreen.vue';
+import BattleResultScreen from './components/BattleResultScreen.vue';
+import type { GameState } from './types';
 
-let game: MistvoyageGame | null = null
+let game: MistvoyageGame | null = null;
+const gameState = ref<GameState | null>(null);
+
+// Update gameState reactively
+const updateGameState = () => {
+  if (game) {
+    const newState = game.getGameState();
+    console.log(
+      'Vue updateGameState:',
+      newState.gamePhase,
+      !!newState.battleState
+    );
+    gameState.value = JSON.parse(JSON.stringify(newState));
+  }
+};
+
+const handleContinueBattle = async () => {
+  if (game) {
+    // First update the battle state
+    if (game.getGameState().battleState) {
+      game.getGameState().battleState = undefined;
+    }
+    game.getGameState().gamePhase = 'navigation';
+
+    // Update Vue state immediately
+    updateGameState();
+
+    // Wait for Vue to re-render DOM
+    await nextTick();
+
+    // Then call the navigation display
+    if (game) {
+      game.continueBattleFromUI();
+    }
+  }
+};
 
 onMounted(async () => {
-  game = new MistvoyageGame()
-  await game.initialize()
-  
+  game = new MistvoyageGame();
+  await game.initialize();
+
   // Make game instance globally accessible for onclick handlers
-  ;(window as any).gameInstance = game
-  ;(window as any).debugManager = game.getDebugManager()
-})
+  (window as any).gameInstance = game;
+  (window as any).debugManager = game.getDebugManager();
+
+  // Setup reactive state updates
+  updateGameState();
+
+  // Set up periodic updates for reactive state
+  setInterval(updateGameState, 100);
+});
+
+// Watch gameState changes for debugging
+watchEffect(() => {
+  if (gameState.value) {
+    console.log('Vue gameState changed:', {
+      gamePhase: gameState.value.gamePhase,
+      hasBattleState: !!gameState.value.battleState,
+    });
+  }
+});
 </script>
 
 <style>

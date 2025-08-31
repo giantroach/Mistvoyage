@@ -1261,9 +1261,21 @@ export class MistvoyageGame {
     this.displayManager.showError(message);
   }
 
-  // Public getter for debug manager
+  // Public getters
   public getDebugManager(): DebugManager {
     return this.debugManager;
+  }
+
+  public getGameState(): GameState {
+    return this.gameState;
+  }
+
+  public getCombatSystem(): CombatSystem {
+    return this.combatSystem;
+  }
+
+  public continueBattleFromUI(): void {
+    this.combatSystem.continueBattle();
   }
 
   // Public getters for managers (for debug access)
