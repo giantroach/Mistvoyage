@@ -33,7 +33,6 @@ export class PortManager {
   handlePortEvent(): void {
     // Port UI is now handled by Vue components
     // This method exists for compatibility but doesn't need to do DOM manipulation
-    console.log('Port event handled - UI is managed by Vue components');
   }
 
   repairShip(): void {

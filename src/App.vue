@@ -133,43 +133,6 @@
           gameState.gamePhase === 'victory'
         "
       >
-        <!-- Debug info for boss reward phase -->
-        <div
-          v-if="gameState && gameState.gamePhase === 'boss_reward'"
-          style="
-            background: #8b4513;
-            color: white;
-            padding: 10px;
-            margin: 10px;
-            font-size: 14px;
-          "
-        >
-          <p><strong>BOSS REWARD PHASE ACTIVE</strong></p>
-          <p>Boss reward selection should appear below</p>
-        </div>
-        <!-- Debug info -->
-        <div
-          v-if="gameState"
-          style="background: #444; padding: 10px; margin: 10px; font-size: 12px"
-        >
-          <p>Current gamePhase: {{ gameState.gamePhase }}</p>
-          <p>BattleState exists: {{ !!gameState.battleState }}</p>
-          <p>Current nodeId: {{ gameState.currentNodeId }}</p>
-          <p>Current map exists: {{ !!gameState.currentMap }}</p>
-          <p>
-            Map nodes count:
-            {{
-              gameState.currentMap
-                ? Object.keys(gameState.currentMap.nodes).length
-                : 0
-            }}
-          </p>
-          <p>Current node exists: {{ !!getCurrentNode(gameState) }}</p>
-          <p v-if="getCurrentNode(gameState)">
-            Node event type: {{ getCurrentNode(gameState)?.eventType }}
-          </p>
-          <p>Port view: {{ portView }}</p>
-        </div>
 
         <div id="story-display">
           <div id="story-text"></div>
@@ -347,7 +310,6 @@ const getWeatherEffects = (weather: any) => {
 const updateGameState = () => {
   if (game) {
     const newState = game.getGameState();
-    // console.log(
     //   'Vue updateGameState:',
     //   newState.gamePhase,
     //   !!newState.battleState
@@ -386,32 +348,16 @@ const handleRepairShip = () => {
 };
 
 const handleShowWeapons = () => {
-  console.log('handleShowWeapons called');
   if (game && game.getPortManager()) {
-    console.log('Generating port weapons...');
     portWeapons.value = game.getPortManager().generatePortWeapons();
     portView.value = 'weapons';
-    console.log(
-      'Port view changed to weapons, weapons:',
-      portWeapons.value.length
-    );
-  } else {
-    console.log('Game or PortManager not available');
   }
 };
 
 const handleShowRelics = () => {
-  console.log('handleShowRelics called');
   if (game && game.getPortManager()) {
-    console.log('Generating port relics...');
     portRelics.value = game.getPortManager().generatePortRelics();
     portView.value = 'relics';
-    console.log(
-      'Port view changed to relics, relics:',
-      portRelics.value.length
-    );
-  } else {
-    console.log('Game or PortManager not available');
   }
 };
 
@@ -440,7 +386,6 @@ const handleBackToPort = () => {
 };
 
 const handleLeavePort = async () => {
-  console.log('handleLeavePort called');
   if (game && game.getPortManager()) {
     game.getPortManager().leavePort();
     portView.value = 'main';
@@ -451,13 +396,11 @@ const handleLeavePort = async () => {
 
     // Force update the display to show navigation
     game.updateDisplay();
-    console.log('Port exit completed, should show navigation');
   }
 };
 
 // Temple event handlers
 const handleOfferPrayer = async () => {
-  console.log('handleOfferPrayer called');
   if (game) {
     game.offerPrayer();
     updateGameState();
@@ -465,7 +408,6 @@ const handleOfferPrayer = async () => {
 };
 
 const handleLeaveTemple = async () => {
-  console.log('handleLeaveTemple called');
   if (game) {
     game.completeEvent();
     updateGameState();
@@ -473,7 +415,6 @@ const handleLeaveTemple = async () => {
     await nextTick();
     // Force update the display to show navigation
     game.updateDisplay();
-    console.log('Temple exit completed, should show navigation');
   }
 };
 
@@ -530,7 +471,6 @@ let previousNodeType = ref<string>('');
 watchEffect(() => {
   if (gameState.value) {
     const currentNode = getCurrentNode(gameState.value);
-    // console.log('Vue gameState changed:', {
     //   gamePhase: gameState.value.gamePhase,
     //   hasBattleState: !!gameState.value.battleState,
     //   currentNodeType: currentNode?.eventType,
@@ -542,7 +482,6 @@ watchEffect(() => {
       gameState.value.gamePhase === 'boss_reward' &&
       previousGamePhase.value !== 'boss_reward'
     ) {
-      console.log('Entering boss_reward phase - forcing updateDisplay');
       nextTick(() => {
         if (game) {
           game.updateDisplay();
@@ -556,7 +495,6 @@ watchEffect(() => {
       currentNode?.eventType === 'port' &&
       (previousGamePhase.value !== 'event' || previousNodeType.value !== 'port')
     ) {
-      console.log('Entering port event - resetting port view to main');
       portView.value = 'main';
     }
 
@@ -567,9 +505,7 @@ watchEffect(() => {
 });
 
 // Watch portView changes
-watchEffect(() => {
-  console.log('Port view changed to:', portView.value);
-});
+watchEffect(() => {});
 </script>
 
 <style>

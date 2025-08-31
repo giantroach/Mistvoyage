@@ -317,12 +317,6 @@ export class MistvoyageGame {
       this.displayManager.hideCooldownDisplay();
     }
 
-    console.log('updateDisplay: current gamePhase:', this.gameState.gamePhase);
-    console.log(
-      'updateDisplay: battleState exists:',
-      !!this.gameState.battleState
-    );
-
     switch (this.gameState.gamePhase) {
       case 'ship_selection':
         this.showShipSelection();
@@ -331,14 +325,12 @@ export class MistvoyageGame {
         this.showChapterStart();
         break;
       case 'navigation':
-        console.log('updateDisplay: showing navigation');
         this.showNavigation();
         break;
       case 'event':
         this.showEvent();
         break;
       case 'combat':
-        console.log('updateDisplay: showing combat');
         this.showCombat();
         break;
       case 'game_over':
@@ -823,16 +815,10 @@ export class MistvoyageGame {
 
     // Reset map scroll position before generating new map
     this.gameState.mapScrollPosition = 0;
-    console.log('generateChapterMap: Reset map scroll position to 0');
 
     this.gameState.currentMap = this.mapManager.generateChapterMap(
       chapter,
       chapter, // Use chapter data which now includes eventTypes
-      this.gameState.currentChapter
-    );
-
-    console.log(
-      'generateChapterMap: New map generated for chapter',
       this.gameState.currentChapter
     );
 
@@ -962,8 +948,6 @@ export class MistvoyageGame {
   }
 
   private processEvent(eventType: EventType): void {
-    console.log(`Processing ${eventType} event`);
-
     switch (eventType) {
       case 'treasure':
         this.handleTreasureEvent();
@@ -1131,15 +1115,12 @@ export class MistvoyageGame {
 
   // Temple event methods
   public offerPrayer(): void {
-    console.log('offerPrayer called');
     // Reset weather to clear state
     this.gameState.playerParameters.weather =
       this.weatherManager.initializeWeather();
-    console.log('Weather reset to:', this.gameState.playerParameters.weather);
   }
 
   private handleTempleEvent(): void {
-    console.log('handleTempleEvent called');
     // Temple events are handled by Vue components, just set the phase
     this.gameState.gamePhase = 'event';
   }
@@ -1233,7 +1214,6 @@ export class MistvoyageGame {
           // Applied when calculating gold rewards
           break;
         default:
-          console.log(`Unknown relic effect type: ${effect.type}`);
           break;
       }
     });
@@ -1242,11 +1222,6 @@ export class MistvoyageGame {
   // Battle loop moved to CombatSystem
 
   private handleBattleVictory(): void {
-    console.log(
-      'handleBattleVictory called, gamePhase before:',
-      this.gameState.gamePhase
-    );
-
     // Complete the event
     this.gameState.eventsCompleted++;
 
@@ -1265,10 +1240,6 @@ export class MistvoyageGame {
 
     // Clean up battle and return to navigation
     this.battleManager.completeBattle(this.gameState);
-    console.log(
-      'handleBattleVictory: after completeBattle, gamePhase:',
-      this.gameState.gamePhase
-    );
     this.updateDisplay();
   }
 
@@ -1281,7 +1252,6 @@ export class MistvoyageGame {
   // Battle display methods moved to CombatSystem
 
   public continueBattle(): void {
-    console.log('continueBattle called');
     this.combatSystem.continueBattle();
   }
 
@@ -1363,7 +1333,6 @@ export class MistvoyageGame {
   }
 
   private showBossReward(): void {
-    console.log('showBossReward called');
     const content = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
 
@@ -1377,17 +1346,11 @@ export class MistvoyageGame {
       this.gameState,
       this.chaptersData
     );
-    console.log('Boss rewards generated:', rewards.length, rewards);
 
     // Generate actual relics using RelicManager
     const relicManager = this.getRelicManager();
     const actualRelics = rewards.map(reward =>
       relicManager.generateRelic(reward.rarity)
-    );
-    console.log(
-      'Actual relics generated:',
-      actualRelics.length,
-      actualRelics.map(r => r.name)
     );
 
     let choicesHtml = '';
@@ -1420,64 +1383,45 @@ export class MistvoyageGame {
   }
 
   private selectBossReward(selectedRelic: any): void {
-    console.log('selectBossReward called');
-    console.log('Current chapter before:', this.gameState.currentChapter);
-
     // Add selected relic to player inventory
     if (
       this.gameState.playerParameters.relics.length <
       this.gameState.playerParameters.ship.storage
     ) {
       this.gameState.playerParameters.relics.push(selectedRelic);
-      console.log('Added relic to inventory:', selectedRelic.name);
     }
 
     // Progress to next chapter or end game
     this.gameState.currentChapter++;
-    console.log(
-      'Current chapter after increment:',
-      this.gameState.currentChapter
-    );
 
     if (this.gameState.currentChapter > 3) {
       // Game completed
-      console.log('Game completed - setting victory phase');
       this.gameState.gamePhase = 'victory';
     } else {
       // Move to next chapter
-      console.log('Moving to next chapter - going directly to navigation');
 
       // Reset chapter progress
-      console.log('Resetting chapter progress...');
       this.gameState.eventsCompleted = 0;
       this.gameState.visitedNodes.clear();
 
       // Reset map scroll position for new chapter
       this.gameState.mapScrollPosition = 0;
-      console.log('Reset map scroll position to 0');
 
-      console.log('Generating new chapter map...');
       this.generateChapterMap();
 
       // Set starting node for new chapter
       this.gameState.currentNodeId = this.gameState.currentMap.startNodeId;
-      console.log('Set starting node to:', this.gameState.currentNodeId);
-      console.log('New map generated, current map:', this.gameState.currentMap);
 
       // Update node visibility for new chapter
       this.navigationManager.updateNodeVisibility();
-      console.log('Updated node visibility for new chapter');
 
       // Go directly to navigation phase (skip chapter_start screen)
       this.gameState.gamePhase = 'navigation';
-      console.log('Set game phase to navigation');
     }
 
     // Clean up battle state
     this.gameState.battleState = undefined;
-    console.log('Cleaned up battle state');
 
-    console.log('Calling updateDisplay...');
     this.updateDisplay();
 
     // Additional scroll position reset after display update
@@ -1491,7 +1435,6 @@ export class MistvoyageGame {
           this.gameState.currentNodeId === 'start' &&
           this.gameState.eventsCompleted === 0
         ) {
-          console.log('Additional scroll position reset to 0');
           mapContainer.scrollLeft = 0;
           this.gameState.mapScrollPosition = 0;
         }

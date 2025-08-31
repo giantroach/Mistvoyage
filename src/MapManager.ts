@@ -122,6 +122,7 @@ export class MapManager {
           branchIndex: branch,
         };
 
+
         currentLayerNodes.push(nodeId);
       }
 
@@ -255,7 +256,11 @@ export class MapManager {
 
   private isMinCountEvent(eventType: EventType, eventTypeConfig: any): boolean {
     const config = eventTypeConfig[eventType];
-    return config && ((config.minCount && config.minCount > 0) || (config.fixedCount && config.fixedCount > 0));
+    return (
+      config &&
+      ((config.minCount && config.minCount > 0) ||
+        (config.fixedCount && config.fixedCount > 0))
+    );
   }
 
   private connectLayersWithOrphanPrevention(
@@ -502,6 +507,8 @@ export class MapManager {
         return 'スタート地点';
       case 'unknown':
         return '???';
+      case 'temple':
+        return '寺院';
       default:
         return '不明';
     }

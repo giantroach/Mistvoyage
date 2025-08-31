@@ -115,21 +115,13 @@ export class BattleManager {
   private selectEncounter(chapter: number, chaptersData?: any): any {
     let encounters;
 
-    console.log('selectEncounter called with chapter:', chapter);
-    console.log('chaptersData available:', !!chaptersData);
-
     if (chaptersData?.chapters) {
-      console.log('Using new chapters data structure');
       const chapterData = chaptersData.chapters.find(
         (c: any) => c.id === chapter
       );
-      console.log('Found chapter data:', chapterData);
       encounters = chapterData?.encounters;
-      console.log('Chapter encounters:', encounters);
     } else {
-      console.log('Using fallback monstersData structure');
       encounters = this.monstersData.encounters?.[`chapter_${chapter}`];
-      console.log('Fallback encounters:', encounters);
     }
 
     if (!encounters || encounters.length === 0) {
@@ -286,21 +278,7 @@ export class BattleManager {
       weatherModifier.sightMultiplier;
     const hit = Math.random() * 100 < finalAccuracy;
 
-    // Debug logging for player attacks
-    if (Math.random() < 0.1) {
-      // Log 10% of attacks for debugging
-      console.log('Player Attack Debug:', {
-        baseAccuracy,
-        speedModifier,
-        sightModifier,
-        weatherModifier: weatherModifier.sightMultiplier,
-        finalAccuracy,
-        playerSight: gameState.playerParameters.sight,
-        playerSpeed: playerParams.speed,
-        targetSpeed: target.speed,
-        hit,
-      });
-    }
+    // Debug logging for player attacks removed
 
     let damage = 0;
     if (hit) {
@@ -618,15 +596,8 @@ export class BattleManager {
       gameState.battleState?.phase === 'victory' ||
       gameState.battleState?.phase === 'result_screen'
     ) {
-      console.log(
-        'BattleManager: Completing battle, setting phase to navigation'
-      );
       gameState.battleState = undefined;
       gameState.gamePhase = 'navigation';
-      console.log(
-        'BattleManager: Battle completed, gamePhase:',
-        gameState.gamePhase
-      );
     }
   }
 

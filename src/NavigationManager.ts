@@ -24,9 +24,6 @@ export class NavigationManager {
       !node.isAccessible ||
       this.gameState.gamePhase !== 'navigation'
     ) {
-      console.log(
-        `Navigation to ${nodeId} not allowed: accessible=${node?.isAccessible}, phase=${this.gameState.gamePhase}`
-      );
       return false;
     }
 
@@ -83,7 +80,6 @@ export class NavigationManager {
 
   private handleExistingContainerScroll(targetScrollLeft: number): void {
     // We already have navigation display - just update map and scroll directly
-    console.log('NavigationManager: Direct scroll to existing container');
 
     const mapDisplay = document.getElementById('map-display');
     const existingMapContainer = document.querySelector(
@@ -131,11 +127,6 @@ export class NavigationManager {
             left: targetScrollLeft,
             behavior: 'smooth',
           });
-
-          console.log(
-            'NavigationManager: Scrolled directly to:',
-            targetScrollLeft
-          );
         }, 10);
       }
     }
@@ -231,15 +222,6 @@ export class NavigationManager {
     // Save current scroll position to game state before map regeneration
     if (existingMapContainer) {
       this.gameState.mapScrollPosition = existingMapContainer.scrollLeft;
-      console.log(
-        'NavigationManager: Saved scroll position to gameState:',
-        this.gameState.mapScrollPosition
-      );
-    } else {
-      console.log(
-        'NavigationManager: No existing mapContainer found, using saved position:',
-        this.gameState.mapScrollPosition || 0
-      );
     }
 
     // For new chapters (when currentNodeId is 'start' and no events completed), force scroll to 0
@@ -249,17 +231,6 @@ export class NavigationManager {
     const currentScrollLeft = isNewChapter
       ? 0
       : this.gameState.mapScrollPosition || 0;
-
-    console.log('NavigationManager: Is new chapter:', isNewChapter);
-    console.log(
-      'NavigationManager: Current node:',
-      this.gameState.currentNodeId
-    );
-    console.log(
-      'NavigationManager: Events completed:',
-      this.gameState.eventsCompleted
-    );
-    console.log('NavigationManager: Using scroll position:', currentScrollLeft);
 
     content.innerHTML = `
       <h2>航海中</h2>
@@ -289,10 +260,6 @@ export class NavigationManager {
     sightRange: number,
     pendingScrollInfo: any
   ): void {
-    console.log(
-      'NavigationManager: Using existing map container for smooth scroll'
-    );
-
     const mapDisplay = document.getElementById('map-display');
     if (mapDisplay) {
       mapDisplay.innerHTML = this.displayManager.generateMapDisplay(
@@ -312,11 +279,6 @@ export class NavigationManager {
         cleanMapContainer.addEventListener('scroll', () => {
           this.gameState.mapScrollPosition = cleanMapContainer.scrollLeft;
         });
-
-        console.log(
-          'NavigationManager: Smooth scrolling to:',
-          pendingScrollInfo.targetScrollLeft
-        );
 
         cleanMapContainer.scrollTo({
           left: pendingScrollInfo.targetScrollLeft,
@@ -346,9 +308,6 @@ export class NavigationManager {
           this.gameState.currentNodeId === 'start' &&
           this.gameState.eventsCompleted === 0;
         if (isNewChapter) {
-          console.log(
-            'NavigationManager: New chapter detected - forcing scroll to 0'
-          );
           newMapContainer.scrollLeft = 0;
           this.gameState.mapScrollPosition = 0;
           mapDisplay.style.visibility = 'visible';
@@ -356,14 +315,6 @@ export class NavigationManager {
         }
 
         if (pendingScrollInfo) {
-          console.log('NavigationManager: Handling node navigation scroll');
-          console.log(
-            'NavigationManager: Restoring to position:',
-            currentScrollLeft,
-            'then animating to:',
-            pendingScrollInfo.targetScrollLeft
-          );
-
           newMapContainer.style.scrollBehavior = 'auto';
           newMapContainer.scrollLeft = currentScrollLeft;
           mapDisplay.style.visibility = 'visible';
@@ -376,11 +327,6 @@ export class NavigationManager {
             });
           }, 20);
         } else {
-          console.log(
-            'NavigationManager: Restoring scroll position to:',
-            currentScrollLeft
-          );
-
           newMapContainer.style.scrollBehavior = 'auto';
           newMapContainer.scrollLeft = currentScrollLeft;
           mapDisplay.style.visibility = 'visible';
@@ -423,6 +369,10 @@ export class NavigationManager {
         return 'エリートモンスター';
       case 'treasure':
         return '宝箱';
+      case 'port':
+        return '港';
+      case 'temple':
+        return '寺院';
       case 'shop':
         return '商人';
       case 'event':

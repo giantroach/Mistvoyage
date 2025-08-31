@@ -261,6 +261,7 @@ const getNodeDisplayName = (node: MapNode) => {
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
 
+
   if (layerDistance >= 3 && !isPastNode) {
     return '???';
   }
