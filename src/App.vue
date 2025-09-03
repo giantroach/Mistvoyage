@@ -20,29 +20,6 @@
         @show-weapon-detail="handleShowWeaponDetail"
         @show-relic-detail="handleShowRelicDetail"
       />
-
-      <!-- Fallback for when gameState is not loaded -->
-      <div v-else id="parameters-display">
-        <div class="parameter-group primary">
-          <span id="hull-display">船体: --/--</span>
-          <span id="food-display">食料: --</span>
-          <span id="money-display">資金: --</span>
-          <span id="crew-display">乗組員: --/--</span>
-        </div>
-        <div class="parameter-group secondary">
-          <span id="sight-display">視界: --</span>
-          <span id="weather-display">天候: --</span>
-          <span id="storage-display">保管庫: --/--</span>
-        </div>
-        <div class="parameter-group equipment">
-          <span id="weapons-display">武器: --</span>
-          <span id="relics-display">レリック: --</span>
-        </div>
-        <div class="parameter-group progress">
-          <span id="chapter-display">チャプター: --</span>
-          <span id="progress-display">進行: --/--</span>
-        </div>
-      </div>
     </header>
 
     <main id="game-main">

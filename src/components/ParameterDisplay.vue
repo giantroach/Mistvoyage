@@ -25,14 +25,14 @@
       <span id="weapons-display" v-html="weaponsDisplay"></span>
       <span id="relics-display" v-html="relicsDisplay"></span>
     </div>
-    <div class="parameter-group progress">
-      <span id="chapter-display"
-        >チャプター: {{ currentChapter }} - {{ chapterName }}</span
-      >
-      <span id="progress-display"
-        >進行: {{ eventsCompleted }}/{{ requiredEvents }}</span
-      >
-    </div>
+    <!-- <div class="parameter-group progress"> -->
+    <!--   <span id="chapter-display" -->
+    <!--     >チャプター: {{ currentChapter }} - {{ chapterName }}</span -->
+    <!--   > -->
+    <!--   <span id="progress-display" -->
+    <!--     >進行: {{ eventsCompleted }}/{{ requiredEvents }}</span -->
+    <!--   > -->
+    <!-- </div> -->
   </div>
 </template>
 
