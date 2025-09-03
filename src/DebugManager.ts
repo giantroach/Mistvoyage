@@ -419,7 +419,6 @@ export class DebugManager {
   private createDebugMonsters(): any[] {
     const encounters = this.generateEncounterOptions();
 
-
     const selectedEncounter = encounters.find(
       e => e.id === this.debugState.selectedMonsterEncounter
     );
@@ -431,7 +430,6 @@ export class DebugManager {
       );
       return [];
     }
-
 
     // Create debug monsters manually
     const debugMonsters = selectedEncounter.monsters.map((monsterId, index) => {
@@ -499,7 +497,6 @@ export class DebugManager {
         }
       );
     }
-
 
     // Add default attack/defense if not present in JSON
     return {

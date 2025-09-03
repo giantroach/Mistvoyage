@@ -336,7 +336,8 @@ export class MistvoyageGame {
       debugHeal.replaceWith(debugHeal.cloneNode(true));
       const newDebugHeal = document.getElementById('debug-heal');
       newDebugHeal?.addEventListener('click', () => {
-        this.gameState.playerParameters.hull = this.gameState.playerParameters.maxHull;
+        this.gameState.playerParameters.hull =
+          this.gameState.playerParameters.maxHull;
         this.updateDisplay();
         this.showSaveStatus('船体を完全回復しました');
       });
@@ -362,18 +363,27 @@ export class MistvoyageGame {
       debugAddWeapon.replaceWith(debugAddWeapon.cloneNode(true)); // Remove existing event listeners
       const newDebugAddWeapon = document.getElementById('debug-add-weapon');
       newDebugAddWeapon?.addEventListener('click', () => {
-        const weaponTypeSelect = document.getElementById('weapon-type-select') as HTMLSelectElement;
-        const weaponRaritySelect = document.getElementById('weapon-rarity-select') as HTMLSelectElement;
-        
+        const weaponTypeSelect = document.getElementById(
+          'weapon-type-select'
+        ) as HTMLSelectElement;
+        const weaponRaritySelect = document.getElementById(
+          'weapon-rarity-select'
+        ) as HTMLSelectElement;
+
         if (weaponTypeSelect && weaponRaritySelect) {
           const selectedType = weaponTypeSelect.value;
           const selectedRarity = weaponRaritySelect.value as any; // WeaponRarity type
-          
+
           try {
-            const newWeapon = this.weaponManager.generateWeapon(selectedType, selectedRarity);
+            const newWeapon = this.weaponManager.generateWeapon(
+              selectedType,
+              selectedRarity
+            );
             this.gameState.playerParameters.weapons.push(newWeapon);
             this.updateDisplay();
-            this.showSaveStatus(`武器「${newWeapon.name}」(${selectedRarity})を追加しました`);
+            this.showSaveStatus(
+              `武器「${newWeapon.name}」(${selectedRarity})を追加しました`
+            );
           } catch (error) {
             this.showSaveStatus(`武器生成エラー: ${error}`, true);
           }
@@ -387,16 +397,20 @@ export class MistvoyageGame {
       debugAddRelic.replaceWith(debugAddRelic.cloneNode(true));
       const newDebugAddRelic = document.getElementById('debug-add-relic');
       newDebugAddRelic?.addEventListener('click', () => {
-        const relicRaritySelect = document.getElementById('relic-rarity-select') as HTMLSelectElement;
-        
+        const relicRaritySelect = document.getElementById(
+          'relic-rarity-select'
+        ) as HTMLSelectElement;
+
         if (relicRaritySelect) {
           const selectedRarity = relicRaritySelect.value as any; // RelicRarity type
-          
+
           try {
             const newRelic = this.relicManager.generateRelic(selectedRarity);
             this.gameState.playerParameters.relics.push(newRelic);
             this.updateDisplay();
-            this.showSaveStatus(`レリック「${newRelic.name}」(${selectedRarity})を追加しました`);
+            this.showSaveStatus(
+              `レリック「${newRelic.name}」(${selectedRarity})を追加しました`
+            );
           } catch (error) {
             this.showSaveStatus(`レリック生成エラー: ${error}`, true);
           }
@@ -408,7 +422,9 @@ export class MistvoyageGame {
 
     if (debugClearWeapons) {
       debugClearWeapons.replaceWith(debugClearWeapons.cloneNode(true));
-      const newDebugClearWeapons = document.getElementById('debug-clear-weapons');
+      const newDebugClearWeapons = document.getElementById(
+        'debug-clear-weapons'
+      );
       newDebugClearWeapons?.addEventListener('click', () => {
         this.gameState.playerParameters.weapons = [];
         this.updateDisplay();
@@ -435,13 +451,17 @@ export class MistvoyageGame {
       debugStartBattle.replaceWith(debugStartBattle.cloneNode(true));
       const newDebugStartBattle = document.getElementById('debug-start-battle');
       newDebugStartBattle?.addEventListener('click', () => {
-        const enemySelect = document.getElementById('enemy-select') as HTMLSelectElement;
-        
+        const enemySelect = document.getElementById(
+          'enemy-select'
+        ) as HTMLSelectElement;
+
         if (enemySelect) {
           const selectedEnemy = enemySelect.value;
           try {
             this.startDebugBattle(selectedEnemy);
-            this.showSaveStatus(`「${enemySelect.options[enemySelect.selectedIndex].text}」との戦闘を開始しました`);
+            this.showSaveStatus(
+              `「${enemySelect.options[enemySelect.selectedIndex].text}」との戦闘を開始しました`
+            );
           } catch (error) {
             this.showSaveStatus(`戦闘開始エラー: ${error}`, true);
           }
@@ -469,7 +489,9 @@ export class MistvoyageGame {
 
     if (debugToggleGodMode) {
       debugToggleGodMode.replaceWith(debugToggleGodMode.cloneNode(true));
-      const newDebugToggleGodMode = document.getElementById('debug-toggle-god-mode');
+      const newDebugToggleGodMode = document.getElementById(
+        'debug-toggle-god-mode'
+      );
       newDebugToggleGodMode?.addEventListener('click', () => {
         // Toggle god mode (implement as needed)
         this.showSaveStatus('無敵モード機能は未実装です');
@@ -507,7 +529,9 @@ export class MistvoyageGame {
 
     // Chapter & Progress
     const debugNextChapter = document.getElementById('debug-next-chapter');
-    const debugCompleteChapter = document.getElementById('debug-complete-chapter');
+    const debugCompleteChapter = document.getElementById(
+      'debug-complete-chapter'
+    );
 
     if (debugNextChapter) {
       debugNextChapter.replaceWith(debugNextChapter.cloneNode(true));
@@ -520,7 +544,9 @@ export class MistvoyageGame {
           this.gameState.currentNodeId = 'start';
           this.gameState.gamePhase = 'chapter_start';
           this.updateDisplay();
-          this.showSaveStatus(`第${this.gameState.currentChapter}章に進みました`);
+          this.showSaveStatus(
+            `第${this.gameState.currentChapter}章に進みました`
+          );
         } else {
           this.showSaveStatus('最終章です', true);
         }
@@ -529,11 +555,14 @@ export class MistvoyageGame {
 
     if (debugCompleteChapter) {
       debugCompleteChapter.replaceWith(debugCompleteChapter.cloneNode(true));
-      const newDebugCompleteChapter = document.getElementById('debug-complete-chapter');
+      const newDebugCompleteChapter = document.getElementById(
+        'debug-complete-chapter'
+      );
       newDebugCompleteChapter?.addEventListener('click', () => {
-        const requiredEvents = this.chaptersData.chapters.find(
-          c => c.id === this.gameState.currentChapter
-        )?.requiredEvents || 3;
+        const requiredEvents =
+          this.chaptersData.chapters.find(
+            c => c.id === this.gameState.currentChapter
+          )?.requiredEvents || 3;
         this.gameState.eventsCompleted = requiredEvents;
         this.updateDisplay();
         this.showSaveStatus('現在章を完了状態にしました');

@@ -237,11 +237,12 @@ export class WeaponManager {
   generateRandomWeapon(): Weapon {
     // Select random template
     const templateIds = Object.keys(this.weaponData.weaponTemplates);
-    const randomTemplateId = templateIds[Math.floor(Math.random() * templateIds.length)];
-    
+    const randomTemplateId =
+      templateIds[Math.floor(Math.random() * templateIds.length)];
+
     // Select random rarity
     const randomRarity = this.selectRandomRarity();
-    
+
     return this.generateWeapon(randomTemplateId, randomRarity);
   }
 

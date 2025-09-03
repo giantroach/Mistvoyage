@@ -110,7 +110,6 @@
           gameState.gamePhase === 'victory'
         "
       >
-
         <div id="story-display">
           <div id="story-text"></div>
         </div>

@@ -122,7 +122,6 @@ export class MapManager {
           branchIndex: branch,
         };
 
-
         currentLayerNodes.push(nodeId);
       }
 

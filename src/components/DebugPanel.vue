@@ -11,9 +11,7 @@
           <button class="debug-btn" id="debug-gain-exp">経験値+100</button>
           <button class="debug-btn" id="debug-gain-money">資金+1000</button>
           <button class="debug-btn" id="debug-heal">完全回復</button>
-          <button class="debug-btn" id="debug-restore-food">
-            食料満タン
-          </button>
+          <button class="debug-btn" id="debug-restore-food">食料満タン</button>
         </div>
 
         <div class="debug-section">
@@ -48,9 +46,7 @@
             </select>
             <button class="debug-btn" id="debug-add-relic">レリック追加</button>
           </div>
-          <button class="debug-btn" id="debug-clear-weapons">
-            武器全削除
-          </button>
+          <button class="debug-btn" id="debug-clear-weapons">武器全削除</button>
           <button class="debug-btn" id="debug-clear-relics">
             レリック全削除
           </button>

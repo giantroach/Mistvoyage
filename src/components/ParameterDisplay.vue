@@ -138,8 +138,8 @@ onUpdated(() => {
 <style scoped>
 .parameter-group {
   display: flex;
-  gap: 1rem;
-  margin: 0.5rem 0;
+  gap: 0.2rem;
+  margin: 0.2rem 0;
 }
 
 .clickable-weapon,
