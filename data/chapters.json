@@ -37,19 +37,31 @@
       "encounters": [
         {
           "monsters": ["sea_slime"],
-          "weight": 40
+          "weight": 25
         },
         {
           "monsters": ["giant_crab"],
-          "weight": 30
-        },
-        {
-          "monsters": ["sea_slime", "sea_slime"],
           "weight": 20
         },
         {
-          "monsters": ["sea_slime", "giant_crab"],
+          "monsters": ["fire_jellyfish"],
+          "weight": 20
+        },
+        {
+          "monsters": ["sea_serpent"],
+          "weight": 15
+        },
+        {
+          "monsters": ["sea_slime", "sea_slime"],
           "weight": 10
+        },
+        {
+          "monsters": ["sea_slime", "giant_crab"],
+          "weight": 5
+        },
+        {
+          "monsters": ["fire_jellyfish", "sea_slime"],
+          "weight": 5
         }
       ]
     },
@@ -90,27 +102,47 @@
       "encounters": [
         {
           "monsters": ["giant_crab"],
-          "weight": 25
-        },
-        {
-          "monsters": ["storm_shark"],
-          "weight": 25
-        },
-        {
-          "monsters": ["kraken_spawn"],
           "weight": 15
         },
         {
-          "monsters": ["giant_crab", "giant_crab"],
-          "weight": 20
+          "monsters": ["storm_shark"],
+          "weight": 15
         },
         {
-          "monsters": ["sea_slime", "storm_shark"],
+          "monsters": ["kraken_spawn"],
           "weight": 10
         },
         {
-          "monsters": ["giant_crab", "storm_shark"],
+          "monsters": ["sea_serpent"],
+          "weight": 15
+        },
+        {
+          "monsters": ["iron_turtle"],
+          "weight": 10
+        },
+        {
+          "monsters": ["fire_jellyfish"],
+          "weight": 10
+        },
+        {
+          "monsters": ["void_wraith"],
           "weight": 5
+        },
+        {
+          "monsters": ["deep_angler"],
+          "weight": 5
+        },
+        {
+          "monsters": ["giant_crab", "giant_crab"],
+          "weight": 8
+        },
+        {
+          "monsters": ["sea_serpent", "fire_jellyfish"],
+          "weight": 4
+        },
+        {
+          "monsters": ["iron_turtle", "storm_shark"],
+          "weight": 3
         }
       ]
     },
@@ -151,31 +183,51 @@
       "encounters": [
         {
           "monsters": ["storm_shark"],
-          "weight": 20
+          "weight": 15
         },
         {
           "monsters": ["kraken_spawn"],
-          "weight": 25
-        },
-        {
-          "monsters": ["leviathan"],
-          "weight": 10
-        },
-        {
-          "monsters": ["storm_shark", "storm_shark"],
           "weight": 15
         },
         {
-          "monsters": ["kraken_spawn", "storm_shark"],
-          "weight": 15
-        },
-        {
-          "monsters": ["kraken_spawn", "kraken_spawn"],
+          "monsters": ["iron_turtle"],
           "weight": 10
         },
         {
-          "monsters": ["storm_shark", "kraken_spawn", "kraken_spawn"],
+          "monsters": ["void_wraith"],
+          "weight": 10
+        },
+        {
+          "monsters": ["deep_angler"],
+          "weight": 10
+        },
+        {
+          "monsters": ["crystal_golem"],
+          "weight": 8
+        },
+        {
+          "monsters": ["storm_elemental"],
           "weight": 5
+        },
+        {
+          "monsters": ["storm_shark", "void_wraith"],
+          "weight": 10
+        },
+        {
+          "monsters": ["kraken_spawn", "deep_angler"],
+          "weight": 8
+        },
+        {
+          "monsters": ["iron_turtle", "crystal_golem"],
+          "weight": 5
+        },
+        {
+          "monsters": ["void_wraith", "storm_elemental"],
+          "weight": 3
+        },
+        {
+          "monsters": ["crystal_golem", "storm_elemental"],
+          "weight": 1
         }
       ]
     }

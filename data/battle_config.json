@@ -58,6 +58,43 @@
         "cooldownMultiplier": 1.5,
         "duration": 4000
       }
+    },
+    "weaponEffectiveness": {
+      "piercing": {
+        "shell": 0.5,
+        "hull": 1.0,
+        "scale": 2.0,
+        "soft": 1.0,
+        "ethereal": 0.3
+      },
+      "fire": {
+        "shell": 1.0,
+        "hull": 1.0,
+        "scale": 0.5,
+        "soft": 1.0,
+        "ethereal": 2.0
+      },
+      "impact": {
+        "shell": 2.0,
+        "hull": 2.0,
+        "scale": 0.5,
+        "soft": 0.3,
+        "ethereal": 0.8
+      },
+      "slash": {
+        "shell": 1.0,
+        "hull": 1.0,
+        "scale": 1.0,
+        "soft": 2.0,
+        "ethereal": 0.3
+      },
+      "net": {
+        "shell": 1.0,
+        "hull": 1.0,
+        "scale": 1.0,
+        "soft": 1.0,
+        "ethereal": 0.0
+      }
     }
   }
 }

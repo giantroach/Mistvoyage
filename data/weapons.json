@@ -5,6 +5,7 @@
       "name": "ハープーン",
       "description": "基本的な漁船用の武器",
       "type": "projectile",
+      "weaponType": "piercing",
       "raritySettings": {
         "common": {
           "damage": { "min": 2, "max": 6 },
@@ -54,10 +55,11 @@
       }
     },
     "cannon": {
-      "id": "cannon", 
+      "id": "cannon",
       "name": "大砲",
       "description": "強力だが装填に時間がかかる",
       "type": "artillery",
+      "weaponType": "impact",
       "raritySettings": {
         "common": {
           "damage": { "min": 4, "max": 8 },
@@ -108,9 +110,10 @@
     },
     "crossbow": {
       "id": "crossbow",
-      "name": "クロスボウ", 
+      "name": "クロスボウ",
       "description": "素早く正確な武器",
       "type": "projectile",
+      "weaponType": "piercing",
       "raritySettings": {
         "common": {
           "damage": { "min": 1, "max": 4 },
@@ -162,8 +165,9 @@
     "flame_thrower": {
       "id": "flame_thrower",
       "name": "火炎放射器",
-      "description": "近距離で威力を発揮", 
+      "description": "近距離で威力を発揮",
       "type": "flame",
+      "weaponType": "fire",
       "raritySettings": {
         "common": {
           "damage": { "min": 3, "max": 5 },
@@ -217,6 +221,7 @@
       "name": "ネットランチャー",
       "description": "敵の動きを制限する",
       "type": "utility",
+      "weaponType": "net",
       "effect": "slow",
       "raritySettings": {
         "common": {
@@ -286,7 +291,8 @@
       "critMultiplier": 2.0,
       "price": 25,
       "rarity": "common",
-      "type": "projectile"
+      "type": "projectile",
+      "weaponType": "piercing"
     }
   }
 }

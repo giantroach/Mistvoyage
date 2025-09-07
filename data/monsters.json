@@ -7,6 +7,7 @@
       "hp": 8,
       "speed": 3,
       "weapons": ["tentacle_slap"],
+      "armorTypes": ["soft"],
       "goldReward": {
         "min": 3,
         "max": 8
@@ -18,9 +19,10 @@
       "id": "giant_crab",
       "name": "巨大蟹",
       "description": "硬い殻を持つ大型の蟹",
-      "hp": 12,
+      "hp": 15,
       "speed": 2,
       "weapons": ["claw_attack"],
+      "armorTypes": ["shell"],
       "goldReward": {
         "min": 8,
         "max": 15
@@ -32,9 +34,10 @@
       "id": "storm_shark",
       "name": "嵐鮫",
       "description": "嵐の海域に住む凶暴な鮫",
-      "hp": 18,
+      "hp": 25,
       "speed": 6,
       "weapons": ["bite", "ram"],
+      "armorTypes": ["scale"],
       "goldReward": {
         "min": 15,
         "max": 25
@@ -49,6 +52,7 @@
       "hp": 25,
       "speed": 4,
       "weapons": ["tentacle_whip", "ink_spray"],
+      "armorTypes": ["soft"],
       "goldReward": {
         "min": 20,
         "max": 35
@@ -63,6 +67,7 @@
       "hp": 45,
       "speed": 5,
       "weapons": ["water_blast", "tail_sweep", "roar"],
+      "armorTypes": ["scale", "soft"],
       "goldReward": {
         "min": 50,
         "max": 80
@@ -77,6 +82,7 @@
       "hp": 35,
       "speed": 4,
       "weapons": ["tentacle_whip", "ink_spray"],
+      "armorTypes": ["soft"],
       "goldReward": {
         "min": 30,
         "max": 50
@@ -91,12 +97,118 @@
       "hp": 40,
       "speed": 3,
       "weapons": ["ghost_cannon", "spectral_ram"],
+      "armorTypes": ["hull", "ethereal"],
       "goldReward": {
         "min": 40,
         "max": 60
       },
       "difficulty": 5,
       "chapters": [2]
+    },
+    "sea_serpent": {
+      "id": "sea_serpent",
+      "name": "海蛇",
+      "description": "長大な体躯を持つ古代の海蛇",
+      "hp": 30,
+      "speed": 5,
+      "weapons": ["poison_bite", "coil_crush"],
+      "armorTypes": ["scale"],
+      "goldReward": {
+        "min": 18,
+        "max": 28
+      },
+      "difficulty": 3,
+      "chapters": [1, 2]
+    },
+    "iron_turtle": {
+      "id": "iron_turtle",
+      "name": "鉄甲亀",
+      "description": "鉄のように硬い甲羅を持つ巨大な亀",
+      "hp": 50,
+      "speed": 1,
+      "weapons": ["shell_slam", "iron_bite"],
+      "armorTypes": ["shell"],
+      "goldReward": {
+        "min": 25,
+        "max": 40
+      },
+      "difficulty": 4,
+      "chapters": [2, 3]
+    },
+    "fire_jellyfish": {
+      "id": "fire_jellyfish",
+      "name": "炎水母",
+      "description": "灼熱の触手を持つ危険な水母",
+      "hp": 20,
+      "speed": 3,
+      "weapons": ["burning_touch", "flame_pulse"],
+      "armorTypes": ["soft"],
+      "goldReward": {
+        "min": 12,
+        "max": 20
+      },
+      "difficulty": 2,
+      "chapters": [1, 2]
+    },
+    "void_wraith": {
+      "id": "void_wraith",
+      "name": "虚無の怨霊",
+      "description": "物質界に干渉する謎の存在",
+      "hp": 25,
+      "speed": 6,
+      "weapons": ["void_drain", "phase_strike"],
+      "armorTypes": ["ethereal"],
+      "goldReward": {
+        "min": 20,
+        "max": 35
+      },
+      "difficulty": 4,
+      "chapters": [2, 3]
+    },
+    "crystal_golem": {
+      "id": "crystal_golem",
+      "name": "水晶ゴーレム",
+      "description": "海底の水晶から生まれた人工生命体",
+      "hp": 60,
+      "speed": 2,
+      "weapons": ["crystal_shard", "resonance_wave"],
+      "armorTypes": ["shell", "hull"],
+      "goldReward": {
+        "min": 35,
+        "max": 55
+      },
+      "difficulty": 5,
+      "chapters": [3]
+    },
+    "deep_angler": {
+      "id": "deep_angler",
+      "name": "深海アンコウ",
+      "description": "光る触角で獲物を誘う巨大なアンコウ",
+      "hp": 35,
+      "speed": 2,
+      "weapons": ["lure_bite", "darkness_burst"],
+      "armorTypes": ["scale", "soft"],
+      "goldReward": {
+        "min": 22,
+        "max": 38
+      },
+      "difficulty": 3,
+      "chapters": [2, 3]
+    },
+    "storm_elemental": {
+      "id": "storm_elemental",
+      "name": "嵐の精霊",
+      "description": "荒れ狂う海の嵐そのものが意識を持った存在",
+      "hp": 45,
+      "speed": 7,
+      "weapons": ["lightning_strike", "wind_blast", "storm_call"],
+      "armorTypes": ["ethereal"],
+      "goldReward": {
+        "min": 45,
+        "max": 70
+      },
+      "difficulty": 6,
+      "chapters": [3]
     }
   },
   "monsterWeapons": {
@@ -104,70 +216,194 @@
       "name": "触手叩き",
       "damage": { "min": 1, "max": 2 },
       "accuracy": 70,
-      "cooldown": 2000
+      "cooldown": 2000,
+      "weaponType": "impact"
     },
     "claw_attack": {
       "name": "鋏攻撃",
       "damage": { "min": 2, "max": 4 },
       "accuracy": 80,
-      "cooldown": 3000
+      "cooldown": 3000,
+      "weaponType": "slash"
     },
     "bite": {
       "name": "噛み付き",
       "damage": { "min": 3, "max": 5 },
       "accuracy": 85,
-      "cooldown": 2500
+      "cooldown": 2500,
+      "weaponType": "piercing"
     },
     "ram": {
       "name": "体当たり",
       "damage": { "min": 1, "max": 3 },
       "accuracy": 90,
-      "cooldown": 4000
+      "cooldown": 4000,
+      "weaponType": "impact"
     },
     "tentacle_whip": {
       "name": "触手鞭",
       "damage": { "min": 3, "max": 6 },
       "accuracy": 75,
-      "cooldown": 3500
+      "cooldown": 3500,
+      "weaponType": "slash"
     },
     "ink_spray": {
       "name": "墨吐き",
       "damage": { "min": 1, "max": 2 },
       "accuracy": 95,
       "cooldown": 6000,
-      "effect": "blind"
+      "effect": "blind",
+      "weaponType": "impact"
     },
     "water_blast": {
       "name": "水流砲",
       "damage": { "min": 4, "max": 8 },
       "accuracy": 70,
-      "cooldown": 4000
+      "cooldown": 4000,
+      "weaponType": "impact"
     },
     "tail_sweep": {
       "name": "尻尾薙ぎ",
       "damage": { "min": 3, "max": 7 },
       "accuracy": 80,
-      "cooldown": 3000
+      "cooldown": 3000,
+      "weaponType": "impact"
     },
     "roar": {
       "name": "咆哮",
       "damage": { "min": 0, "max": 0 },
       "accuracy": 100,
       "cooldown": 8000,
-      "effect": "fear"
+      "effect": "fear",
+      "weaponType": "impact"
     },
     "ghost_cannon": {
       "name": "幽霊大砲",
       "damage": { "min": 5, "max": 9 },
       "accuracy": 75,
       "cooldown": 4500,
-      "effect": "fear"
+      "effect": "fear",
+      "weaponType": "impact"
     },
     "spectral_ram": {
       "name": "幽体衝突",
       "damage": { "min": 4, "max": 6 },
       "accuracy": 85,
-      "cooldown": 3500
+      "cooldown": 3500,
+      "weaponType": "impact"
+    },
+    "poison_bite": {
+      "name": "毒牙",
+      "damage": { "min": 3, "max": 5 },
+      "accuracy": 80,
+      "cooldown": 2800,
+      "effect": "poison",
+      "weaponType": "piercing"
+    },
+    "coil_crush": {
+      "name": "締め付け",
+      "damage": { "min": 2, "max": 4 },
+      "accuracy": 90,
+      "cooldown": 4000,
+      "effect": "slow",
+      "weaponType": "impact"
+    },
+    "shell_slam": {
+      "name": "甲羅叩き",
+      "damage": { "min": 4, "max": 7 },
+      "accuracy": 75,
+      "cooldown": 3500,
+      "weaponType": "impact"
+    },
+    "iron_bite": {
+      "name": "鉄顎",
+      "damage": { "min": 5, "max": 8 },
+      "accuracy": 85,
+      "cooldown": 4500,
+      "weaponType": "piercing"
+    },
+    "burning_touch": {
+      "name": "灼熱触手",
+      "damage": { "min": 2, "max": 4 },
+      "accuracy": 85,
+      "cooldown": 2500,
+      "effect": "burn",
+      "weaponType": "fire"
+    },
+    "flame_pulse": {
+      "name": "炎動波",
+      "damage": { "min": 3, "max": 6 },
+      "accuracy": 75,
+      "cooldown": 3000,
+      "weaponType": "fire"
+    },
+    "void_drain": {
+      "name": "虚無吸収",
+      "damage": { "min": 2, "max": 3 },
+      "accuracy": 95,
+      "cooldown": 3500,
+      "effect": "drain",
+      "weaponType": "slash"
+    },
+    "phase_strike": {
+      "name": "位相攻撃",
+      "damage": { "min": 4, "max": 6 },
+      "accuracy": 80,
+      "cooldown": 4000,
+      "weaponType": "slash"
+    },
+    "crystal_shard": {
+      "name": "水晶破片",
+      "damage": { "min": 3, "max": 5 },
+      "accuracy": 85,
+      "cooldown": 2000,
+      "weaponType": "piercing"
+    },
+    "resonance_wave": {
+      "name": "共鳴波",
+      "damage": { "min": 5, "max": 8 },
+      "accuracy": 70,
+      "cooldown": 4500,
+      "effect": "stun",
+      "weaponType": "impact"
+    },
+    "lure_bite": {
+      "name": "疑似餌噛み",
+      "damage": { "min": 4, "max": 7 },
+      "accuracy": 90,
+      "cooldown": 3000,
+      "weaponType": "piercing"
+    },
+    "darkness_burst": {
+      "name": "暗闇爆発",
+      "damage": { "min": 2, "max": 4 },
+      "accuracy": 75,
+      "cooldown": 5000,
+      "effect": "blind",
+      "weaponType": "impact"
+    },
+    "lightning_strike": {
+      "name": "雷撃",
+      "damage": { "min": 6, "max": 10 },
+      "accuracy": 80,
+      "cooldown": 3500,
+      "weaponType": "fire"
+    },
+    "wind_blast": {
+      "name": "烈風",
+      "damage": { "min": 3, "max": 6 },
+      "accuracy": 85,
+      "cooldown": 2500,
+      "effect": "slow",
+      "weaponType": "impact"
+    },
+    "storm_call": {
+      "name": "嵐召喚",
+      "damage": { "min": 1, "max": 2 },
+      "accuracy": 100,
+      "cooldown": 8000,
+      "effect": "weather_storm",
+      "weaponType": "impact"
     }
   }
 }

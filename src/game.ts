@@ -145,6 +145,7 @@ export class MistvoyageGame {
       price: 25,
       rarity: 'common',
       type: 'projectile',
+      weaponType: 'piercing',
     };
 
     return {

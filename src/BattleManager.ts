@@ -315,6 +315,16 @@ export class BattleManager {
     let damage = 0;
     if (hit) {
       damage = this.rollDamage(weapon.damage.min, weapon.damage.max);
+
+      // Apply weapon effectiveness based on armor types
+      if (weapon.weaponType && target.armorTypes) {
+        const effectiveness = this.calculateWeaponEffectiveness(
+          weapon.weaponType,
+          target.armorTypes
+        );
+        damage = Math.floor(damage * effectiveness);
+      }
+
       target.hp = Math.max(0, target.hp - damage);
     }
 
@@ -362,6 +372,16 @@ export class BattleManager {
     let damage = 0;
     if (hit) {
       damage = this.rollDamage(weapon.damage.min, weapon.damage.max);
+
+      // Apply weapon effectiveness based on ship armor types (if ship has armor)
+      if (weapon.weaponType && playerParams.ship.armorTypes) {
+        const effectiveness = this.calculateWeaponEffectiveness(
+          weapon.weaponType,
+          playerParams.ship.armorTypes
+        );
+        damage = Math.floor(damage * effectiveness);
+      }
+
       playerParams.hull = Math.max(0, playerParams.hull - damage);
     }
 
@@ -482,6 +502,32 @@ export class BattleManager {
 
   private rollDamage(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  private calculateWeaponEffectiveness(
+    weaponType: string,
+    armorTypes: string[]
+  ): number {
+    if (!weaponType || !armorTypes || armorTypes.length === 0) {
+      return 1.0; // No effectiveness modifier if types are missing
+    }
+
+    const effectiveness =
+      this.battleConfig?.battleConfig?.weaponEffectiveness?.[weaponType];
+    if (!effectiveness) {
+      return 1.0; // No effectiveness data for this weapon type
+    }
+
+    // Calculate combined effectiveness by multiplying all armor type multipliers
+    let totalMultiplier = 1.0;
+    armorTypes.forEach(armorType => {
+      const multiplier = effectiveness[armorType];
+      if (multiplier !== undefined) {
+        totalMultiplier *= multiplier;
+      }
+    });
+
+    return totalMultiplier;
   }
 
   private applyEffect(

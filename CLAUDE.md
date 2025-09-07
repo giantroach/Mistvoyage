@@ -58,7 +58,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `data/chapters.json` - Chapter definitions, event type configurations, and monster encounters (consolidated)
 - `data/monsters.json` - Monster stats, encounters, and weapon definitions
 - `data/weapons.json` - Weapon statistics and effects
-- `data/battle_config.json` - Combat calculation modifiers and balancing
+- `data/battle_config.json` - Combat calculation modifiers, balancing, and weapon effectiveness matrix
 - `data/relics.json` - Relic effects, rarities, and generation configuration
 - `data/weather_config.json` - Weather progression settings and effects
 
@@ -72,9 +72,9 @@ The game uses multiple JSON files:
 - **Ships**: Ship stats (Hull, Crew, Speed, Storage, Weapon Slots) and special rules
 - **Events**: Story event definitions (ports, treasure, boss encounters, etc.)
 - **Event Config**: Define required events, difficulty, and event type probabilities for each chapter
-- **Monsters**: Individual monster stats and encounter combinations
-- **Weapons**: Damage ranges, accuracy, cooldowns, and special effects
-- **Battle Config**: Speed modifiers, weather effects, crew penalties, etc.
+- **Monsters**: Individual monster stats, encounter combinations, and armor types for damage calculation
+- **Weapons**: Damage ranges, accuracy, cooldowns, special effects, and weapon types for armor effectiveness
+- **Battle Config**: Speed modifiers, weather effects, crew penalties, and weapon effectiveness matrix
 - **Relics**: Collectible items with various effects, rarity systems, and legendary abilities
 - **Game State**: Player parameters (Hull, Food, Money, Level, etc.) and current progress
 
@@ -109,7 +109,7 @@ npm run deploy
 ## Key Features
 
 - **Procedural Map Generation**: Tree-structured maps with up to 4 branches per layer
-- **Auto-Battle Combat**: Weapon-based combat with cooldowns, accuracy, and damage calculations  
+- **Auto-Battle Combat**: Weapon-based combat with cooldowns, accuracy, damage calculations, and weapon effectiveness system
 - **Navigation System**: Node visibility based on Sight parameter, accessible node connections
 - **RPG Progression**: Level, health, attack, defense with experience-based advancement
 - **Parameter Management**: Public parameters (Hull, Food, Money) and hidden parameters (Speed, Karma)
@@ -144,3 +144,4 @@ npm run deploy
 - **Debug Tools**: DebugPanel component provides comprehensive testing capabilities
 - **Configuration**: Weather effects externalized to JSON for easy adjustment
 - **Temple Events**: Integrated into event system with weather reset functionality
+- **Weapon Effectiveness**: Damage multipliers based on weapon types vs armor types (piercing, fire, impact, slash, net vs shell, hull, scale, soft, ethereal)

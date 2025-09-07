@@ -5,6 +5,7 @@ interface WeaponTemplate {
   name: string;
   description: string;
   type: string;
+  weaponType?: string;
   effect?: string;
   raritySettings: Record<WeaponRarity, RaritySettings>;
 }
@@ -137,6 +138,7 @@ export class WeaponManager {
       price,
       rarity,
       type: template.type,
+      weaponType: template.weaponType,
       effect: template.effect,
     };
   }

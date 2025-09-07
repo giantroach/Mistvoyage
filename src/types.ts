@@ -195,6 +195,7 @@ export interface Weapon {
   price: number;
   rarity: WeaponRarity;
   type?: string;
+  weaponType?: string;
   effect?: string;
 }
 
@@ -207,6 +208,7 @@ export interface Monster {
   maxHp: number;
   speed: number;
   weapons: string[];
+  armorTypes?: string[];
   goldReward: {
     min: number;
     max: number;
@@ -227,6 +229,7 @@ export interface MonsterWeapon {
   };
   accuracy: number;
   cooldown: number;
+  weaponType?: string;
   effect?: string;
 }
 
