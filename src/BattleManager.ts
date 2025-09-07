@@ -6,6 +6,7 @@ import {
   BattleState,
   BattleAction,
   BattleEffect,
+  BattleLogEntry,
 } from './types.js';
 import { WeaponManager } from './WeaponManager.js';
 import { WeatherManager } from './WeatherManager.js';
@@ -122,7 +123,7 @@ export class BattleManager {
         weapon,
         lastUsed: Date.now() - weapon.cooldown.max, // Allow immediate attack
       })),
-      battleLog: [`「${monsterData.name}」との戦闘開始！`],
+      battleLog: [],
       startTime: Date.now(),
       playerEffects: [],
       playerTurn: true,
@@ -679,8 +680,20 @@ export class BattleManager {
     }
   }
 
-  getBattleLog(gameState: GameState): (BattleAction | string)[] {
+  getBattleLog(gameState: GameState): (BattleAction | BattleLogEntry | string)[] {
     return gameState.battleState?.battleLog || [];
+  }
+
+  private createLogEntry(
+    battleState: BattleState,
+    message: string,
+    type?: 'status' | 'victory' | 'defeat'
+  ): BattleLogEntry {
+    return {
+      message,
+      timestamp: Date.now(),
+      type,
+    };
   }
 
   getCooldownData(gameState: GameState): {

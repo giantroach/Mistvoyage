@@ -252,6 +252,12 @@ export interface BattleAction {
   timestamp: number;
 }
 
+export interface BattleLogEntry {
+  type?: 'status' | 'victory' | 'defeat';
+  message: string;
+  timestamp: number;
+}
+
 export interface BattleState {
   isActive: boolean;
   phase: 'preparation' | 'combat' | 'victory' | 'defeat' | 'result_screen';
@@ -260,7 +266,7 @@ export interface BattleState {
     weapon: Weapon;
     lastUsed: number;
   }>;
-  battleLog: (BattleAction | string)[];
+  battleLog: (BattleAction | BattleLogEntry | string)[];
   startTime: number;
   playerEffects: BattleEffect[];
   // Additional properties for the new combat system

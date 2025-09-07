@@ -22,5 +22,12 @@ export default defineConfig({
   server: {
     port: 8000,
     open: true,
+    hmr: {
+      overlay: true,
+    },
+    watch: {
+      usePolling: true,
+      interval: 100,
+    },
   },
 });
