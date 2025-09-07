@@ -112,7 +112,7 @@ const formattedBattleLog = computed(() => {
     .map(entry => {
       let timePrefix = '';
       let content = '';
-      
+
       if (typeof entry === 'string') {
         timePrefix = '[0.0s]'; // Legacy string entries get default time
         content = entry;
@@ -326,7 +326,7 @@ const statusColor = computed(() => {
 }
 
 .weapon-cooldown-fill {
-  height: 100%;
+  height: 10px;
   background-color: #4a7c59;
   transition: width 0.2s ease;
 }
