@@ -24,7 +24,6 @@
       <div class="battle-log-content" v-html="formattedBattleLog"></div>
     </div>
 
-
     <div class="continue-section">
       <button class="choice-btn continue-btn" @click="$emit('continue-battle')">
         ⛵ 航海を続ける
@@ -75,7 +74,7 @@ const formattedBattleLog = computed(() => {
     .map(entry => {
       let timePrefix = '';
       let content = '';
-      
+
       if (typeof entry === 'string') {
         timePrefix = '[0.0s]'; // Legacy string entries get default time
         content = entry;
@@ -172,7 +171,6 @@ li {
   padding: 0.25rem 0;
   color: #ccc;
 }
-
 
 .continue-section {
   margin: 2rem 0;

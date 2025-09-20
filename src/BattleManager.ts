@@ -680,7 +680,9 @@ export class BattleManager {
     }
   }
 
-  getBattleLog(gameState: GameState): (BattleAction | BattleLogEntry | string)[] {
+  getBattleLog(
+    gameState: GameState
+  ): (BattleAction | BattleLogEntry | string)[] {
     return gameState.battleState?.battleLog || [];
   }
 
