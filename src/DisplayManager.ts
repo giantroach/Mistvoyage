@@ -335,9 +335,9 @@ export class DisplayManager {
           currentNodeLayer !== undefined && node.layer < currentNodeLayer;
 
         if (layerDistance >= 3 && !isPastNode) {
-          displayName = '???';
+          displayName = '遠方のため不明';
         } else {
-          displayName = node.eventType
+          const eventName = node.eventType
             ? this.mapManager.getEventTypeName(
                 node.eventType,
                 node,
@@ -345,7 +345,8 @@ export class DisplayManager {
                 gameState.visitedNodes,
                 currentNodeLayer
               )
-            : '???';
+            : '';
+          displayName = eventName || '視界不足';
         }
 
         const nodeY = startY + nodeIndex * (nodeHeight + 20);
@@ -362,7 +363,10 @@ export class DisplayManager {
             ? 'cursor: pointer;'
             : '';
 
-        mapHtml += `<div class="${nodeClass}" title="${displayName}" `;
+        const titleText = displayName === '遠方のため不明' || displayName === '視界不足'
+          ? displayName + ' - 詳細を確認できません'
+          : displayName;
+        mapHtml += `<div class="${nodeClass}" title="${titleText}" `;
         mapHtml += `style="position: absolute; top: ${nodeY}px; left: 2px; width: ${adjustedNodeWidth}px; height: ${nodeHeight}px; ${cursorStyle}" `;
         mapHtml += `${clickHandler}>`;
         mapHtml += displayName;
@@ -469,7 +473,7 @@ export class DisplayManager {
       weaponBar.innerHTML = `
         <div class="weapon-name">${weapon.name}</div>
         <div class="cooldown-bar">
-          <div class="cooldown-fill ${weapon.isReady ? 'cooldown-ready' : ''}" 
+          <div class="cooldown-fill ${weapon.isReady ? 'cooldown-ready' : ''}"
                style="width: ${100 - weapon.cooldownPercent}%"></div>
         </div>
         <div class="cooldown-text">${timeText}</div>

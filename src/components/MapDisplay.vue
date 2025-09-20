@@ -45,7 +45,12 @@
           :style="getNodeStyle(node, nodeIndex, layerData.startY)"
           @click="handleNodeClick(node)"
         >
-          {{ getNodeDisplayName(node) }}
+          <template v-if="isNodeUnknown(node)">
+            {{ getUnknownNodeLabel(node) }}
+          </template>
+          <template v-else>
+            {{ getNodeDisplayName(node) }}
+          </template>
         </div>
       </div>
     </div>
@@ -255,6 +260,32 @@ const getNodeClass = (node: MapNode) => {
   return nodeClass;
 };
 
+const isNodeUnknown = (node: MapNode) => {
+  const layerDistance = Math.abs(node.layer - currentNode.value!.layer);
+  const currentNodeLayer = currentNode.value?.layer;
+  const isPastNode =
+    currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+
+  if (layerDistance >= 3 && !isPastNode) {
+    return true;
+  }
+
+  return !node.eventType;
+};
+
+const getUnknownNodeLabel = (node: MapNode) => {
+  const layerDistance = Math.abs(node.layer - currentNode.value!.layer);
+  const currentNodeLayer = currentNode.value?.layer;
+  const isPastNode =
+    currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+
+  if (layerDistance >= 3 && !isPastNode) {
+    return '遠方のため不明';
+  }
+
+  return '視界不足';
+};
+
 const getNodeDisplayName = (node: MapNode) => {
   const layerDistance = Math.abs(node.layer - currentNode.value!.layer);
   const currentNodeLayer = currentNode.value?.layer;
@@ -262,10 +293,10 @@ const getNodeDisplayName = (node: MapNode) => {
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
 
   if (layerDistance >= 3 && !isPastNode) {
-    return '???';
+    return '';
   }
 
-  return node.eventType ? getEventTypeName(node.eventType) : '???';
+  return node.eventType ? getEventTypeName(node.eventType) : '';
 };
 
 const getEventTypeName = (eventType: string) => {
@@ -285,7 +316,7 @@ const getEventTypeName = (eventType: string) => {
     case 'boss':
       return 'ボス';
     default:
-      return '???';
+      return '';
   }
 };
 

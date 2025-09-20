@@ -488,7 +488,7 @@ export class MapManager {
       playerSight &&
       playerSight < node.difficulty * 3
     ) {
-      return '???';
+      return '';
     }
 
     switch (eventType) {
@@ -509,7 +509,7 @@ export class MapManager {
       case 'temple':
         return '寺院';
       default:
-        return '不明';
+        return '';
     }
   }
 }
