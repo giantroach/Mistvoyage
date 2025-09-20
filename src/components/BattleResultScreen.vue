@@ -159,6 +159,7 @@ const formattedBattleLog = computed(() => {
   border-radius: 4px;
   padding: 0.5rem;
   background-color: #1a1a1a;
+  text-align: left;
 }
 
 ul {

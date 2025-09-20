@@ -249,6 +249,7 @@ const statusColor = computed(() => {
   overflow-y: auto;
   font-family: monospace;
   font-size: 0.9rem;
+  text-align: left;
 }
 
 .turn-info {

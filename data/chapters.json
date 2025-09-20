@@ -32,7 +32,16 @@
           }
         },
         "temple": { "weight": 5, "fixedCount": 1 },
-        "unknown": { "weight": 10, "fixedCount": 0 }
+        "unknown": {
+          "weight": 10,
+          "fixedCount": 0,
+          "eventProbabilities": {
+            "treasure": 20,
+            "port": 20,
+            "temple": 20,
+            "monster": 40
+          }
+        }
       },
       "encounters": [
         {
@@ -97,7 +106,16 @@
           }
         },
         "temple": { "weight": 5, "fixedCount": 1 },
-        "unknown": { "weight": 5, "fixedCount": 0 }
+        "unknown": {
+          "weight": 5,
+          "fixedCount": 0,
+          "eventProbabilities": {
+            "treasure": 20,
+            "port": 20,
+            "temple": 20,
+            "monster": 40
+          }
+        }
       },
       "encounters": [
         {
@@ -178,7 +196,16 @@
           }
         },
         "temple": { "weight": 5, "fixedCount": 1 },
-        "unknown": { "weight": 5, "fixedCount": 0 }
+        "unknown": {
+          "weight": 5,
+          "fixedCount": 0,
+          "eventProbabilities": {
+            "treasure": 20,
+            "port": 20,
+            "temple": 20,
+            "monster": 40
+          }
+        }
       },
       "encounters": [
         {

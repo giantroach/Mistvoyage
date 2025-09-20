@@ -363,9 +363,10 @@ export class DisplayManager {
             ? 'cursor: pointer;'
             : '';
 
-        const titleText = displayName === '遠方のため不明' || displayName === '視界不足'
-          ? displayName + ' - 詳細を確認できません'
-          : displayName;
+        const titleText =
+          displayName === '遠方のため不明' || displayName === '視界不足'
+            ? displayName + ' - 詳細を確認できません'
+            : displayName;
         mapHtml += `<div class="${nodeClass}" title="${titleText}" `;
         mapHtml += `style="position: absolute; top: ${nodeY}px; left: 2px; width: ${adjustedNodeWidth}px; height: ${nodeHeight}px; ${cursorStyle}" `;
         mapHtml += `${clickHandler}>`;

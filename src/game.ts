@@ -1178,6 +1178,11 @@ export class MistvoyageGame {
           this.gameState.gamePhase = 'event';
           this.processEvent(node.eventType);
           // Don't complete the event immediately - let player use temple
+        } else if (node.eventType === 'unknown') {
+          // Unknown events need special handling like treasure, port, and temple events
+          this.gameState.gamePhase = 'event';
+          this.processEvent(node.eventType);
+          // Don't complete the event immediately - let player see what it becomes
         } else {
           // Process other event types here
           this.processEvent(node.eventType);
@@ -1263,6 +1268,9 @@ export class MistvoyageGame {
         break;
       case 'boss':
         this.handleBossEvent();
+        break;
+      case 'unknown':
+        this.handleUnknownEvent();
         break;
       default:
         this.handleGenericEvent(eventType);
@@ -1445,6 +1453,88 @@ export class MistvoyageGame {
       console.error('Failed to start boss battle:', error);
       // Fallback to generic event processing
       this.handleGenericEvent('boss');
+    }
+  }
+
+  private handleUnknownEvent(): void {
+    // Get chapter-specific configuration for ??? event probabilities
+    const chapter = this.chaptersData?.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    const unknownConfig = chapter?.eventTypes?.unknown;
+
+    // Define default probabilities if not specified in chapter config
+    const defaultProbabilities = {
+      treasure: 20,
+      port: 20,
+      temple: 20,
+      monster: 40, // monster appears twice in the spec, so double weight
+    };
+
+    // Use chapter-specific probabilities if available, otherwise use defaults
+    const probabilities =
+      unknownConfig?.eventProbabilities || defaultProbabilities;
+
+    // Create weighted array for random selection
+    const weightedEvents: EventType[] = [];
+    Object.entries(probabilities).forEach(([eventType, weight]) => {
+      for (let i = 0; i < weight; i++) {
+        weightedEvents.push(eventType as EventType);
+      }
+    });
+
+    // Randomly select an event type
+    const randomIndex = Math.floor(Math.random() * weightedEvents.length);
+    const selectedEventType = weightedEvents[randomIndex];
+
+    // Show brief message about the ??? event revealing itself
+    const storyElement = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (storyElement && choicesContainer) {
+      storyElement.innerHTML = `
+        <h2>❓ 謎のイベント</h2>
+        <p>霧が晴れると、その正体が明らかになりました...</p>
+        <p>このイベントは実際には<strong>${this.getSelectedEventTypeName(selectedEventType)}</strong>でした！</p>
+      `;
+
+      choicesContainer.innerHTML = '';
+
+      const continueButton = document.createElement('button');
+      continueButton.className = 'choice-btn';
+      continueButton.textContent = '続ける';
+      continueButton.onclick = () => {
+        // For treasure, port, and temple events, we need to keep the event phase
+        // For monster events, they handle their own transitions
+        if (
+          selectedEventType === 'monster' ||
+          selectedEventType === 'elite_monster'
+        ) {
+          this.handleMonsterEvent();
+        } else if (selectedEventType === 'boss') {
+          this.handleBossEvent();
+        } else {
+          // For treasure, port, temple - stay in event phase
+          this.processEvent(selectedEventType);
+        }
+      };
+
+      choicesContainer.appendChild(continueButton);
+    }
+  }
+
+  private getSelectedEventTypeName(eventType: EventType): string {
+    switch (eventType) {
+      case 'treasure':
+        return '宝箱';
+      case 'port':
+        return '港';
+      case 'temple':
+        return '寺院';
+      case 'monster':
+        return 'モンスター遭遇';
+      default:
+        return 'イベント';
     }
   }
 
