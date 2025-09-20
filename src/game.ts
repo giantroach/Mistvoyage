@@ -768,6 +768,19 @@ export class MistvoyageGame {
         case 'treasure':
           this.handleTreasureEvent();
           break;
+        case 'port':
+          this.portManager.handlePortEvent();
+          break;
+        case 'temple':
+          this.handleTempleEvent();
+          break;
+        case 'unknown':
+          this.handleUnknownEvent();
+          break;
+        case 'completed_treasure':
+          // Show the completion state, don't re-trigger treasure selection
+          this.showCompletedTreasureEvent();
+          break;
         default:
           // For other events, show generic message
           const content = document.getElementById('story-text');
@@ -776,6 +789,38 @@ export class MistvoyageGame {
           }
           break;
       }
+    }
+  }
+
+  private showCompletedTreasureEvent(): void {
+    // Find the relic that was just acquired (last one in the player's inventory)
+    const playerRelics = this.gameState.playerParameters.relics;
+    const lastRelic = playerRelics[playerRelics.length - 1];
+
+    const storyElement = document.getElementById('story-text');
+    const choicesContainer = document.getElementById('choices-container');
+
+    if (storyElement && choicesContainer && lastRelic) {
+      storyElement.innerHTML = `
+        <h2>📿 レリック獲得！</h2>
+        <p><strong>${lastRelic.name}</strong>を獲得しました！</p>
+        <div class="relic-effects">
+          ${lastRelic.effects
+            .map(
+              effect => `<div class="effect-line">• ${effect.description}</div>`
+            )
+            .join('')}
+        </div>
+      `;
+
+      choicesContainer.innerHTML = '';
+      const continueButton = document.createElement('button');
+      continueButton.className = 'choice-btn';
+      continueButton.textContent = '続ける';
+      continueButton.addEventListener('click', () => {
+        this.completeEvent();
+      });
+      choicesContainer.appendChild(continueButton);
     }
   }
 
@@ -980,6 +1025,8 @@ export class MistvoyageGame {
   }
 
   public showWeaponDetail(weapon: Weapon): void {
+    // Note: This method is now deprecated in favor of Vue modal approach
+    // It's kept for backward compatibility with legacy parts of the system
     const content = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
 
@@ -1049,6 +1096,8 @@ export class MistvoyageGame {
   }
 
   public showRelicDetail(relic: Relic): void {
+    // Note: This method is now deprecated in favor of Vue modal approach
+    // It's kept for backward compatibility with legacy parts of the system
     const content = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
 
@@ -1256,6 +1305,7 @@ export class MistvoyageGame {
   }
 
   private processEvent(eventType: EventType): void {
+    console.log(`Processing event: ${eventType}`);
     switch (eventType) {
       case 'treasure':
         this.handleTreasureEvent();
@@ -1360,6 +1410,13 @@ export class MistvoyageGame {
     // Apply relic effects
     this.applyRelicEffects(relic);
 
+    // Mark the current node's event as completed to prevent re-triggering
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    if (currentNode) {
+      currentNode.eventType = 'completed_treasure';
+    }
+
     // Show confirmation
     const storyElement = document.getElementById('story-text');
     if (storyElement) {
@@ -1434,6 +1491,8 @@ export class MistvoyageGame {
   private handleTempleEvent(): void {
     // Temple events are handled by Vue components, just set the phase
     this.gameState.gamePhase = 'event';
+    // Update display to trigger Vue component rendering
+    this.updateDisplay();
   }
 
   private handleBossEvent(): void {
@@ -1457,39 +1516,60 @@ export class MistvoyageGame {
   }
 
   private handleUnknownEvent(): void {
-    // Get chapter-specific configuration for ??? event probabilities
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-    const unknownConfig = chapter?.eventTypes?.unknown;
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
 
-    // Define default probabilities if not specified in chapter config
-    const defaultProbabilities = {
-      treasure: 20,
-      port: 20,
-      temple: 20,
-      monster: 40, // monster appears twice in the spec, so double weight
-    };
+    // Check if we already determined what this unknown event is
+    let selectedEventType: EventType;
+    if (currentNode.resolvedEventType) {
+      selectedEventType = currentNode.resolvedEventType;
+    } else {
+      // First time determining what this unknown event is
+      // Get chapter-specific configuration for ??? event probabilities
+      const chapter = this.chaptersData?.chapters.find(
+        c => c.id === this.gameState.currentChapter
+      );
+      const unknownConfig = chapter?.eventTypes?.unknown;
 
-    // Use chapter-specific probabilities if available, otherwise use defaults
-    const probabilities =
-      unknownConfig?.eventProbabilities || defaultProbabilities;
+      // Define default probabilities if not specified in chapter config
+      const defaultProbabilities = {
+        treasure: 20,
+        port: 20,
+        temple: 20,
+        monster: 40, // monster appears twice in the spec, so double weight
+      };
 
-    // Create weighted array for random selection
-    const weightedEvents: EventType[] = [];
-    Object.entries(probabilities).forEach(([eventType, weight]) => {
-      for (let i = 0; i < weight; i++) {
-        weightedEvents.push(eventType as EventType);
-      }
-    });
+      // Use chapter-specific probabilities if available, otherwise use defaults
+      const probabilities =
+        unknownConfig?.eventProbabilities || defaultProbabilities;
 
-    // Randomly select an event type
-    const randomIndex = Math.floor(Math.random() * weightedEvents.length);
-    const selectedEventType = weightedEvents[randomIndex];
+      // Create weighted array for random selection
+      const weightedEvents: EventType[] = [];
+      Object.entries(probabilities).forEach(([eventType, weight]) => {
+        for (let i = 0; i < weight; i++) {
+          weightedEvents.push(eventType as EventType);
+        }
+      });
+
+      // Randomly select an event type
+      const randomIndex = Math.floor(Math.random() * weightedEvents.length);
+      selectedEventType = weightedEvents[randomIndex];
+
+      // Store the resolved event type so it doesn't change on subsequent calls
+      currentNode.resolvedEventType = selectedEventType;
+    }
 
     // Show brief message about the ??? event revealing itself
     const storyElement = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
+
+    // Debug: Check if elements exist
+    if (!storyElement) {
+      console.warn('story-text element not found for unknown event');
+    }
+    if (!choicesContainer) {
+      console.warn('choices-container element not found for unknown event');
+    }
 
     if (storyElement && choicesContainer) {
       storyElement.innerHTML = `
@@ -1504,6 +1584,17 @@ export class MistvoyageGame {
       continueButton.className = 'choice-btn';
       continueButton.textContent = '続ける';
       continueButton.onclick = () => {
+        console.log(
+          `Unknown event continue button clicked, processing: ${selectedEventType}`
+        );
+
+        // Change the node's eventType to the resolved type to prevent re-triggering unknown event
+        const currentNode =
+          this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+        if (currentNode) {
+          currentNode.eventType = selectedEventType;
+        }
+
         // For treasure, port, and temple events, we need to keep the event phase
         // For monster events, they handle their own transitions
         if (
@@ -1520,6 +1611,32 @@ export class MistvoyageGame {
       };
 
       choicesContainer.appendChild(continueButton);
+    } else {
+      // Fallback: If DOM elements are not available, directly process the selected event
+      console.warn(
+        'DOM elements not available for unknown event, processing directly'
+      );
+
+      // Change the node's eventType to the resolved type to prevent re-triggering unknown event
+      const currentNode =
+        this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+      if (currentNode) {
+        currentNode.eventType = selectedEventType;
+      }
+
+      // For treasure, port, and temple events, we need to keep the event phase
+      // For monster events, they handle their own transitions
+      if (
+        selectedEventType === 'monster' ||
+        selectedEventType === 'elite_monster'
+      ) {
+        this.handleMonsterEvent();
+      } else if (selectedEventType === 'boss') {
+        this.handleBossEvent();
+      } else {
+        // For treasure, port, temple - stay in event phase
+        this.processEvent(selectedEventType);
+      }
     }
   }
 

@@ -133,6 +133,25 @@
       <CooldownDisplay v-if="cooldownData" :cooldown-data="cooldownData" />
     </main>
 
+    <!-- Detail Modals -->
+    <WeaponDetailModal
+      :show="showWeaponDetailModal"
+      :weapon="selectedWeapon"
+      @close="
+        showWeaponDetailModal = false;
+        selectedWeapon = null;
+      "
+    />
+
+    <RelicDetailModal
+      :show="showRelicDetailModal"
+      :relic="selectedRelic"
+      @close="
+        showRelicDetailModal = false;
+        selectedRelic = null;
+      "
+    />
+
     <!-- Status Display Component -->
     <StatusDisplay
       ref="statusDisplay"
@@ -190,6 +209,8 @@ import ParameterDisplay from './components/ParameterDisplay.vue';
 import CooldownDisplay from './components/CooldownDisplay.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
 import DebugPanel from './components/DebugPanel.vue';
+import WeaponDetailModal from './components/WeaponDetailModal.vue';
+import RelicDetailModal from './components/RelicDetailModal.vue';
 import type { GameState, Weapon, Relic, ChaptersData } from './types';
 
 let game: MistvoyageGame | null = null;
@@ -206,6 +227,12 @@ const cooldownData = ref<any>(null);
 const statusMessage = ref<string>('');
 const statusIsError = ref<boolean>(false);
 const statusDisplay = ref<any>(null);
+
+// Detail modal state management
+const showWeaponDetailModal = ref<boolean>(false);
+const showRelicDetailModal = ref<boolean>(false);
+const selectedWeapon = ref<Weapon | null>(null);
+const selectedRelic = ref<Relic | null>(null);
 
 // Helper function to get current node
 const getCurrentNode = (state: GameState) => {
@@ -334,15 +361,15 @@ const handleLeaveTemple = async () => {
 
 // New component event handlers
 const handleShowWeaponDetail = (weapon: any) => {
-  if (game) {
-    game.showWeaponDetail(weapon);
-  }
+  // Always use Vue modal approach
+  selectedWeapon.value = weapon;
+  showWeaponDetailModal.value = true;
 };
 
 const handleShowRelicDetail = (relic: any) => {
-  if (game) {
-    game.showRelicDetail(relic);
-  }
+  // Always use Vue modal approach
+  selectedRelic.value = relic;
+  showRelicDetailModal.value = true;
 };
 
 // Status display methods
@@ -375,6 +402,15 @@ onMounted(async () => {
 
   // Set up periodic updates for reactive state
   setInterval(updateGameState, 100);
+
+  // Set up custom event listeners for legacy components
+  document.addEventListener('show-weapon-detail', (event: any) => {
+    handleShowWeaponDetail(event.detail);
+  });
+
+  document.addEventListener('show-relic-detail', (event: any) => {
+    handleShowRelicDetail(event.detail);
+  });
 });
 
 // Track previous game phase to detect transitions

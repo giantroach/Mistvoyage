@@ -96,7 +96,11 @@ export class DisplayManager {
           );
           const weapon = weapons.find(w => w.id === weaponId);
           if (weapon && (window as any).gameInstance) {
-            (window as any).gameInstance.showWeaponDetail(weapon);
+            // Use Vue modal instead of legacy DOM approach
+            const event = new CustomEvent('show-weapon-detail', {
+              detail: weapon,
+            });
+            document.dispatchEvent(event);
           }
         });
       });
@@ -128,7 +132,11 @@ export class DisplayManager {
           );
           const relic = relics.find(r => r.id === relicId);
           if (relic && (window as any).gameInstance) {
-            (window as any).gameInstance.showRelicDetail(relic);
+            // Use Vue modal instead of legacy DOM approach
+            const event = new CustomEvent('show-relic-detail', {
+              detail: relic,
+            });
+            document.dispatchEvent(event);
           }
         });
       });

@@ -50,6 +50,8 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/components/CooldownDisplay.vue` - Weapon cooldown visualization
 - `src/components/StatusDisplay.vue` - Status messages and notifications
 - `src/components/DebugPanel.vue` - Debug tools and testing interface
+- `src/components/WeaponDetailModal.vue` - Weapon detail display modal
+- `src/components/RelicDetailModal.vue` - Relic detail display modal
 
 #### Data Files
 - `data/game.json` - Basic game settings and chapter definitions
@@ -116,7 +118,7 @@ npm run deploy
 - **Weather System**: Progressive weather deterioration (0-20 scale) affecting combat accuracy, sight, and speed
 - **Temple System**: Prayer offerings to reset weather conditions
 - **Save/Load**: Complete game state persistence to LocalStorage
-- **Event System**: Monster encounters, elite battles, ports, treasure, temple, and boss fights
+- **Event System**: Monster encounters, elite battles, ports, treasure, temple, unknown (???) events, and boss fights
 - **Relic System**: Collectible items with various effects from stat boosts to legendary abilities
 - **Debug System**: Comprehensive testing tools for weapons, relics, enemies, and game state
 - **Vue 3 Components**: Modern reactive UI with component-based architecture
@@ -144,4 +146,8 @@ npm run deploy
 - **Debug Tools**: DebugPanel component provides comprehensive testing capabilities
 - **Configuration**: Weather effects externalized to JSON for easy adjustment
 - **Temple Events**: Integrated into event system with weather reset functionality
+- **Unknown Events**: ??? events that randomly resolve to treasure/port/temple/monster with configurable probabilities
+- **Modal System**: Unified weapon and relic detail display using Vue modals across all game phases
+- **Event State Management**: Proper handling of event completion states to prevent duplication (e.g., treasure selection)
+- **Legacy DOM Integration**: Custom events bridge legacy DOM components with Vue modal system
 - **Weapon Effectiveness**: Damage multipliers based on weapon types vs armor types (piercing, fire, impact, slash, net vs shell, hull, scale, soft, ethereal)

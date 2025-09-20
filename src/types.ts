@@ -73,6 +73,7 @@ export interface MapNode {
   y: number;
   eventId?: string;
   eventType?: EventType;
+  resolvedEventType?: EventType; // For unknown events that have been resolved
   difficulty?: number;
   isVisible: boolean;
   isAccessible: boolean;
@@ -105,7 +106,8 @@ export type EventType =
   | 'temple'
   | 'boss'
   | 'start'
-  | 'unknown';
+  | 'unknown'
+  | 'completed_treasure';
 
 // Weather system types
 export type WeatherType = '' | 'fog' | 'rain';
