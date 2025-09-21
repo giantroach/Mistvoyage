@@ -19,7 +19,7 @@
       </p>
       <p>
         <strong>保管庫:</strong> {{ playerParams.relics.length }}/{{
-          playerParams.ship.storage
+          playerParams.maxStorage
         }}
       </p>
     </div>

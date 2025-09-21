@@ -341,6 +341,7 @@ export interface PlayerParameters {
   // Public parameters (displayed to player)
   ship: Ship;
   hull: number;
+  maxHull: number;
   food: number;
   money: number;
   crew: number;
@@ -348,6 +349,7 @@ export interface PlayerParameters {
   weather: Weather;
   relics: Relic[];
   weapons: Weapon[];
+  maxStorage: number;
 
   // Private parameters (internal only)
   speed: number;

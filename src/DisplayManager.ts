@@ -40,7 +40,7 @@ export class DisplayManager {
     );
     this.updateParameterElement(
       'storage-display',
-      `保管庫: ${params.relics.length}/${params.ship.storage}`
+      `保管庫: ${params.relics.length}/${params.maxStorage}`
     );
     // Update weapons with clickable links
     this.updateWeaponsDisplay(params.weapons);

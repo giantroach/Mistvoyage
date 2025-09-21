@@ -7,7 +7,7 @@
       <p><strong>現在の資金:</strong> {{ playerParams.money }}金</p>
       <p>
         <strong>保管庫:</strong> {{ playerParams.relics.length }}/{{
-          playerParams.ship.storage
+          playerParams.maxStorage
         }}
       </p>
     </div>
@@ -73,7 +73,7 @@ const canPurchaseRelic = (relic: Relic) => {
   const price = relic.price || 50;
   return (
     props.playerParams.money >= price &&
-    props.playerParams.relics.length < props.playerParams.ship.storage
+    props.playerParams.relics.length < props.playerParams.maxStorage
   );
 };
 </script>

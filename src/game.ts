@@ -153,6 +153,7 @@ export class MistvoyageGame {
       // Public parameters
       ship: defaultShip,
       hull: defaultShip.hullMax,
+      maxHull: defaultShip.hullMax,
       food: 20,
       money: 50,
       crew: defaultShip.crewMax,
@@ -160,6 +161,7 @@ export class MistvoyageGame {
       weather: { value: 0, type: '', displayName: '快晴' }, // Will be properly initialized in init()
       relics: [],
       weapons: [defaultWeapon],
+      maxStorage: defaultShip.storage,
 
       // Private parameters
       speed: defaultShip.baseSpeed,
@@ -670,8 +672,10 @@ export class MistvoyageGame {
   private selectShip(ship: Ship): void {
     this.gameState.playerParameters.ship = ship;
     this.gameState.playerParameters.hull = ship.hullMax;
+    this.gameState.playerParameters.maxHull = ship.hullMax;
     this.gameState.playerParameters.crew = ship.crewMax;
     this.gameState.playerParameters.speed = ship.baseSpeed;
+    this.gameState.playerParameters.maxStorage = ship.storage;
 
     // Initialize weapons with random generation
     const weaponManager = WeaponManager.getInstance();
@@ -987,10 +991,18 @@ export class MistvoyageGame {
   private selectRelic(relic: Relic): void {
     // Check if player has storage space
     const currentRelics = this.gameState.playerParameters.relics.length;
-    const maxStorage = this.calculateMaxStorage();
+    const maxStorage = this.gameState.playerParameters.maxStorage;
 
     if (currentRelics >= maxStorage) {
       alert(`保管庫が満杯です！(最大${maxStorage}個)`);
+      // Even if storage is full, we need to mark the event as completed
+      const currentNode =
+        this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+      if (currentNode) {
+        currentNode.eventType = 'completed_treasure';
+      }
+      // Complete the event properly
+      this.completeEvent();
       return;
     }
 
@@ -1257,6 +1269,7 @@ export class MistvoyageGame {
       switch (effect.type) {
         case 'hull_increase':
           this.gameState.playerParameters.hull += effect.value;
+          this.gameState.playerParameters.maxHull += effect.value;
           this.gameState.playerParameters.ship.hullMax += effect.value;
           break;
         case 'speed_increase':
@@ -1277,9 +1290,8 @@ export class MistvoyageGame {
             this.gameState.playerParameters.weapons.push(effect.weapon);
           }
           break;
-        // storage_increase and gold_bonus are handled dynamically when needed
         case 'storage_increase':
-          // Applied in calculateMaxStorage()
+          this.gameState.playerParameters.maxStorage += effect.value;
           break;
         case 'gold_bonus':
           // Applied when calculating gold rewards
@@ -1445,7 +1457,7 @@ export class MistvoyageGame {
     // Add selected relic to player inventory
     if (
       this.gameState.playerParameters.relics.length <
-      this.gameState.playerParameters.ship.storage
+      this.gameState.playerParameters.maxStorage
     ) {
       this.gameState.playerParameters.relics.push(selectedRelic);
     }

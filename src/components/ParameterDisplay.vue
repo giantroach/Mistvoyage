@@ -29,7 +29,7 @@
       </span>
       <span id="storage-display">
         <Package :size="16" class="param-icon" />
-        保管庫: {{ playerParams.relics.length }}/{{ playerParams.ship.storage }}
+        保管庫: {{ playerParams.relics.length }}/{{ playerParams.maxStorage }}
       </span>
     </div>
     <div class="parameter-group equipment">
