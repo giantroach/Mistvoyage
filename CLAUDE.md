@@ -16,6 +16,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - **Combat System**: Auto-battle with weapon cooldowns and statistical calculations
 - **Weather System**: Dynamic weather progression affecting combat and navigation
 - **Temple System**: Weather reset functionality through prayer offerings
+- **Inventory System**: Advanced inventory management with slot-full handling
 - **Debug System**: Comprehensive debug panel for testing and development
 
 ### Core Components
@@ -41,6 +42,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/App.vue` - Main Vue application component
 - `src/components/BattleScreen.vue` - Combat interface and battle logs
 - `src/components/BattleResultScreen.vue` - Post-battle results and rewards
+- `src/components/BossRewardScreen.vue` - Boss reward selection interface
 - `src/components/PortScreen.vue` - Port services main interface
 - `src/components/WeaponShop.vue` - Weapon purchasing interface
 - `src/components/RelicShop.vue` - Relic purchasing interface
@@ -52,6 +54,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/components/DebugPanel.vue` - Debug tools and testing interface
 - `src/components/WeaponDetailModal.vue` - Weapon detail display modal
 - `src/components/RelicDetailModal.vue` - Relic detail display modal
+- `src/components/InventoryManagementModal.vue` - Inventory management for full slots
 
 #### Data Files
 - `data/game.json` - Basic game settings and chapter definitions
@@ -120,6 +123,8 @@ npm run deploy
 - **Save/Load**: Complete game state persistence to LocalStorage
 - **Event System**: Monster encounters, elite battles, ports, treasure, temple, unknown (???) events, and boss fights
 - **Relic System**: Collectible items with various effects from stat boosts to legendary abilities
+- **Inventory Management**: Advanced slot-full handling with item selection and discard options
+- **Dynamic Storage**: Relic effects can expand storage and hull limits with live UI updates
 - **Debug System**: Comprehensive testing tools for weapons, relics, enemies, and game state
 - **Vue 3 Components**: Modern reactive UI with component-based architecture
 
@@ -151,3 +156,13 @@ npm run deploy
 - **Event State Management**: Proper handling of event completion states to prevent duplication (e.g., treasure selection)
 - **Legacy DOM Integration**: Custom events bridge legacy DOM components with Vue modal system
 - **Weapon Effectiveness**: Damage multipliers based on weapon types vs armor types (piercing, fire, impact, slash, net vs shell, hull, scale, soft, ethereal)
+- **Inventory Management System**: Comprehensive modal-based inventory management when slots are full
+  - UI validation with disabled acquire buttons when slots full
+  - Backend validation in `acquireNewItem()` method to prevent bypassing limits
+  - Support for both weapons and relics with unified interface
+  - Item preview with detailed stats and effects
+  - Discard existing items or cancel acquisition
+- **Dynamic Parameter Updates**: `maxStorage` and `maxHull` properties automatically updated by relic effects
+- **Chapter Progression**: Proper state management with `generateChapterMap()` and complete state resets
+- **Error Handling**: Robust error handling for battle end, inventory management, and state transitions
+- **Map Variety**: Enhanced event distribution algorithm ensuring diverse event types per layer
