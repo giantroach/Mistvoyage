@@ -369,6 +369,8 @@ export class NavigationManager {
         return 'エリートモンスター';
       case 'treasure':
         return '宝箱';
+      case 'completed_treasure':
+        return '宝箱 (取得済み)';
       case 'port':
         return '港';
       case 'temple':

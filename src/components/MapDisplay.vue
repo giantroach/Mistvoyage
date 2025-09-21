@@ -391,6 +391,8 @@ const getEventTypeName = (eventType: string) => {
       return 'エリートモンスター';
     case 'treasure':
       return '宝';
+    case 'completed_treasure':
+      return '宝 (取得済み)';
     case 'port':
       return '港';
     case 'temple':
