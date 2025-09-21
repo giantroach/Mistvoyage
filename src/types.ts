@@ -379,6 +379,7 @@ export interface GameState {
   battleState?: BattleState;
   mapScrollPosition?: number;
   treasureRelics?: Relic[] | null;
+  bossRewardRelics?: Relic[] | null;
   unknownEvent?: {
     resolvedEventType: EventType;
     eventTypeName: string;

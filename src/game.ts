@@ -736,115 +736,18 @@ export class MistvoyageGame {
     content: HTMLElement,
     choicesContainer: HTMLElement
   ): void {
-    const battleState = this.gameState.battleState!;
-    const playerParams = this.gameState.playerParameters;
-
-    // Display battle status
-    content.innerHTML = `
-      <div class="battle-screen">
-        <h2>⚔️ 戦闘中 - オートバトル</h2>
-
-        <div class="player-status">
-          <h3>🛡️ あなたのステータス</h3>
-          <div class="status-bars">
-            <div class="health-bar">
-              <span>Hull: ${playerParams.hull}/${
-                playerParams.ship.hullMax
-              }</span>
-              <div class="bar">
-                <div class="fill" style="width: ${
-                  (playerParams.hull / playerParams.ship.hullMax) * 100
-                }%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="enemies-status">
-          <h3>👹 敵のステータス</h3>
-          ${battleState.monsters
-            .map(
-              monster => `
-            <div class="enemy ${monster.hp <= 0 ? 'defeated' : ''}">
-              <span>${monster.name} - HP: ${
-                monster.hp > 0
-                  ? '██████████'.slice(
-                      0,
-                      Math.max(1, Math.floor((monster.hp / monster.maxHp) * 10))
-                    )
-                  : '💀'
-              }</span>
-              <div class="bar">
-                <div class="fill" style="width: ${
-                  (monster.hp / monster.maxHp) * 100
-                }%"></div>
-              </div>
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-
-        <div class="battle-log">
-          <h3>📜 戦闘ログ</h3>
-          <div class="log-content">
-            ${this.formatBattleLog(
-              this.battleManager.getBattleLog(this.gameState)
-            )}
-          </div>
-        </div>
-      </div>
-    `;
-
-    // Clear choices during combat
-    choicesContainer.innerHTML = '';
+    // Battle screen is now handled by Vue components
+    // This method is kept for backward compatibility but should not be used
+    console.warn(
+      'displayBattleScreen called - battle display should be handled by Vue components'
+    );
   }
 
-  private formatBattleLog(battleLog: any[]): string {
-    return battleLog
-      .slice(-5)
-      .map(entry => {
-        if (typeof entry === 'string') {
-          return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px;">${entry}</p>`;
-        } else if (entry.actorType && entry.weaponName) {
-          const actor = entry.actorType === 'player' ? 'あなた' : entry.actorId;
-          const result = entry.hit
-            ? entry.critical
-              ? `${entry.damage}ダメージ (クリティカル!)`
-              : `${entry.damage}ダメージ`
-            : 'ミス';
-          const backgroundColor =
-            entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
-          return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${
-            entry.actorType === 'player' ? '#66ff66' : '#ff6666'
-          };">${actor}の${entry.weaponName}: ${result}</p>`;
-        } else if (entry.type === 'status') {
-          // Handle status messages
-          return `<p style="background-color: #444; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ffcc00;">${entry.message}</p>`;
-        } else if (entry.type === 'victory') {
-          // Handle victory messages
-          return `<p style="background-color: #2a4a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #66ff66; font-weight: bold;">${entry.message}</p>`;
-        } else if (entry.type === 'defeat') {
-          // Handle defeat messages
-          return `<p style="background-color: #4a2a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ff6666; font-weight: bold;">${entry.message}</p>`;
-        }
-        // For unknown entries, try to extract useful information instead of raw JSON
-        let message = 'Unknown event';
-        if (entry.message) {
-          message = entry.message;
-        } else if (entry.description) {
-          message = entry.description;
-        } else if (entry.text) {
-          message = entry.text;
-        }
-        return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ccc;">${message}</p>`;
-      })
-      .join('');
-  }
+  // formatBattleLog method removed - battle log formatting is now handled by Vue components
 
   private showBattleResult(): void {
     const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
+    const choicesCggontainer = document.getElementById('choices-container');
 
     if (content && choicesContainer && this.gameState.battleState) {
       this.displayBattleResultScreen(content, choicesContainer);
@@ -855,59 +758,14 @@ export class MistvoyageGame {
     content: HTMLElement,
     choicesContainer: HTMLElement
   ): void {
-    const battleState = this.gameState.battleState!;
-    const playerParams = this.gameState.playerParameters;
-
-    content.innerHTML = `
-      <div class="battle-result">
-        <h2>🎉 戦闘勝利！</h2>
-
-        <div class="victory-summary">
-          <h3>戦闘結果</h3>
-          <ul>
-            ${battleState.monsters
-              .map(monster => `<li>✓ ${monster.name}を撃破</li>`)
-              .join('')}
-          </ul>
-        </div>
-
-        <div class="rewards">
-          <h3>🎁 獲得報酬</h3>
-          <ul>
-            <li>💰 ゴールド: +${this.calculateDisplayGoldReward(
-              battleState.monsters
-            )}</li>
-          </ul>
-        </div>
-
-        <div class="current-status">
-          <h3>📊 現在のステータス</h3>
-          <p><strong>Hull:</strong> ${playerParams.hull}/${
-            playerParams.ship.hullMax
-          }</p>
-          <p><strong>ゴールド:</strong> ${playerParams.money}</p>
-        </div>
-      </div>
-    `;
-
-    choicesContainer.innerHTML = '';
-    const continueBtn = document.createElement('button');
-    continueBtn.textContent = '⛵ 航海を続ける';
-    continueBtn.className = 'choice-btn';
-    continueBtn.addEventListener('click', () => {
-      this.completeBattleAndContinue();
-    });
-    choicesContainer.appendChild(continueBtn);
+    // Battle result screen is now handled by Vue components
+    // This method is kept for backward compatibility but should not be used
+    console.warn(
+      'displayBattleResultScreen called - battle result display should be handled by Vue components'
+    );
   }
 
-  private calculateDisplayGoldReward(monsters: any[]): number {
-    return monsters.reduce((total, monster) => {
-      const midReward = Math.floor(
-        (monster.goldReward.min + monster.goldReward.max) / 2
-      );
-      return total + midReward;
-    }, 0);
-  }
+  // calculateDisplayGoldReward method removed - gold calculations are now handled by Vue components
 
   private completeBattleAndContinue(): void {
     // Use BattleManager to complete battle
@@ -924,117 +782,21 @@ export class MistvoyageGame {
   }
 
   public showWeaponDetail(weapon: Weapon): void {
-    // Note: This method is now deprecated in favor of Vue modal approach
-    // It's kept for backward compatibility with legacy parts of the system
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (content && choicesContainer) {
-      const rarityColors: Record<string, string> = {
-        common: '#888',
-        uncommon: '#4CAF50',
-        rare: '#2196F3',
-        epic: '#9C27B0',
-        legendary: '#FF9800',
-      };
-
-      const cooldownText =
-        weapon.cooldown.min === weapon.cooldown.max
-          ? `${weapon.cooldown.min}ms`
-          : `${weapon.cooldown.min}-${weapon.cooldown.max}ms`;
-
-      content.innerHTML = `
-        <div class="weapon-detail">
-          <h3 style="color: ${rarityColors[weapon.rarity] || '#fff'}">
-            ${weapon.name} (${weapon.rarity.toUpperCase()})
-          </h3>
-          <p class="weapon-description">${weapon.description}</p>
-          <div class="weapon-stats">
-            <div class="stat-row">
-              <span class="stat-label">ダメージ:</span>
-              <span class="stat-value">${weapon.damage.min}-${
-                weapon.damage.max
-              }</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">必要クルー:</span>
-              <span class="stat-value">${weapon.handlingReq}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">命中精度:</span>
-              <span class="stat-value">${weapon.accuracy}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">クールダウン:</span>
-              <span class="stat-value">${cooldownText}</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">クリティカル率:</span>
-              <span class="stat-value">${weapon.critRate}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">クリティカル倍率:</span>
-              <span class="stat-value">${weapon.critMultiplier}x</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">価格:</span>
-              <span class="stat-value">${weapon.price}金</span>
-            </div>
-          </div>
-        </div>`;
-
-      choicesContainer.innerHTML = '';
-      const backBtn = document.createElement('button');
-      backBtn.textContent = '⬅️ 戻る';
-      backBtn.className = 'choice-button';
-      backBtn.addEventListener('click', () => {
-        this.closeDetailView();
-      });
-      choicesContainer.appendChild(backBtn);
-    }
+    // Weapon details are now handled by Vue modal components
+    // Emit a custom event for Vue components to handle
+    const event = new CustomEvent('showWeaponDetail', {
+      detail: { weapon },
+    });
+    window.dispatchEvent(event);
   }
 
   public showRelicDetail(relic: Relic): void {
-    // Note: This method is now deprecated in favor of Vue modal approach
-    // It's kept for backward compatibility with legacy parts of the system
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (content && choicesContainer) {
-      content.innerHTML = `
-        <div class="relic-detail">
-          <div class="detail-header">
-            <h2>🏺 ${relic.name}</h2>
-            <button class="close-detail-btn" onclick="window.gameInstance.closeDetailView()">✕</button>
-          </div>
-          <p class="relic-description">${relic.description}</p>
-
-          <div class="relic-rarity-display">
-            <span class="relic-rarity rarity-${
-              relic.rarity
-            }">${this.getRarityDisplayName(relic.rarity)}</span>
-          </div>
-
-          <div class="relic-effects">
-            <h3>✨ 効果</h3>
-            <ul class="effects-list">
-              ${relic.effects
-                .map(effect => `<li>• ${effect.description}</li>`)
-                .join('')}
-            </ul>
-          </div>
-        </div>
-      `;
-
-      choicesContainer.innerHTML = '';
-      const backBtn = document.createElement('button');
-      backBtn.textContent = '⬅️ 戻る';
-      backBtn.className = 'choice-btn';
-      backBtn.addEventListener('click', () => {
-        this.closeDetailView();
-      });
-      choicesContainer.appendChild(backBtn);
-    }
+    // Relic details are now handled by Vue modal components
+    // Emit a custom event for Vue components to handle
+    const event = new CustomEvent('showRelicDetail', {
+      detail: { relic },
+    });
+    window.dispatchEvent(event);
   }
 
   public closeDetailView(): void {
@@ -1653,14 +1415,6 @@ export class MistvoyageGame {
   }
 
   private showBossReward(): void {
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!content || !choicesContainer) return;
-
-    content.innerHTML =
-      '<p>ボスを撃破しました！<br>報酬として以下のレリックから一つを選択してください：</p>';
-
     // Generate boss rewards using BattleManager
     const rewards = this.battleManager.generateBossRewards(
       this.gameState,
@@ -1673,35 +1427,21 @@ export class MistvoyageGame {
       relicManager.generateRelic(reward.rarity)
     );
 
-    let choicesHtml = '';
-    actualRelics.forEach((relic, index) => {
-      const effectsText = relic.effects
-        .map(effect => effect.description)
-        .join('<br>');
-      choicesHtml += `
-        <div class="boss-reward-option">
-          <button id="select-relic-${index}" class="boss-reward-btn">
-            <div class="relic-name">${relic.name} (${relic.rarity})</div>
-            <div class="relic-effects">${effectsText}</div>
-          </button>
-        </div>
-      `;
-    });
-
-    choicesContainer.innerHTML = choicesHtml;
-
-    // Add event listeners for relic selection
-    actualRelics.forEach((relic, index) => {
-      const selectBtn = document.getElementById(`select-relic-${index}`);
-      if (selectBtn) {
-        selectBtn.addEventListener('click', () => {
-          this.selectBossReward(relic);
-        });
-      }
-    });
+    // Set boss reward relics for Vue component to display
+    this.gameState.bossRewardRelics = actualRelics;
   }
 
-  private selectBossReward(selectedRelic: any): void {
+  public selectBossRewardFromVue(relicIndex: number): void {
+    if (
+      !this.gameState.bossRewardRelics ||
+      relicIndex < 0 ||
+      relicIndex >= this.gameState.bossRewardRelics.length
+    ) {
+      return;
+    }
+
+    const selectedRelic = this.gameState.bossRewardRelics[relicIndex];
+
     // Add selected relic to player inventory
     if (
       this.gameState.playerParameters.relics.length <
@@ -1738,12 +1478,23 @@ export class MistvoyageGame {
       this.gameState.gamePhase = 'navigation';
     }
 
-    // Clean up battle state
+    // Clean up battle state and boss reward state
     this.gameState.battleState = undefined;
+    this.gameState.bossRewardRelics = null;
 
     this.updateDisplay();
 
     // Additional scroll position reset is handled by Vue components
+  }
+
+  private selectBossReward(selectedRelic: any): void {
+    // Legacy method - now redirects to Vue method
+    const relicIndex =
+      this.gameState.bossRewardRelics?.findIndex(r => r === selectedRelic) ??
+      -1;
+    if (relicIndex >= 0) {
+      this.selectBossRewardFromVue(relicIndex);
+    }
   }
 }
 

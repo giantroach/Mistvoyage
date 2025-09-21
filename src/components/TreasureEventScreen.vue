@@ -10,41 +10,43 @@
     </div>
 
     <div class="treasure-choices">
-      <div class="relics-grid">
-        <button
-          v-for="(relic, index) in relics"
-          :key="index"
-          class="choice-btn relic-choice"
-          @click="handleRelicSelection(index)"
-        >
-          <div class="relic-info">
-            <div class="relic-header">
-              <span class="relic-icon">🏺</span>
-              <strong>{{ relic.name }}</strong>
-              <span class="rarity-badge" :class="`rarity-${relic.rarity}`">
-                {{ relic.rarity }}
-              </span>
-            </div>
-            <div class="relic-description">
-              {{ relic.description }}
-            </div>
-            <div class="relic-effects">
-              <div
-                v-for="(effect, effectIndex) in relic.effects"
-                :key="effectIndex"
-                class="effect"
-              >
-                {{ effect.description }}
+      <div class="relics-container">
+        <div class="relics-grid">
+          <button
+            v-for="(relic, index) in relics"
+            :key="index"
+            class="choice-btn relic-choice"
+            @click="handleRelicSelection(index)"
+          >
+            <div class="relic-info">
+              <div class="relic-header">
+                <span class="relic-icon">🏺</span>
+                <strong>{{ relic.name }}</strong>
+                <span class="rarity-badge" :class="`rarity-${relic.rarity}`">
+                  {{ relic.rarity }}
+                </span>
+              </div>
+              <div class="relic-description">
+                {{ relic.description }}
+              </div>
+              <div class="relic-effects">
+                <div
+                  v-for="(effect, effectIndex) in relic.effects"
+                  :key="effectIndex"
+                  class="effect"
+                >
+                  {{ effect.description }}
+                </div>
               </div>
             </div>
-          </div>
-        </button>
-      </div>
+          </button>
+        </div>
 
-      <div class="skip-option">
-        <button class="choice-btn skip-btn" @click="handleSkipTreasure">
-          何も取らずに立ち去る
-        </button>
+        <div class="skip-option">
+          <button class="choice-btn skip-btn" @click="handleSkipTreasure">
+            何も取らずに立ち去る
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -93,12 +95,20 @@ const handleSkipTreasure = () => {
   justify-content: center;
 }
 
+.relics-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+}
+
 .relics-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
   width: 100%;
-  max-width: 1200px;
+  margin-bottom: 2rem;
 }
 
 .choice-btn {
@@ -203,16 +213,18 @@ const handleSkipTreasure = () => {
 }
 
 .skip-option {
-  margin-top: 1rem;
   display: flex;
   justify-content: center;
+  width: 100%;
 }
 
 .skip-btn {
   background-color: #4a2a2a;
   border-color: #844;
   color: #ff8888;
-  max-width: 300px;
+  width: 300px;
+  padding: 1rem 2rem;
+  white-space: nowrap;
 }
 
 .skip-btn:hover {
