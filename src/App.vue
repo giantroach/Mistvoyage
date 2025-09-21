@@ -524,31 +524,46 @@ const handleNavigateToNode = (nodeId: string) => {
   }
 };
 
+// Track scroll updates to prevent feedback loops
+let isUpdatingScrollPosition = false;
+
 const handleMapScroll = (scrollLeft: number) => {
-  if (game && game.getGameState()) {
+  if (game && game.getGameState() && !isUpdatingScrollPosition) {
+    isUpdatingScrollPosition = true;
     game.getGameState().mapScrollPosition = scrollLeft;
+    // Reset flag after a short delay
+    setTimeout(() => {
+      isUpdatingScrollPosition = false;
+    }, 50);
   }
 };
 
-// Auto-scroll to current node when game state changes
-watchEffect(() => {
-  if (gameState.value && gameState.value.gamePhase === 'navigation') {
-    // Auto-scroll to current node position
-    nextTick(() => {
-      const currentNode =
-        gameState.value?.currentMap.nodes[gameState.value.currentNodeId];
-      if (currentNode && gameState.value?.mapScrollPosition !== undefined) {
-        // Use stored scroll position
-        const mapContainer = document.querySelector(
-          '.map-container'
-        ) as HTMLElement;
-        if (mapContainer) {
-          mapContainer.scrollLeft = gameState.value.mapScrollPosition;
+// Track if we should auto-scroll (only on phase changes, not manual scrolling)
+let shouldAutoScroll = true;
+
+// Auto-scroll to current node when game phase changes to navigation
+watch(
+  () => gameState.value?.gamePhase,
+  (newPhase, oldPhase) => {
+    if (newPhase === 'navigation' && oldPhase !== 'navigation') {
+      shouldAutoScroll = true;
+      nextTick(() => {
+        const currentNode =
+          gameState.value?.currentMap.nodes[gameState.value.currentNodeId];
+        if (currentNode && gameState.value?.mapScrollPosition !== undefined) {
+          // Use stored scroll position
+          const mapContainer = document.querySelector(
+            '.map-container'
+          ) as HTMLElement;
+          if (mapContainer) {
+            mapContainer.scrollLeft = gameState.value.mapScrollPosition;
+            shouldAutoScroll = false;
+          }
         }
-      }
-    });
+      });
+    }
   }
-});
+);
 
 // Status display methods
 const showSaveStatus = (message: string, isError = false) => {
@@ -558,9 +573,6 @@ const showSaveStatus = (message: string, isError = false) => {
 
 onMounted(async () => {
   game = new MistvoyageGame();
-
-  // Mark game instance as Vue-enabled BEFORE initialization
-  game.setVueMode(true);
 
   await game.initialize();
 

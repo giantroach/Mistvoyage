@@ -436,12 +436,20 @@ const handleScroll = () => {
   }
 };
 
+// Track if we're currently updating scroll position to prevent loops
+let isUpdatingScroll = false;
+
 // Watch for scroll position updates
 watch(
   () => props.gameState.mapScrollPosition,
   newPosition => {
-    if (mapContainer.value && newPosition !== undefined) {
+    if (mapContainer.value && newPosition !== undefined && !isUpdatingScroll) {
+      isUpdatingScroll = true;
       mapContainer.value.scrollLeft = newPosition;
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingScroll = false;
+      }, 50);
     }
   }
 );

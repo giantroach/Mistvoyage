@@ -40,7 +40,7 @@ export class MistvoyageGame {
   // eventConfig is now integrated into chaptersData
   private gameState: GameState;
   private isMapVisible: boolean = false;
-  private vueMode: boolean = false;
+  // Vue mode is now always enabled
 
   // Manager instances
   private mapManager: MapManager;
@@ -200,10 +200,7 @@ export class MistvoyageGame {
         this.relicManager,
         this.getWeaponManager(),
         () => {
-          // Skip updateDisplay in Vue mode to prevent infinite recursion
-          if (!this.vueMode) {
-            this.updateDisplay();
-          }
+          // Skip updateDisplay to prevent infinite recursion in Vue mode
         },
         () => this.completeEvent()
       );
@@ -666,10 +663,8 @@ export class MistvoyageGame {
   }
 
   private showShipSelection(): void {
-    // In Vue mode, ship selection is handled by Vue component
-    if (this.vueMode) {
-      return;
-    }
+    // Ship selection is handled by Vue component
+    return;
 
     if (!this.gameData) return;
 
@@ -719,10 +714,8 @@ export class MistvoyageGame {
   }
 
   private showChapterStart(): void {
-    // In Vue mode, chapter start is handled by Vue component
-    if (this.vueMode) {
-      return;
-    }
+    // Chapter start is handled by Vue component
+    return;
 
     if (!this.chaptersData) return;
 
@@ -756,10 +749,8 @@ export class MistvoyageGame {
   }
 
   private showNavigation(): void {
-    // If Vue mode is enabled, skip legacy DOM updates
-    if (this.vueMode) {
-      return;
-    }
+    // Skip legacy DOM updates - navigation is handled by Vue components
+    return;
 
     // Legacy DOM handling for fallback
     const content = document.getElementById('story-text');
@@ -786,49 +777,20 @@ export class MistvoyageGame {
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (currentNode && currentNode.eventType) {
-      // In Vue mode, only handle events that don't have Vue components
-      if (this.vueMode) {
-        switch (currentNode.eventType) {
-          case 'treasure':
-            this.handleTreasureEvent();
-            break;
-          case 'unknown':
-            this.handleUnknownEvent();
-            break;
-          // Port and temple events are handled by Vue components
-          // Other events should also be handled by Vue or skipped
-          default:
-            break;
-        }
-        return;
-      }
-
-      // Legacy DOM handling for all events when not in Vue mode
+      // Handle events with Vue components
       switch (currentNode.eventType) {
         case 'treasure':
           this.handleTreasureEvent();
           break;
-        case 'port':
-          this.portManager.handlePortEvent();
-          break;
-        case 'temple':
-          this.handleTempleEvent();
-          break;
         case 'unknown':
           this.handleUnknownEvent();
           break;
-        case 'completed_treasure':
-          // Show the completion state, don't re-trigger treasure selection
-          this.showCompletedTreasureEvent();
-          break;
+        // Port and temple events are handled by Vue components
+        // Other events should also be handled by Vue or skipped
         default:
-          // For other events, show generic message
-          const content = document.getElementById('story-text');
-          if (content) {
-            content.innerHTML = '<h2>イベント処理中...</h2>';
-          }
           break;
       }
+      return;
     }
   }
 
@@ -1184,33 +1146,13 @@ export class MistvoyageGame {
   }
 
   private showGameOver(): void {
-    if (this.vueMode) {
-      // Vue mode - just set the game phase, component will handle display
-      return;
-    }
-
-    const content = document.getElementById('story-text');
-    if (content) {
-      content.innerHTML = `
-        <h2>ゲームオーバー</h2>
-        <p>あなたの冒険は終わりを告げました...</p>
-      `;
-    }
+    // Game over is handled by Vue component
+    return;
   }
 
   private showVictory(): void {
-    if (this.vueMode) {
-      // Vue mode - just set the game phase, component will handle display
-      return;
-    }
-
-    const content = document.getElementById('story-text');
-    if (content) {
-      content.innerHTML = `
-        <h2>勝利！</h2>
-        <p>すべてのチャプターを制覇しました！</p>
-      `;
-    }
+    // Victory is handled by Vue component
+    return;
   }
 
   // ==================== MAP GENERATION ====================
@@ -1379,10 +1321,8 @@ export class MistvoyageGame {
   }
 
   private handleTreasureEvent(): void {
-    if (this.vueMode) {
-      this.setupTreasureEventForVue();
-      return;
-    }
+    this.setupTreasureEventForVue();
+    return;
 
     const storyElement = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
@@ -1472,11 +1412,9 @@ export class MistvoyageGame {
       currentNode.eventType = 'completed_treasure';
     }
 
-    if (this.vueMode) {
-      // In Vue mode, complete the event directly and return to navigation
-      this.completeEvent();
-      return;
-    }
+    // Complete the event directly and return to navigation
+    this.completeEvent();
+    return;
 
     // Legacy DOM mode - Show confirmation
     const storyElement = document.getElementById('story-text');
@@ -1668,10 +1606,7 @@ export class MistvoyageGame {
   private handleTempleEvent(): void {
     // Temple events are handled by Vue components, just set the phase
     this.gameState.gamePhase = 'event';
-    // Update display to trigger Vue component rendering (skip in Vue mode to prevent recursion)
-    if (!this.vueMode) {
-      this.updateDisplay();
-    }
+    // Temple events are handled by Vue components
   }
 
   private handleBossEvent(): void {
@@ -1695,10 +1630,8 @@ export class MistvoyageGame {
   }
 
   private handleUnknownEvent(): void {
-    if (this.vueMode) {
-      this.setupUnknownEventForVue();
-      return;
-    }
+    this.setupUnknownEventForVue();
+    return;
 
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
@@ -2007,9 +1940,7 @@ export class MistvoyageGame {
     return this.gameState;
   }
 
-  public setVueMode(enabled: boolean): void {
-    this.vueMode = enabled;
-  }
+  // Vue mode is now always enabled - method removed
 
   public selectShipFromVue(ship: Ship): void {
     this.selectShip(ship);
@@ -2136,22 +2067,7 @@ export class MistvoyageGame {
 
     this.updateDisplay();
 
-    // Additional scroll position reset after display update
-    setTimeout(() => {
-      if (this.gameState.gamePhase === 'navigation') {
-        const mapContainer = document.querySelector(
-          '.map-container.scrollable'
-        ) as HTMLElement;
-        if (
-          mapContainer &&
-          this.gameState.currentNodeId === 'start' &&
-          this.gameState.eventsCompleted === 0
-        ) {
-          mapContainer.scrollLeft = 0;
-          this.gameState.mapScrollPosition = 0;
-        }
-      }
-    }, 100);
+    // Additional scroll position reset is handled by Vue components
   }
 }
 
