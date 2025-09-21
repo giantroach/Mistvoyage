@@ -386,6 +386,12 @@ export interface GameState {
     resolvedEventType: EventType;
     eventTypeName: string;
   } | null;
+  inventoryManagement?: {
+    type: 'weapon' | 'relic';
+    newItem: Weapon | Relic;
+    context: 'shop' | 'treasure' | 'boss_reward';
+    shopIndex?: number;
+  } | null;
 }
 
 export type GamePhase =

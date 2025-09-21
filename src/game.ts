@@ -750,12 +750,9 @@ export class MistvoyageGame {
   // formatBattleLog method removed - battle log formatting is now handled by Vue components
 
   private showBattleResult(): void {
-    const content = document.getElementById('story-text');
-    const choicesCggontainer = document.getElementById('choices-container');
-
-    if (content && choicesContainer && this.gameState.battleState) {
-      this.displayBattleResultScreen(content, choicesContainer);
-    }
+    // Battle result is now handled by BattleResultScreen.vue component
+    // This method is kept for compatibility but does nothing
+    return;
   }
 
   private displayBattleResultScreen(
@@ -994,15 +991,13 @@ export class MistvoyageGame {
     const maxStorage = this.gameState.playerParameters.maxStorage;
 
     if (currentRelics >= maxStorage) {
-      alert(`保管庫が満杯です！(最大${maxStorage}個)`);
-      // Even if storage is full, we need to mark the event as completed
-      const currentNode =
-        this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-      if (currentNode) {
-        currentNode.eventType = 'completed_treasure';
-      }
-      // Complete the event properly
-      this.completeEvent();
+      // Storage is full - trigger inventory management
+      this.gameState.inventoryManagement = {
+        type: 'relic',
+        newItem: relic,
+        context: 'treasure',
+      };
+      this.updateDisplay();
       return;
     }
 
@@ -1454,18 +1449,29 @@ export class MistvoyageGame {
 
     const selectedRelic = this.gameState.bossRewardRelics[relicIndex];
 
-    // Add selected relic to player inventory
-    if (
-      this.gameState.playerParameters.relics.length <
-      this.gameState.playerParameters.maxStorage
-    ) {
-      this.gameState.playerParameters.relics.push(selectedRelic);
+    // Check if player has storage space
+    const currentRelics = this.gameState.playerParameters.relics.length;
+    const maxStorage = this.gameState.playerParameters.maxStorage;
+
+    if (currentRelics >= maxStorage) {
+      // Storage is full - trigger inventory management
+      this.gameState.inventoryManagement = {
+        type: 'relic',
+        newItem: selectedRelic,
+        context: 'boss_reward',
+      };
+      // Don't clear bossRewardRelics here - let acquireNewItem handle the progression
+      this.updateDisplay();
+      return;
     }
+
+    // Add selected relic to player inventory
+    this.gameState.playerParameters.relics.push(selectedRelic);
 
     // Progress to next chapter or end game
     this.gameState.currentChapter++;
 
-    if (this.gameState.currentChapter > 3) {
+    if (this.gameState.currentChapter > this.chaptersData!.chapters.length) {
       // Game completed
       this.gameState.gamePhase = 'victory';
     } else {
@@ -1497,6 +1503,146 @@ export class MistvoyageGame {
     this.updateDisplay();
 
     // Additional scroll position reset is handled by Vue components
+  }
+
+  // Inventory Management Methods
+  public discardItemFromInventory(index: number): void {
+    if (!this.gameState.inventoryManagement) return;
+
+    const { type } = this.gameState.inventoryManagement;
+
+    if (type === 'weapon') {
+      this.gameState.playerParameters.weapons.splice(index, 1);
+    } else if (type === 'relic') {
+      this.gameState.playerParameters.relics.splice(index, 1);
+    }
+
+    this.updateDisplay();
+  }
+
+  public acquireNewItem(): void {
+    if (!this.gameState.inventoryManagement) return;
+
+    const { type, newItem, context, shopIndex } =
+      this.gameState.inventoryManagement;
+
+    if (type === 'weapon') {
+      const weapon = newItem as Weapon;
+
+      if (context === 'shop') {
+        // Purchase weapon from shop
+        this.gameState.playerParameters.money -= weapon.price;
+      }
+
+      this.gameState.playerParameters.weapons.push(weapon);
+    } else if (type === 'relic') {
+      const relic = newItem as Relic;
+
+      if (context === 'shop') {
+        // Purchase relic from shop
+        const price = relic.price || 50;
+        this.gameState.playerParameters.money -= price;
+      }
+
+      this.gameState.playerParameters.relics.push(relic);
+
+      // Apply relic effects
+      this.applyRelicEffects(relic);
+
+      if (context === 'treasure') {
+        // Complete treasure event
+        const currentNode =
+          this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+        if (currentNode) {
+          currentNode.eventType = 'completed_treasure';
+        }
+        this.completeEvent();
+      } else if (context === 'boss_reward') {
+        // Complete boss reward handling
+        this.gameState.currentChapter++;
+
+        if (
+          this.gameState.currentChapter > this.chaptersData!.chapters.length
+        ) {
+          this.gameState.gamePhase = 'victory';
+        } else {
+          // Move to next chapter
+          // Reset chapter progress
+          this.gameState.eventsCompleted = 0;
+          this.gameState.visitedNodes.clear();
+
+          // Reset map scroll position for new chapter
+          this.gameState.mapScrollPosition = 0;
+
+          this.generateChapterMap();
+
+          // Set starting node for new chapter
+          this.gameState.currentNodeId = this.gameState.currentMap.startNodeId;
+
+          // Update node visibility for new chapter
+          this.navigationManager.updateNodeVisibility();
+
+          // Go directly to navigation phase (skip chapter_start screen)
+          this.gameState.gamePhase = 'navigation';
+        }
+
+        this.gameState.battleState = undefined;
+        this.gameState.bossRewardRelics = null;
+      }
+    }
+
+    // Clear inventory management state
+    this.gameState.inventoryManagement = null;
+    this.updateDisplay();
+  }
+
+  public cancelInventoryManagement(): void {
+    if (!this.gameState.inventoryManagement) return;
+
+    const { context } = this.gameState.inventoryManagement;
+
+    if (context === 'treasure') {
+      // Complete treasure event without taking item
+      const currentNode =
+        this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+      if (currentNode) {
+        currentNode.eventType = 'completed_treasure';
+      }
+      this.completeEvent();
+    } else if (context === 'boss_reward') {
+      // Complete boss reward without taking item
+      this.gameState.currentChapter++;
+
+      if (this.gameState.currentChapter > this.chaptersData!.chapters.length) {
+        this.gameState.gamePhase = 'victory';
+      } else {
+        // Move to next chapter
+        // Reset chapter progress
+        this.gameState.eventsCompleted = 0;
+        this.gameState.visitedNodes.clear();
+
+        // Reset map scroll position for new chapter
+        this.gameState.mapScrollPosition = 0;
+
+        this.generateChapterMap();
+
+        // Set starting node for new chapter
+        this.gameState.currentNodeId = this.gameState.currentMap.startNodeId;
+
+        // Update node visibility for new chapter
+        this.navigationManager.updateNodeVisibility();
+
+        // Go directly to navigation phase (skip chapter_start screen)
+        this.gameState.gamePhase = 'navigation';
+      }
+
+      this.gameState.battleState = undefined;
+      this.gameState.bossRewardRelics = null;
+    }
+
+    // Clear inventory management state
+    this.gameState.inventoryManagement = null;
+    this.updateDisplay();
   }
 
   private selectBossReward(selectedRelic: any): void {

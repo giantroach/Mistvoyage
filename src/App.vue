@@ -156,7 +156,8 @@
         v-else-if="
           gameState &&
           gameState.gamePhase === 'boss_reward' &&
-          gameState.bossRewardRelics
+          gameState.bossRewardRelics &&
+          !gameState.inventoryManagement
         "
         :relics="gameState.bossRewardRelics"
         @select-relic="handleSelectBossReward"
@@ -227,6 +228,20 @@
       "
     />
 
+    <!-- Inventory Management Modal -->
+    <InventoryManagementModal
+      v-if="gameState && gameState.inventoryManagement"
+      :title="getInventoryModalTitle()"
+      :description="getInventoryModalDescription()"
+      :item-type="gameState.inventoryManagement.type"
+      :new-item="gameState.inventoryManagement.newItem"
+      :current-items="getCurrentInventoryItems()"
+      :max-slots="getMaxSlots()"
+      @discard-item="handleDiscardItem"
+      @acquire-item="handleAcquireItem"
+      @close="handleCancelInventoryManagement"
+    />
+
     <!-- Status Display Component -->
     <StatusDisplay
       ref="statusDisplay"
@@ -293,6 +308,7 @@ import DebugPanel from './components/DebugPanel.vue';
 import WeaponDetailModal from './components/WeaponDetailModal.vue';
 import RelicDetailModal from './components/RelicDetailModal.vue';
 import BossRewardScreen from './components/BossRewardScreen.vue';
+import InventoryManagementModal from './components/InventoryManagementModal.vue';
 import type {
   GameState,
   Weapon,
@@ -531,6 +547,90 @@ const handleRestart = () => {
 const handleSelectBossReward = (relicIndex: number) => {
   if (game) {
     game.selectBossRewardFromVue(relicIndex);
+    updateGameState();
+  }
+};
+
+// Inventory Management handlers
+const getInventoryModalTitle = (): string => {
+  if (!gameState.value?.inventoryManagement) return '';
+
+  const { type, context } = gameState.value.inventoryManagement;
+  const itemName = type === 'weapon' ? '武器' : 'レリック';
+
+  if (context === 'shop') {
+    return `${itemName}スロットが満杯です`;
+  } else if (context === 'treasure') {
+    return 'レリック保管庫が満杯です';
+  } else if (context === 'boss_reward') {
+    return 'レリック保管庫が満杯です';
+  }
+
+  return `${itemName}の管理`;
+};
+
+const getInventoryModalDescription = (): string => {
+  if (!gameState.value?.inventoryManagement) return '';
+
+  const { type, context } = gameState.value.inventoryManagement;
+  const itemName = type === 'weapon' ? '武器' : 'レリック';
+
+  if (context === 'shop') {
+    return `新しい${itemName}を入手するには、既存の${itemName}を捨てるか、入手を諦める必要があります。`;
+  } else if (context === 'treasure') {
+    return '新しいレリックを入手するには、既存のレリックを捨てるか、入手を諦める必要があります。';
+  } else if (context === 'boss_reward') {
+    return '新しいレリックを入手するには、既存のレリックを捨てるか、入手を諦める必要があります。';
+  }
+
+  return `${itemName}を管理してください。`;
+};
+
+const getCurrentInventoryItems = () => {
+  if (!gameState.value?.inventoryManagement) return [];
+
+  const { type } = gameState.value.inventoryManagement;
+
+  if (type === 'weapon') {
+    return gameState.value.playerParameters.weapons;
+  } else if (type === 'relic') {
+    return gameState.value.playerParameters.relics;
+  }
+
+  return [];
+};
+
+const getMaxSlots = (): number => {
+  if (!gameState.value?.inventoryManagement) return 0;
+
+  const { type } = gameState.value.inventoryManagement;
+
+  if (type === 'weapon') {
+    return gameState.value.playerParameters.ship.weaponSlots;
+  } else if (type === 'relic') {
+    return gameState.value.playerParameters.maxStorage;
+  }
+
+  return 0;
+};
+
+const handleDiscardItem = (index: number) => {
+  if (game) {
+    game.discardItemFromInventory(index);
+    updateGameState();
+  }
+};
+
+const handleAcquireItem = () => {
+  if (game) {
+    game.acquireNewItem();
+    updateGameState();
+  }
+};
+
+const handleCancelInventoryManagement = () => {
+  if (game) {
+    game.cancelInventoryManagement();
     updateGameState();
   }
 };

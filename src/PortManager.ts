@@ -77,7 +77,15 @@ export class PortManager {
       this.gameState.playerParameters.weapons.length >=
       this.gameState.playerParameters.ship.weaponSlots
     ) {
-      return false; // No weapon slots
+      // Weapon slots are full - trigger inventory management
+      this.gameState.inventoryManagement = {
+        type: 'weapon',
+        newItem: weapon,
+        context: 'shop',
+        shopIndex: index,
+      };
+      this.updateDisplayCallback();
+      return true; // Return true to indicate the process was handled
     }
 
     // Purchase weapon
@@ -106,9 +114,17 @@ export class PortManager {
 
     if (
       this.gameState.playerParameters.relics.length >=
-      this.gameState.playerParameters.ship.storage
+      this.gameState.playerParameters.maxStorage
     ) {
-      return false; // No storage space
+      // Storage is full - trigger inventory management
+      this.gameState.inventoryManagement = {
+        type: 'relic',
+        newItem: relic,
+        context: 'shop',
+        shopIndex: index,
+      };
+      this.updateDisplayCallback();
+      return true; // Return true to indicate the process was handled
     }
 
     // Purchase relic
