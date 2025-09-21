@@ -430,26 +430,46 @@ const handleNodeClick = (node: MapNode) => {
   }
 };
 
+// Track scroll state to prevent feedback loops
+let isScrolling = false;
+let scrollTimeout: number | null = null;
+
 const handleScroll = () => {
-  if (mapContainer.value) {
-    emit('scrollUpdate', mapContainer.value.scrollLeft);
+  if (mapContainer.value && !isScrolling) {
+    // Clear existing timeout
+    if (scrollTimeout) {
+      clearTimeout(scrollTimeout);
+    }
+
+    // Set scrolling flag
+    isScrolling = true;
+
+    // Debounce scroll updates
+    scrollTimeout = setTimeout(() => {
+      if (mapContainer.value) {
+        emit('scrollUpdate', mapContainer.value.scrollLeft);
+      }
+      isScrolling = false;
+      scrollTimeout = null;
+    }, 100) as unknown as number;
   }
 };
 
-// Track if we're currently updating scroll position to prevent loops
-let isUpdatingScroll = false;
-
-// Watch for scroll position updates
+// Watch for programmatic scroll position updates (only for auto-scroll, not user scroll)
 watch(
   () => props.gameState.mapScrollPosition,
-  newPosition => {
-    if (mapContainer.value && newPosition !== undefined && !isUpdatingScroll) {
-      isUpdatingScroll = true;
-      mapContainer.value.scrollLeft = newPosition;
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isUpdatingScroll = false;
-      }, 50);
+  (newPosition, oldPosition) => {
+    if (
+      mapContainer.value &&
+      newPosition !== undefined &&
+      newPosition !== oldPosition &&
+      !isScrolling
+    ) {
+      // Only update if significantly different to avoid micro-adjustments
+      const currentScroll = mapContainer.value.scrollLeft;
+      if (Math.abs(newPosition - currentScroll) > 5) {
+        mapContainer.value.scrollLeft = newPosition;
+      }
     }
   }
 );

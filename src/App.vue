@@ -524,43 +524,29 @@ const handleNavigateToNode = (nodeId: string) => {
   }
 };
 
-// Track scroll updates to prevent feedback loops
-let isUpdatingScrollPosition = false;
-
 const handleMapScroll = (scrollLeft: number) => {
-  if (game && game.getGameState() && !isUpdatingScrollPosition) {
-    isUpdatingScrollPosition = true;
+  if (game && game.getGameState()) {
+    // Simply update the scroll position without complex tracking
     game.getGameState().mapScrollPosition = scrollLeft;
-    // Reset flag after a short delay
-    setTimeout(() => {
-      isUpdatingScrollPosition = false;
-    }, 50);
   }
 };
 
-// Track if we should auto-scroll (only on phase changes, not manual scrolling)
-let shouldAutoScroll = true;
-
-// Auto-scroll to current node when game phase changes to navigation
+// Auto-scroll only when transitioning to navigation phase
 watch(
   () => gameState.value?.gamePhase,
   (newPhase, oldPhase) => {
     if (newPhase === 'navigation' && oldPhase !== 'navigation') {
-      shouldAutoScroll = true;
-      nextTick(() => {
-        const currentNode =
-          gameState.value?.currentMap.nodes[gameState.value.currentNodeId];
-        if (currentNode && gameState.value?.mapScrollPosition !== undefined) {
-          // Use stored scroll position
+      // Only auto-scroll after a delay to ensure UI is ready
+      setTimeout(() => {
+        if (gameState.value?.mapScrollPosition !== undefined) {
           const mapContainer = document.querySelector(
             '.map-container'
           ) as HTMLElement;
           if (mapContainer) {
             mapContainer.scrollLeft = gameState.value.mapScrollPosition;
-            shouldAutoScroll = false;
           }
         }
-      });
+      }, 200);
     }
   }
 );
