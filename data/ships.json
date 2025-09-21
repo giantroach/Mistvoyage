@@ -2,11 +2,11 @@
   "ships": {
     "starter_ship": {
       "id": "starter_ship",
-      "name": "初心者の帆船",
+      "name": "旅人の船",
       "hullMax": 100,
       "crewMax": 10,
-      "baseSpeed": 5,
-      "storage": 8,
+      "baseSpeed": 6,
+      "storage": 4,
       "weaponSlots": 2,
       "initialWeapons": ["harpoon"],
       "specialRules": ["安定した操縦性"]
@@ -17,7 +17,7 @@
       "hullMax": 120,
       "crewMax": 15,
       "baseSpeed": 4,
-      "storage": 12,
+      "storage": 6,
       "weaponSlots": 1,
       "initialWeapons": ["light_cannon"],
       "specialRules": ["港での価格が10%安い"]
@@ -28,7 +28,7 @@
       "hullMax": 150,
       "crewMax": 20,
       "baseSpeed": 6,
-      "storage": 6,
+      "storage": 3,
       "weaponSlots": 3,
       "initialWeapons": ["cannon", "harpoon"],
       "specialRules": ["戦闘で命中率+10%"]
