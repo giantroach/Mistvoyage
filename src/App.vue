@@ -151,6 +151,17 @@
         @continue="handleContinueUnknownEvent"
       />
 
+      <!-- Boss Reward Screen Component -->
+      <BossRewardScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'boss_reward' &&
+          gameState.bossRewardRelics
+        "
+        :relics="gameState.bossRewardRelics"
+        @select-relic="handleSelectBossReward"
+      />
+
       <!-- Game Over/Victory Screen Component -->
       <GameOverScreen
         v-else-if="
@@ -170,7 +181,6 @@
           gameState.gamePhase === 'event' ||
           gameState.gamePhase === 'combat' ||
           gameState.gamePhase === 'battle_result' ||
-          gameState.gamePhase === 'boss_reward' ||
           gameState.gamePhase === 'game_over' ||
           gameState.gamePhase === 'victory'
         "
@@ -282,6 +292,7 @@ import StatusDisplay from './components/StatusDisplay.vue';
 import DebugPanel from './components/DebugPanel.vue';
 import WeaponDetailModal from './components/WeaponDetailModal.vue';
 import RelicDetailModal from './components/RelicDetailModal.vue';
+import BossRewardScreen from './components/BossRewardScreen.vue';
 import type {
   GameState,
   Weapon,
@@ -513,6 +524,14 @@ const handleRestart = () => {
   if (game) {
     // Reset game state and start over
     location.reload();
+  }
+};
+
+// Boss reward selection handler
+const handleSelectBossReward = (relicIndex: number) => {
+  if (game) {
+    game.selectBossRewardFromVue(relicIndex);
+    updateGameState();
   }
 };
 

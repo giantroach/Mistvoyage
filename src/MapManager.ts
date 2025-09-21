@@ -57,56 +57,17 @@ export class MapManager {
         Math.max(1, Math.floor(Math.random() * 4) + 1)
       );
 
-      // Track event types in current layer to prevent duplicates
-      const layerEventTypes = new Set<EventType>();
-      const layerEventTypesList: EventType[] = [];
+      // Pre-select event types for this layer to ensure variety
+      const layerEventTypes = this.selectEventTypesForLayer(
+        eventTypes,
+        branchCount,
+        layer,
+        chapterConfig.eventTypes
+      );
+
 
       for (let branch = 0; branch < branchCount; branch++) {
-        let eventType: EventType = 'unknown';
-        let attempts = 0;
-        const maxAttempts = 50;
-
-        // Find a valid event type for this node
-        while (attempts < maxAttempts) {
-          if (eventTypes.length === 0) {
-            eventType = 'unknown';
-            break;
-          }
-
-          const candidateType = eventTypes.shift() || 'unknown';
-
-          // Check if this is a minCount (priority) event - these should be placed more aggressively
-          const isMinCountEvent = this.isMinCountEvent(
-            candidateType,
-            chapterConfig.eventTypes
-          );
-
-          // Check if this type is already used in current layer (only if layer has 2+ nodes)
-          // For minCount events, allow layer duplicates if needed
-          const isDuplicateInLayer =
-            !isMinCountEvent &&
-            branchCount >= 2 &&
-            layerEventTypes.has(candidateType);
-
-          // Check if elite_monster is too close to start (within 2 layers from start)
-          // For minCount events, be more lenient about placement restrictions
-          const isEliteTooClose =
-            !isMinCountEvent && candidateType === 'elite_monster' && layer <= 2;
-
-          if (!isDuplicateInLayer && !isEliteTooClose) {
-            eventType = candidateType;
-            break;
-          } else {
-            // Put the event type back at the end of the array
-            eventTypes.push(candidateType);
-          }
-
-          attempts++;
-        }
-
-        // Add to layer tracking
-        layerEventTypes.add(eventType);
-        layerEventTypesList.push(eventType);
+        const eventType = layerEventTypes[branch] || 'unknown';
 
         const nodeId = `node_${nodeCounter++}`;
         map.nodes[nodeId] = {
@@ -224,33 +185,166 @@ export class MapManager {
       }
     }
 
-    // Shuffle the array but keep priority events prioritized
-    // First shuffle non-priority events
-    const nonPriorityEvents = eventTypes.filter(
-      type => !priorityEvents.includes(type)
-    );
-    for (let i = nonPriorityEvents.length - 1; i > 0; i--) {
+    // Better shuffling algorithm to ensure more even distribution
+    // Group events by type to control distribution
+    const eventGroups: { [key: string]: EventType[] } = {};
+    eventTypes.forEach(type => {
+      if (!eventGroups[type]) {
+        eventGroups[type] = [];
+      }
+      eventGroups[type].push(type);
+    });
+
+    // Create a more balanced final array
+    const finalEventTypes: EventType[] = [];
+    const availableTypeKeys = Object.keys(eventGroups) as EventType[];
+
+    // First, add one of each type to promote variety
+    const baseDistribution: EventType[] = [];
+    availableTypeKeys.forEach(type => {
+      if (eventGroups[type].length > 0) {
+        baseDistribution.push(type);
+        eventGroups[type].splice(0, 1);
+      }
+    });
+
+    // Shuffle the base distribution
+    for (let i = baseDistribution.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [nonPriorityEvents[i], nonPriorityEvents[j]] = [
-        nonPriorityEvents[j],
-        nonPriorityEvents[i],
+      [baseDistribution[i], baseDistribution[j]] = [
+        baseDistribution[j],
+        baseDistribution[i],
       ];
     }
 
-    // Shuffle priority events separately
-    const shuffledPriorityEvents = [...priorityEvents];
-    for (let i = shuffledPriorityEvents.length - 1; i > 0; i--) {
+    // Add the base distribution first
+    finalEventTypes.push(...baseDistribution);
+
+    // Then add remaining events in a round-robin fashion
+    let remainingEvents: EventType[] = [];
+    availableTypeKeys.forEach(type => {
+      remainingEvents.push(...eventGroups[type]);
+    });
+
+    // Shuffle remaining events
+    for (let i = remainingEvents.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffledPriorityEvents[i], shuffledPriorityEvents[j]] = [
-        shuffledPriorityEvents[j],
-        shuffledPriorityEvents[i],
+      [remainingEvents[i], remainingEvents[j]] = [
+        remainingEvents[j],
+        remainingEvents[i],
       ];
     }
 
-    // Combine: priority events first, then others
-    const finalEventTypes = [...shuffledPriorityEvents, ...nonPriorityEvents];
+    finalEventTypes.push(...remainingEvents);
 
     return finalEventTypes;
+  }
+
+  private selectEventTypesForLayer(
+    availableEvents: EventType[],
+    branchCount: number,
+    layer: number,
+    eventTypeConfig: any
+  ): EventType[] {
+    const selectedTypes: EventType[] = [];
+    const usedTypesInLayer = new Set<EventType>();
+
+    // Create a copy of available events to avoid modifying the original
+    const eventPool = [...availableEvents];
+
+    for (let i = 0; i < branchCount; i++) {
+      let selectedType: EventType = 'unknown';
+      let selectedIndex = -1;
+
+      // Phase 1: Try to find a unique event type (not used in this layer)
+      for (let j = 0; j < eventPool.length; j++) {
+        const candidateType = eventPool[j];
+
+        // Check if this is a minCount (priority) event
+        const isMinCountEvent = this.isMinCountEvent(
+          candidateType,
+          eventTypeConfig
+        );
+
+        // Check if this type is already used in current layer
+        const isDuplicateInLayer = usedTypesInLayer.has(candidateType);
+
+        // Check if elite_monster is too close to start
+        const isEliteTooClose = candidateType === 'elite_monster' && layer <= 2;
+
+        // For layers with multiple nodes, strongly avoid duplicates unless it's a priority event
+        const shouldAvoidDuplicate =
+          isDuplicateInLayer && branchCount >= 2 && !isMinCountEvent;
+
+        // First priority: unique types that meet all constraints
+        if (!shouldAvoidDuplicate && !isEliteTooClose) {
+          selectedType = candidateType;
+          selectedIndex = j;
+          break;
+        }
+      }
+
+      // Phase 2: If no unique type found, try priority events even if duplicate
+      if (selectedIndex === -1) {
+        for (let j = 0; j < eventPool.length; j++) {
+          const candidateType = eventPool[j];
+          const isMinCountEvent = this.isMinCountEvent(
+            candidateType,
+            eventTypeConfig
+          );
+          const isEliteTooClose =
+            candidateType === 'elite_monster' && layer <= 2;
+
+          // Allow priority events to be duplicated if necessary
+          if (isMinCountEvent && !isEliteTooClose) {
+            selectedType = candidateType;
+            selectedIndex = j;
+            break;
+          }
+        }
+      }
+
+      // Phase 3: If still no suitable type, allow any non-elite type
+      if (selectedIndex === -1) {
+        for (let j = 0; j < eventPool.length; j++) {
+          const candidateType = eventPool[j];
+          const isEliteTooClose =
+            candidateType === 'elite_monster' && layer <= 2;
+
+          if (!isEliteTooClose) {
+            selectedType = candidateType;
+            selectedIndex = j;
+            break;
+          }
+        }
+      }
+
+      // Phase 4: Last resort - use any available type
+      if (selectedIndex === -1 && eventPool.length > 0) {
+        selectedType = eventPool[0];
+        selectedIndex = 0;
+      }
+
+      // Add the selected type to our tracking
+      usedTypesInLayer.add(selectedType);
+      selectedTypes.push(selectedType);
+
+      // Remove the selected event from the pool
+      if (selectedIndex >= 0) {
+        eventPool.splice(selectedIndex, 1);
+      }
+
+      // If we run out of events but still need more, use 'unknown'
+      if (eventPool.length === 0 && i < branchCount - 1) {
+        // Fill remaining slots with 'unknown'
+        for (let k = i + 1; k < branchCount; k++) {
+          selectedTypes.push('unknown');
+        }
+        break;
+      }
+    }
+
+    return selectedTypes;
   }
 
   private isMinCountEvent(eventType: EventType, eventTypeConfig: any): boolean {
