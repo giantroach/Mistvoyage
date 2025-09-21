@@ -40,6 +40,7 @@ export class MistvoyageGame {
   // eventConfig is now integrated into chaptersData
   private gameState: GameState;
   private isMapVisible: boolean = false;
+  private vueMode: boolean = false;
 
   // Manager instances
   private mapManager: MapManager;
@@ -198,7 +199,12 @@ export class MistvoyageGame {
         this.gameState,
         this.relicManager,
         this.getWeaponManager(),
-        () => this.updateDisplay(),
+        () => {
+          // Skip updateDisplay in Vue mode to prevent infinite recursion
+          if (!this.vueMode) {
+            this.updateDisplay();
+          }
+        },
         () => this.completeEvent()
       );
       if (this.chaptersData) {
@@ -660,6 +666,11 @@ export class MistvoyageGame {
   }
 
   private showShipSelection(): void {
+    // In Vue mode, ship selection is handled by Vue component
+    if (this.vueMode) {
+      return;
+    }
+
     if (!this.gameData) return;
 
     const content = document.getElementById('story-text');
@@ -708,6 +719,11 @@ export class MistvoyageGame {
   }
 
   private showChapterStart(): void {
+    // In Vue mode, chapter start is handled by Vue component
+    if (this.vueMode) {
+      return;
+    }
+
     if (!this.chaptersData) return;
 
     const chapter = this.chaptersData.chapters.find(
@@ -740,6 +756,12 @@ export class MistvoyageGame {
   }
 
   private showNavigation(): void {
+    // If Vue mode is enabled, skip legacy DOM updates
+    if (this.vueMode) {
+      return;
+    }
+
+    // Legacy DOM handling for fallback
     const content = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
 
@@ -764,6 +786,24 @@ export class MistvoyageGame {
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
     if (currentNode && currentNode.eventType) {
+      // In Vue mode, only handle events that don't have Vue components
+      if (this.vueMode) {
+        switch (currentNode.eventType) {
+          case 'treasure':
+            this.handleTreasureEvent();
+            break;
+          case 'unknown':
+            this.handleUnknownEvent();
+            break;
+          // Port and temple events are handled by Vue components
+          // Other events should also be handled by Vue or skipped
+          default:
+            break;
+        }
+        return;
+      }
+
+      // Legacy DOM handling for all events when not in Vue mode
       switch (currentNode.eventType) {
         case 'treasure':
           this.handleTreasureEvent();
@@ -1144,6 +1184,11 @@ export class MistvoyageGame {
   }
 
   private showGameOver(): void {
+    if (this.vueMode) {
+      // Vue mode - just set the game phase, component will handle display
+      return;
+    }
+
     const content = document.getElementById('story-text');
     if (content) {
       content.innerHTML = `
@@ -1154,6 +1199,11 @@ export class MistvoyageGame {
   }
 
   private showVictory(): void {
+    if (this.vueMode) {
+      // Vue mode - just set the game phase, component will handle display
+      return;
+    }
+
     const content = document.getElementById('story-text');
     if (content) {
       content.innerHTML = `
@@ -1329,6 +1379,11 @@ export class MistvoyageGame {
   }
 
   private handleTreasureEvent(): void {
+    if (this.vueMode) {
+      this.setupTreasureEventForVue();
+      return;
+    }
+
     const storyElement = document.getElementById('story-text');
     const choicesContainer = document.getElementById('choices-container');
 
@@ -1417,7 +1472,13 @@ export class MistvoyageGame {
       currentNode.eventType = 'completed_treasure';
     }
 
-    // Show confirmation
+    if (this.vueMode) {
+      // In Vue mode, complete the event directly and return to navigation
+      this.completeEvent();
+      return;
+    }
+
+    // Legacy DOM mode - Show confirmation
     const storyElement = document.getElementById('story-text');
     if (storyElement) {
       storyElement.innerHTML = `
@@ -1443,6 +1504,122 @@ export class MistvoyageGame {
         this.completeEvent();
       });
       choicesContainer.appendChild(continueButton);
+    }
+  }
+
+  private setupTreasureEventForVue(): void {
+    // Get chapter-specific rarity weights
+    const chapter = this.chaptersData?.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    const treasureConfig = chapter?.eventTypes?.treasure;
+    const customRarityWeights = treasureConfig?.rarityWeights;
+
+    // Generate 3 random relics using chapter-specific weights
+    const relics = this.relicManager.generateMultipleRelics(
+      3,
+      customRarityWeights
+    );
+
+    // Set the treasureRelics state for Vue
+    this.gameState.treasureRelics = relics;
+  }
+
+  public selectTreasureRelicFromVue(relicIndex: number): void {
+    if (
+      !this.gameState.treasureRelics ||
+      relicIndex < 0 ||
+      relicIndex >= this.gameState.treasureRelics.length
+    ) {
+      return;
+    }
+
+    const relic = this.gameState.treasureRelics[relicIndex];
+    this.selectRelic(relic);
+
+    // Clear treasure relics
+    this.gameState.treasureRelics = null;
+  }
+
+  public skipTreasureFromVue(): void {
+    this.completeEvent();
+    this.gameState.treasureRelics = null;
+  }
+
+  private setupUnknownEventForVue(): void {
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+
+    // Check if we already determined what this unknown event is
+    let selectedEventType: EventType;
+    if (currentNode.resolvedEventType) {
+      selectedEventType = currentNode.resolvedEventType;
+    } else {
+      // First time determining what this unknown event is
+      // Get chapter-specific configuration for ??? event probabilities
+      const chapter = this.chaptersData?.chapters.find(
+        c => c.id === this.gameState.currentChapter
+      );
+      const unknownConfig = chapter?.eventTypes?.unknown;
+
+      // Define default probabilities if not specified in chapter config
+      const defaultProbabilities = {
+        treasure: 20,
+        port: 20,
+        temple: 20,
+        monster: 40, // monster appears twice in the spec, so double weight
+      };
+
+      // Use chapter-specific probabilities if available, otherwise use defaults
+      const probabilities =
+        unknownConfig?.eventProbabilities || defaultProbabilities;
+
+      // Create weighted array for random selection
+      const weightedEvents: EventType[] = [];
+      Object.entries(probabilities).forEach(([eventType, weight]) => {
+        for (let i = 0; i < weight; i++) {
+          weightedEvents.push(eventType as EventType);
+        }
+      });
+
+      // Randomly select an event type
+      const randomIndex = Math.floor(Math.random() * weightedEvents.length);
+      selectedEventType = weightedEvents[randomIndex];
+
+      // Store the resolved event type so it doesn't change on subsequent calls
+      currentNode.resolvedEventType = selectedEventType;
+    }
+
+    // Set the unknown event state for Vue
+    this.gameState.unknownEvent = {
+      resolvedEventType: selectedEventType,
+      eventTypeName: this.getSelectedEventTypeName(selectedEventType),
+    };
+  }
+
+  public continueUnknownEventFromVue(eventType: EventType): void {
+    // Change the node's eventType to the resolved type to prevent re-triggering unknown event
+    const currentNode =
+      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
+    if (currentNode) {
+      currentNode.eventType = eventType;
+    }
+
+    // Clear unknown event state
+    this.gameState.unknownEvent = null;
+
+    // Update display to reflect the new event type on the map
+    this.updateDisplay();
+
+    // For treasure, port, and temple events, we need to keep the event phase
+    // For monster events, they handle their own transitions
+    if (eventType === 'monster' || eventType === 'elite_monster') {
+      this.handleMonsterEvent();
+    } else if (eventType === 'boss') {
+      this.handleBossEvent();
+    } else {
+      // For treasure, port, temple - stay in event phase
+      this.processEvent(eventType);
     }
   }
 
@@ -1491,8 +1668,10 @@ export class MistvoyageGame {
   private handleTempleEvent(): void {
     // Temple events are handled by Vue components, just set the phase
     this.gameState.gamePhase = 'event';
-    // Update display to trigger Vue component rendering
-    this.updateDisplay();
+    // Update display to trigger Vue component rendering (skip in Vue mode to prevent recursion)
+    if (!this.vueMode) {
+      this.updateDisplay();
+    }
   }
 
   private handleBossEvent(): void {
@@ -1516,6 +1695,11 @@ export class MistvoyageGame {
   }
 
   private handleUnknownEvent(): void {
+    if (this.vueMode) {
+      this.setupUnknownEventForVue();
+      return;
+    }
+
     const currentNode =
       this.gameState.currentMap.nodes[this.gameState.currentNodeId];
 
@@ -1821,6 +2005,19 @@ export class MistvoyageGame {
 
   public getGameState(): GameState {
     return this.gameState;
+  }
+
+  public setVueMode(enabled: boolean): void {
+    this.vueMode = enabled;
+  }
+
+  public selectShipFromVue(ship: Ship): void {
+    this.selectShip(ship);
+  }
+
+  public startVoyageFromVue(): void {
+    this.gameState.gamePhase = 'navigation';
+    this.updateDisplay();
   }
 
   public getCombatSystem(): CombatSystem {

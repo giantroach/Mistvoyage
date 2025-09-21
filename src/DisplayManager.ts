@@ -98,7 +98,10 @@ export class DisplayManager {
             // Get current weapons from gameInstance instead of closure
             const gameInstance = (window as any).gameInstance;
             if (gameInstance && gameInstance.gameState) {
-              const weapon = gameInstance.gameState.playerParameters.weapons.find((w: any) => w.id === weaponId);
+              const weapon =
+                gameInstance.gameState.playerParameters.weapons.find(
+                  (w: any) => w.id === weaponId
+                );
               if (weapon) {
                 const event = new CustomEvent('show-weapon-detail', {
                   detail: weapon,
@@ -139,7 +142,9 @@ export class DisplayManager {
             // Get current relics from gameInstance instead of closure
             const gameInstance = (window as any).gameInstance;
             if (gameInstance && gameInstance.gameState) {
-              const relic = gameInstance.gameState.playerParameters.relics.find((r: any) => r.id === relicId);
+              const relic = gameInstance.gameState.playerParameters.relics.find(
+                (r: any) => r.id === relicId
+              );
               if (relic) {
                 const event = new CustomEvent('show-relic-detail', {
                   detail: relic,

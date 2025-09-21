@@ -97,14 +97,79 @@
         @leave-temple="handleLeaveTemple"
       />
 
+      <!-- Map Display Component for Navigation -->
+      <MapDisplay
+        v-if="gameState && gameState.gamePhase === 'navigation'"
+        :game-state="gameState"
+        :sight-range="gameState.playerParameters.sight"
+        @navigate-to-node="handleNavigateToNode"
+        @scroll-update="handleMapScroll"
+      />
+
+      <!-- Ship Selection Component -->
+      <ShipSelectionScreen
+        v-if="
+          gameState && gameState.gamePhase === 'ship_selection' && shipsData
+        "
+        :ships="Object.values(shipsData.ships)"
+        @select-ship="handleSelectShip"
+      />
+
+      <!-- Chapter Start Component -->
+      <ChapterStartScreen
+        v-else-if="
+          gameState && gameState.gamePhase === 'chapter_start' && chaptersData
+        "
+        :chapter="getCurrentChapter(gameState.currentChapter)"
+        @start-voyage="handleStartVoyage"
+      />
+
+      <!-- Treasure Event Component -->
+      <TreasureEventScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'treasure' &&
+          gameState.treasureRelics &&
+          gameState.treasureRelics.length > 0
+        "
+        :relics="gameState.treasureRelics"
+        @select-relic="handleSelectTreasureRelic"
+        @skip-treasure="handleSkipTreasure"
+      />
+
+      <!-- Unknown Event Component -->
+      <UnknownEventScreen
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'unknown' &&
+          gameState.unknownEvent
+        "
+        :resolved-event-type="gameState.unknownEvent.resolvedEventType"
+        :event-type-name="gameState.unknownEvent.eventTypeName"
+        @continue="handleContinueUnknownEvent"
+      />
+
+      <!-- Game Over/Victory Screen Component -->
+      <GameOverScreen
+        v-else-if="
+          gameState &&
+          (gameState.gamePhase === 'game_over' ||
+            gameState.gamePhase === 'victory')
+        "
+        :is-victory="gameState.gamePhase === 'victory'"
+        @restart="handleRestart"
+      />
+
       <!-- Legacy DOM-based game content -->
       <div
         v-else-if="
           !gameState ||
-          gameState.gamePhase === 'ship_selection' ||
-          gameState.gamePhase === 'chapter_start' ||
           gameState.gamePhase === 'navigation' ||
           gameState.gamePhase === 'event' ||
+          gameState.gamePhase === 'combat' ||
+          gameState.gamePhase === 'battle_result' ||
           gameState.gamePhase === 'boss_reward' ||
           gameState.gamePhase === 'game_over' ||
           gameState.gamePhase === 'victory'
@@ -206,12 +271,25 @@ import WeaponShop from './components/WeaponShop.vue';
 import RelicShop from './components/RelicShop.vue';
 import TempleScreen from './components/TempleScreen.vue';
 import ParameterDisplay from './components/ParameterDisplay.vue';
+import MapDisplay from './components/MapDisplay.vue';
+import ShipSelectionScreen from './components/ShipSelectionScreen.vue';
+import ChapterStartScreen from './components/ChapterStartScreen.vue';
+import TreasureEventScreen from './components/TreasureEventScreen.vue';
+import UnknownEventScreen from './components/UnknownEventScreen.vue';
+import GameOverScreen from './components/GameOverScreen.vue';
 import CooldownDisplay from './components/CooldownDisplay.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
 import DebugPanel from './components/DebugPanel.vue';
 import WeaponDetailModal from './components/WeaponDetailModal.vue';
 import RelicDetailModal from './components/RelicDetailModal.vue';
-import type { GameState, Weapon, Relic, ChaptersData } from './types';
+import type {
+  GameState,
+  Weapon,
+  Relic,
+  ChaptersData,
+  ShipsData,
+  Chapter,
+} from './types';
 
 let game: MistvoyageGame | null = null;
 const gameState = ref<GameState | null>(null);
@@ -221,8 +299,12 @@ const portView = ref<'main' | 'weapons' | 'relics'>('main');
 const portWeapons = ref<Weapon[]>([]);
 const portRelics = ref<Relic[]>([]);
 
+// Treasure state management
+const treasureRelics = ref<Relic[]>([]);
+
 // New component state management
 const chaptersData = ref<ChaptersData | null>(null);
+const shipsData = ref<ShipsData | null>(null);
 const cooldownData = ref<any>(null);
 const statusMessage = ref<string>('');
 const statusIsError = ref<boolean>(false);
@@ -240,6 +322,12 @@ const getCurrentNode = (state: GameState) => {
   return state.currentMap.nodes[state.currentNodeId] || null;
 };
 
+// Helper function to get current chapter
+const getCurrentChapter = (chapterId: number) => {
+  if (!chaptersData.value) return null;
+  return chaptersData.value.chapters.find(c => c.id === chapterId) || null;
+};
+
 const getWeatherEffects = (weather: any) => {
   if (game && game.getWeatherManager()) {
     return game.getWeatherManager().getWeatherEffects(weather);
@@ -251,11 +339,20 @@ const getWeatherEffects = (weather: any) => {
 const updateGameState = () => {
   if (game) {
     const newState = game.getGameState();
-    //   'Vue updateGameState:',
-    //   newState.gamePhase,
-    //   !!newState.battleState
-    // );
-    gameState.value = JSON.parse(JSON.stringify(newState));
+
+    // Deep clone the state but preserve Set objects
+    const clonedState = JSON.parse(JSON.stringify(newState));
+
+    // Restore visitedNodes as a Set if it exists
+    if (newState.visitedNodes) {
+      if (newState.visitedNodes instanceof Set) {
+        clonedState.visitedNodes = Array.from(newState.visitedNodes);
+      } else if (Array.isArray(newState.visitedNodes)) {
+        clonedState.visitedNodes = newState.visitedNodes;
+      }
+    }
+
+    gameState.value = clonedState;
   }
 };
 
@@ -372,6 +469,87 @@ const handleShowRelicDetail = (relic: any) => {
   showRelicDetailModal.value = true;
 };
 
+// Ship selection event handler
+const handleSelectShip = (ship: any) => {
+  if (game) {
+    game.selectShipFromVue(ship);
+    updateGameState();
+  }
+};
+
+// Chapter start event handler
+const handleStartVoyage = () => {
+  if (game) {
+    game.startVoyageFromVue();
+    updateGameState();
+  }
+};
+
+// Treasure event handler
+const handleSelectTreasureRelic = (relicIndex: number) => {
+  if (game) {
+    game.selectTreasureRelicFromVue(relicIndex);
+    updateGameState();
+  }
+};
+
+const handleSkipTreasure = () => {
+  if (game) {
+    game.skipTreasureFromVue();
+    updateGameState();
+  }
+};
+
+// Unknown event handler
+const handleContinueUnknownEvent = (eventType: string) => {
+  if (game) {
+    game.continueUnknownEventFromVue(eventType);
+    updateGameState();
+  }
+};
+
+// Game over/restart handler
+const handleRestart = () => {
+  if (game) {
+    // Reset game state and start over
+    location.reload();
+  }
+};
+
+// Map event handlers
+const handleNavigateToNode = (nodeId: string) => {
+  if (game) {
+    game.navigateToNode(nodeId);
+    updateGameState();
+  }
+};
+
+const handleMapScroll = (scrollLeft: number) => {
+  if (game && game.getGameState()) {
+    game.getGameState().mapScrollPosition = scrollLeft;
+  }
+};
+
+// Auto-scroll to current node when game state changes
+watchEffect(() => {
+  if (gameState.value && gameState.value.gamePhase === 'navigation') {
+    // Auto-scroll to current node position
+    nextTick(() => {
+      const currentNode =
+        gameState.value?.currentMap.nodes[gameState.value.currentNodeId];
+      if (currentNode && gameState.value?.mapScrollPosition !== undefined) {
+        // Use stored scroll position
+        const mapContainer = document.querySelector(
+          '.map-container'
+        ) as HTMLElement;
+        if (mapContainer) {
+          mapContainer.scrollLeft = gameState.value.mapScrollPosition;
+        }
+      }
+    });
+  }
+});
+
 // Status display methods
 const showSaveStatus = (message: string, isError = false) => {
   statusMessage.value = message;
@@ -380,14 +558,22 @@ const showSaveStatus = (message: string, isError = false) => {
 
 onMounted(async () => {
   game = new MistvoyageGame();
+
+  // Mark game instance as Vue-enabled BEFORE initialization
+  game.setVueMode(true);
+
   await game.initialize();
 
-  // Load chapters data
+  // Load game data
   try {
-    const response = await fetch('./data/chapters.json');
-    chaptersData.value = await response.json();
+    const [chaptersResponse, shipsResponse] = await Promise.all([
+      fetch('./data/chapters.json'),
+      fetch('./data/ships.json'),
+    ]);
+    chaptersData.value = await chaptersResponse.json();
+    shipsData.value = await shipsResponse.json();
   } catch (error) {
-    console.error('Failed to load chapters data:', error);
+    console.error('Failed to load game data:', error);
   }
 
   // Make game instance globally accessible for onclick handlers

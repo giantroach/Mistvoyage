@@ -74,6 +74,24 @@ const emit = defineEmits<{
 
 const mapContainer = ref<HTMLElement>();
 
+// Helper function to ensure visitedNodes is a Set
+const getVisitedNodesSet = computed(() => {
+  const visitedNodes = props.gameState.visitedNodes;
+  if (visitedNodes instanceof Set) {
+    return visitedNodes;
+  }
+  // If it's an array (from JSON serialization), convert to Set
+  if (Array.isArray(visitedNodes)) {
+    return new Set(visitedNodes);
+  }
+  // If it's an object with array-like structure, convert to Set
+  if (visitedNodes && typeof visitedNodes === 'object') {
+    return new Set(Object.values(visitedNodes));
+  }
+  // Fallback to empty Set
+  return new Set<string>();
+});
+
 // Constants
 const nodeWidth = 180;
 const nodeHeight = 80;
@@ -182,7 +200,7 @@ const connections = computed(() => {
 
       const isCurrentPath =
         (node.id === props.gameState.currentNodeId ||
-          props.gameState.visitedNodes.has(node.id)) &&
+          getVisitedNodesSet.value.has(node.id)) &&
         node.connections.includes(connectedNodeId);
 
       const fromDistance = Math.abs(node.layer - currentNode.value!.layer);
@@ -248,7 +266,7 @@ const connections = computed(() => {
 const getNodeClass = (node: MapNode) => {
   const isCurrentNode = node.id === props.gameState.currentNodeId;
   const isAccessible = node.isAccessible;
-  const isVisited = props.gameState.visitedNodes.has(node.id);
+  const isVisited = getVisitedNodesSet.value.has(node.id);
   const layerDistance = Math.abs(node.layer - currentNode.value!.layer);
 
   let nodeClass = 'map-node';
@@ -265,7 +283,7 @@ const isNodeUnknown = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
-  const isVisited = props.gameState.visitedNodes.has(node.id);
+  const isVisited = getVisitedNodesSet.value.has(node.id);
 
   // 訪問済みノードは常に表示
   if (isVisited) {
@@ -300,7 +318,7 @@ const getUnknownNodeLabel = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
-  const isVisited = props.gameState.visitedNodes.has(node.id);
+  const isVisited = getVisitedNodesSet.value.has(node.id);
 
   // 訪問済みノードは常に表示（このメソッドは呼ばれないはず）
   if (isVisited) {
@@ -335,7 +353,7 @@ const getNodeDisplayName = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
-  const isVisited = props.gameState.visitedNodes.has(node.id);
+  const isVisited = getVisitedNodesSet.value.has(node.id);
 
   // 訪問済みノードは常に表示
   if (isVisited && node.eventType) {
@@ -368,19 +386,21 @@ const getNodeDisplayName = (node: MapNode) => {
 const getEventTypeName = (eventType: string) => {
   switch (eventType) {
     case 'monster':
-      return 'モンスター遭遇';
+      return 'モンスター';
     case 'elite_monster':
       return 'エリートモンスター';
     case 'treasure':
-      return '宝箱';
+      return '宝';
     case 'port':
       return '港';
     case 'temple':
       return '寺院';
-    case 'event':
-      return 'イベント';
     case 'boss':
       return 'ボス';
+    case 'start':
+      return 'スタート地点';
+    case 'unknown':
+      return '???';
     default:
       return '';
   }

@@ -378,6 +378,11 @@ export interface GameState {
   gamePhase: GamePhase;
   battleState?: BattleState;
   mapScrollPosition?: number;
+  treasureRelics?: Relic[] | null;
+  unknownEvent?: {
+    resolvedEventType: EventType;
+    eventTypeName: string;
+  } | null;
 }
 
 export type GamePhase =
