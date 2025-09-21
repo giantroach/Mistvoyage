@@ -108,6 +108,11 @@ const formattedBattleLog = computed(() => {
         timePrefix = formatElapsedTime(entry.timestamp);
         content = entry.message;
         return `<p style="background-color: #4a2a2a; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ff6666; font-weight: bold;"><span style="color: #888; font-size: 0.8em;">${timePrefix}</span> ${content}</p>`;
+      } else if (entry.type === 'battle_end') {
+        // Handle battle end messages
+        timePrefix = formatElapsedTime(entry.timestamp);
+        content = entry.message;
+        return `<p style="background-color: #333; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; color: #ccc; font-weight: bold;"><span style="color: #888; font-size: 0.8em;">${timePrefix}</span> ${content}</p>`;
       }
       // For unknown entries, try to extract useful information instead of raw JSON
       let message = 'Unknown event';

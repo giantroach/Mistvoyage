@@ -606,13 +606,8 @@ export class BattleManager {
 
       // Add victory log entry
       battleState.battleLog.push({
-        actorType: 'player',
-        actorId: 'system',
-        weaponName: '戦闘終了',
-        targetType: 'monster',
-        targetId: 'all',
-        damage: 0,
-        hit: true,
+        type: 'battle_end',
+        message: '戦闘終了',
         timestamp: Date.now(),
       });
     } else {

@@ -65,7 +65,6 @@ export class MapManager {
         chapterConfig.eventTypes
       );
 
-
       for (let branch = 0; branch < branchCount; branch++) {
         const eventType = layerEventTypes[branch] || 'unknown';
 

@@ -33,8 +33,10 @@
         },
         "temple": { "weight": 5, "fixedCount": 1 },
         "unknown": {
-          "weight": 10,
+          "weight": 8,
           "fixedCount": 0,
+          "minCount": 1,
+          "maxCount": 2,
           "eventProbabilities": {
             "treasure": 20,
             "port": 20,
@@ -109,6 +111,8 @@
         "unknown": {
           "weight": 5,
           "fixedCount": 0,
+          "minCount": 1,
+          "maxCount": 2,
           "eventProbabilities": {
             "treasure": 20,
             "port": 20,
@@ -199,6 +203,8 @@
         "unknown": {
           "weight": 5,
           "fixedCount": 0,
+          "minCount": 1,
+          "maxCount": 2,
           "eventProbabilities": {
             "treasure": 20,
             "port": 20,
