@@ -265,8 +265,30 @@ const isNodeUnknown = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+  const isVisited = props.gameState.visitedNodes.has(node.id);
 
-  if (layerDistance >= 3 && !isPastNode) {
+  // 訪問済みノードは常に表示
+  if (isVisited) {
+    return !node.eventType;
+  }
+
+  // Sight値に基づく視界制限を適用
+  const sight = props.gameState.playerParameters.sight;
+  let visibilityRange;
+
+  if (sight <= 5) {
+    visibilityRange = 0; // 全て不明
+  } else if (sight <= 10) {
+    visibilityRange = 1; // 1つ先まで
+  } else if (sight <= 15) {
+    visibilityRange = 3; // 3つ先まで
+  } else if (sight <= 20) {
+    visibilityRange = 4; // 4つ先まで
+  } else {
+    visibilityRange = 5; // 5つ先まで
+  }
+
+  if (layerDistance > visibilityRange && !isPastNode) {
     return true;
   }
 
@@ -278,8 +300,30 @@ const getUnknownNodeLabel = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+  const isVisited = props.gameState.visitedNodes.has(node.id);
 
-  if (layerDistance >= 3 && !isPastNode) {
+  // 訪問済みノードは常に表示（このメソッドは呼ばれないはず）
+  if (isVisited) {
+    return '視界不足';
+  }
+
+  // Sight値に基づく視界制限を適用
+  const sight = props.gameState.playerParameters.sight;
+  let visibilityRange;
+
+  if (sight <= 5) {
+    visibilityRange = 0; // 全て不明
+  } else if (sight <= 10) {
+    visibilityRange = 1; // 1つ先まで
+  } else if (sight <= 15) {
+    visibilityRange = 3; // 3つ先まで
+  } else if (sight <= 20) {
+    visibilityRange = 4; // 4つ先まで
+  } else {
+    visibilityRange = 5; // 5つ先まで
+  }
+
+  if (layerDistance > visibilityRange && !isPastNode) {
     return '遠方のため不明';
   }
 
@@ -291,8 +335,30 @@ const getNodeDisplayName = (node: MapNode) => {
   const currentNodeLayer = currentNode.value?.layer;
   const isPastNode =
     currentNodeLayer !== undefined && node.layer < currentNodeLayer;
+  const isVisited = props.gameState.visitedNodes.has(node.id);
 
-  if (layerDistance >= 3 && !isPastNode) {
+  // 訪問済みノードは常に表示
+  if (isVisited && node.eventType) {
+    return getEventTypeName(node.eventType);
+  }
+
+  // Sight値に基づく視界制限を適用
+  const sight = props.gameState.playerParameters.sight;
+  let visibilityRange;
+
+  if (sight <= 5) {
+    visibilityRange = 0; // 全て不明
+  } else if (sight <= 10) {
+    visibilityRange = 1; // 1つ先まで
+  } else if (sight <= 15) {
+    visibilityRange = 3; // 3つ先まで
+  } else if (sight <= 20) {
+    visibilityRange = 4; // 4つ先まで
+  } else {
+    visibilityRange = 5; // 5つ先まで
+  }
+
+  if (layerDistance > visibilityRange && !isPastNode) {
     return '';
   }
 

@@ -88,22 +88,27 @@ export class DisplayManager {
 
       element.innerHTML = `武器: ${weaponElements}`;
 
-      // Add click listeners
-      element.querySelectorAll('.clickable-weapon').forEach(weaponEl => {
-        weaponEl.addEventListener('click', e => {
-          const weaponId = (e.target as HTMLElement).getAttribute(
-            'data-weapon-id'
-          );
-          const weapon = weapons.find(w => w.id === weaponId);
-          if (weapon && (window as any).gameInstance) {
-            // Use Vue modal instead of legacy DOM approach
-            const event = new CustomEvent('show-weapon-detail', {
-              detail: weapon,
-            });
-            document.dispatchEvent(event);
+      // Use event delegation - set up listener once per element
+      if (!element.hasAttribute('data-listener-attached')) {
+        element.setAttribute('data-listener-attached', 'true');
+        element.addEventListener('click', e => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains('clickable-weapon')) {
+            const weaponId = target.getAttribute('data-weapon-id');
+            // Get current weapons from gameInstance instead of closure
+            const gameInstance = (window as any).gameInstance;
+            if (gameInstance && gameInstance.gameState) {
+              const weapon = gameInstance.gameState.playerParameters.weapons.find((w: any) => w.id === weaponId);
+              if (weapon) {
+                const event = new CustomEvent('show-weapon-detail', {
+                  detail: weapon,
+                });
+                document.dispatchEvent(event);
+              }
+            }
           }
         });
-      });
+      }
     }
   }
 
@@ -124,22 +129,27 @@ export class DisplayManager {
 
       element.innerHTML = `レリック: ${relicElements}`;
 
-      // Add click listeners
-      element.querySelectorAll('.clickable-relic').forEach(relicEl => {
-        relicEl.addEventListener('click', e => {
-          const relicId = (e.target as HTMLElement).getAttribute(
-            'data-relic-id'
-          );
-          const relic = relics.find(r => r.id === relicId);
-          if (relic && (window as any).gameInstance) {
-            // Use Vue modal instead of legacy DOM approach
-            const event = new CustomEvent('show-relic-detail', {
-              detail: relic,
-            });
-            document.dispatchEvent(event);
+      // Use event delegation - set up listener once per element
+      if (!element.hasAttribute('data-listener-attached')) {
+        element.setAttribute('data-listener-attached', 'true');
+        element.addEventListener('click', e => {
+          const target = e.target as HTMLElement;
+          if (target.classList.contains('clickable-relic')) {
+            const relicId = target.getAttribute('data-relic-id');
+            // Get current relics from gameInstance instead of closure
+            const gameInstance = (window as any).gameInstance;
+            if (gameInstance && gameInstance.gameState) {
+              const relic = gameInstance.gameState.playerParameters.relics.find((r: any) => r.id === relicId);
+              if (relic) {
+                const event = new CustomEvent('show-relic-detail', {
+                  detail: relic,
+                });
+                document.dispatchEvent(event);
+              }
+            }
           }
         });
-      });
+      }
     }
   }
 
@@ -335,16 +345,15 @@ export class DisplayManager {
         if (isVisited) nodeClass += ' visited';
         if (layerDistance > 2) nodeClass += ' distant';
 
-        // Apply masking for events 3+ layers away, but not for past layers
+        // Apply masking based on sight value, but not for past layers or visited nodes
         let displayName;
         const currentNodeLayer =
           gameState.currentMap.nodes[gameState.currentNodeId]?.layer;
         const isPastNode =
           currentNodeLayer !== undefined && node.layer < currentNodeLayer;
 
-        if (layerDistance >= 3 && !isPastNode) {
-          displayName = '遠方のため不明';
-        } else {
+        // 訪問済みノードは常に表示
+        if (isVisited) {
           const eventName = node.eventType
             ? this.mapManager.getEventTypeName(
                 node.eventType,
@@ -355,6 +364,37 @@ export class DisplayManager {
               )
             : '';
           displayName = eventName || '視界不足';
+        } else {
+          // Sight値に基づく視界制限を適用
+          const sight = gameState.playerParameters.sight;
+          let visibilityRange;
+
+          if (sight <= 5) {
+            visibilityRange = 0; // 全て不明
+          } else if (sight <= 10) {
+            visibilityRange = 1; // 1つ先まで
+          } else if (sight <= 15) {
+            visibilityRange = 3; // 3つ先まで
+          } else if (sight <= 20) {
+            visibilityRange = 4; // 4つ先まで
+          } else {
+            visibilityRange = 5; // 5つ先まで
+          }
+
+          if (layerDistance > visibilityRange && !isPastNode) {
+            displayName = '遠方のため不明';
+          } else {
+            const eventName = node.eventType
+              ? this.mapManager.getEventTypeName(
+                  node.eventType,
+                  node,
+                  gameState.playerParameters.sight,
+                  gameState.visitedNodes,
+                  currentNodeLayer
+                )
+              : '';
+            displayName = eventName || '視界不足';
+          }
         }
 
         const nodeY = startY + nodeIndex * (nodeHeight + 20);

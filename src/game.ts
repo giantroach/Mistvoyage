@@ -844,7 +844,7 @@ export class MistvoyageGame {
     content.innerHTML = `
       <div class="battle-screen">
         <h2>⚔️ 戦闘中 - オートバトル</h2>
-        
+
         <div class="player-status">
           <h3>🛡️ あなたのステータス</h3>
           <div class="status-bars">
@@ -962,7 +962,7 @@ export class MistvoyageGame {
     content.innerHTML = `
       <div class="battle-result">
         <h2>🎉 戦闘勝利！</h2>
-        
+
         <div class="victory-summary">
           <h3>戦闘結果</h3>
           <ul>
@@ -1109,13 +1109,13 @@ export class MistvoyageGame {
             <button class="close-detail-btn" onclick="window.gameInstance.closeDetailView()">✕</button>
           </div>
           <p class="relic-description">${relic.description}</p>
-          
+
           <div class="relic-rarity-display">
             <span class="relic-rarity rarity-${
               relic.rarity
             }">${this.getRarityDisplayName(relic.rarity)}</span>
           </div>
-          
+
           <div class="relic-effects">
             <h3>✨ 効果</h3>
             <ul class="effects-list">
@@ -1595,6 +1595,9 @@ export class MistvoyageGame {
           currentNode.eventType = selectedEventType;
         }
 
+        // Update display to reflect the new event type on the map
+        this.updateDisplay();
+
         // For treasure, port, and temple events, we need to keep the event phase
         // For monster events, they handle their own transitions
         if (
@@ -1623,6 +1626,9 @@ export class MistvoyageGame {
       if (currentNode) {
         currentNode.eventType = selectedEventType;
       }
+
+      // Update display to reflect the new event type on the map
+      this.updateDisplay();
 
       // For treasure, port, and temple events, we need to keep the event phase
       // For monster events, they handle their own transitions
@@ -1872,7 +1878,6 @@ export class MistvoyageGame {
         <div class="boss-reward-option">
           <button id="select-relic-${index}" class="boss-reward-btn">
             <div class="relic-name">${relic.name} (${relic.rarity})</div>
-            <div class="relic-description">${relic.description}</div>
             <div class="relic-effects">${effectsText}</div>
           </button>
         </div>
