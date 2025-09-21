@@ -665,33 +665,6 @@ export class MistvoyageGame {
   private showShipSelection(): void {
     // Ship selection is handled by Vue component
     return;
-
-    if (!this.gameData) return;
-
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!content || !choicesContainer) return;
-
-    content.innerHTML = `
-      <h2>船を選択してください</h2>
-      <p>あなたの冒険の相棒となる船を選んでください。それぞれ異なる特徴を持っています。</p>
-    `;
-
-    choicesContainer.innerHTML = '';
-
-    // Display available ships
-    Object.values(this.shipsData!.ships).forEach(ship => {
-      const shipBtn = document.createElement('button');
-      shipBtn.className = 'choice-btn';
-      shipBtn.innerHTML = `
-        <strong>${ship.name}</strong><br>
-        船体: ${ship.hullMax} | 乗員: ${ship.crewMax} | 速度: ${ship.baseSpeed}<br>
-        保管庫: ${ship.storage} | 武器スロット: ${ship.weaponSlots}
-      `;
-      shipBtn.addEventListener('click', () => this.selectShip(ship));
-      choicesContainer.appendChild(shipBtn);
-    });
   }
 
   private selectShip(ship: Ship): void {
@@ -716,56 +689,11 @@ export class MistvoyageGame {
   private showChapterStart(): void {
     // Chapter start is handled by Vue component
     return;
-
-    if (!this.chaptersData) return;
-
-    const chapter = this.chaptersData.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-    if (!chapter) return;
-
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!content || !choicesContainer) return;
-
-    content.innerHTML = `
-      <h2>${chapter.name}</h2>
-      <p>${chapter.description}</p>
-      <p>必要イベント数: ${chapter.requiredEvents}</p>
-      <p>現在の進行: ${this.gameState.eventsCompleted}/${chapter.requiredEvents}</p>
-    `;
-
-    choicesContainer.innerHTML = '';
-
-    const startBtn = document.createElement('button');
-    startBtn.className = 'choice-btn';
-    startBtn.textContent = '航海を開始する';
-    startBtn.addEventListener('click', () => {
-      this.gameState.gamePhase = 'navigation';
-      this.updateDisplay();
-    });
-    choicesContainer.appendChild(startBtn);
   }
 
   private showNavigation(): void {
-    // Skip legacy DOM updates - navigation is handled by Vue components
+    // Navigation is handled by Vue components
     return;
-
-    // Legacy DOM handling for fallback
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!content || !choicesContainer) return;
-
-    // Auto-show map when in navigation mode
-    this.isMapVisible = true;
-
-    this.navigationManager.showNavigation(
-      content,
-      choicesContainer,
-      this.isMapVisible
-    );
   }
 
   private generateMapDisplay(sightRange: number): string {
@@ -795,44 +723,13 @@ export class MistvoyageGame {
   }
 
   private showCompletedTreasureEvent(): void {
-    // Find the relic that was just acquired (last one in the player's inventory)
-    const playerRelics = this.gameState.playerParameters.relics;
-    const lastRelic = playerRelics[playerRelics.length - 1];
-
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (storyElement && choicesContainer && lastRelic) {
-      storyElement.innerHTML = `
-        <h2>📿 レリック獲得！</h2>
-        <p><strong>${lastRelic.name}</strong>を獲得しました！</p>
-        <div class="relic-effects">
-          ${lastRelic.effects
-            .map(
-              effect => `<div class="effect-line">• ${effect.description}</div>`
-            )
-            .join('')}
-        </div>
-      `;
-
-      choicesContainer.innerHTML = '';
-      const continueButton = document.createElement('button');
-      continueButton.className = 'choice-btn';
-      continueButton.textContent = '続ける';
-      continueButton.addEventListener('click', () => {
-        this.completeEvent();
-      });
-      choicesContainer.appendChild(continueButton);
-    }
+    // Completed treasure events are handled by Vue components
+    return;
   }
 
   private showCombat(): void {
-    const content = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (content && choicesContainer && this.gameState.battleState) {
-      this.displayBattleScreen(content, choicesContainer);
-    }
+    // Combat is handled by BattleScreen Vue component
+    return;
   }
 
   private displayBattleScreen(
@@ -1323,70 +1220,6 @@ export class MistvoyageGame {
   private handleTreasureEvent(): void {
     this.setupTreasureEventForVue();
     return;
-
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    if (!storyElement || !choicesContainer) return;
-
-    // Get chapter-specific rarity weights
-    const chapter = this.chaptersData?.chapters.find(
-      c => c.id === this.gameState.currentChapter
-    );
-    const treasureConfig = chapter?.eventTypes?.treasure;
-    const customRarityWeights = treasureConfig?.rarityWeights;
-
-    // Generate 3 random relics using chapter-specific weights
-    const relics = this.relicManager.generateMultipleRelics(
-      3,
-      customRarityWeights
-    );
-
-    storyElement.innerHTML = `
-      <h2>🏺 宝箱発見！</h2>
-      <p>古い宝箱を発見しました。中から3つのレリックが現れています。</p>
-      <p>どれか一つを選んで持ち帰ることができます。</p>
-    `;
-
-    choicesContainer.innerHTML = '';
-
-    relics.forEach((relic, index) => {
-      const relicButton = document.createElement('button');
-      relicButton.className = 'choice-btn relic-choice';
-      relicButton.innerHTML = `
-        <div class="relic-choice-content">
-          <div class="relic-header">
-            <span class="relic-name">${relic.name}</span>
-            <span class="relic-rarity rarity-${
-              relic.rarity
-            }">${this.getRarityDisplayName(relic.rarity)}</span>
-          </div>
-          <div class="relic-effects">
-            ${relic.effects
-              .map(
-                effect =>
-                  `<div class="effect-line">• ${effect.description}</div>`
-              )
-              .join('')}
-          </div>
-        </div>
-      `;
-
-      relicButton.addEventListener('click', () => {
-        this.selectRelic(relic);
-      });
-
-      choicesContainer.appendChild(relicButton);
-    });
-
-    // Add skip option
-    const skipButton = document.createElement('button');
-    skipButton.className = 'choice-btn';
-    skipButton.textContent = '何も取らずに立ち去る';
-    skipButton.addEventListener('click', () => {
-      this.completeEvent();
-    });
-    choicesContainer.appendChild(skipButton);
   }
 
   private selectRelic(relic: Relic): void {
@@ -1415,34 +1248,6 @@ export class MistvoyageGame {
     // Complete the event directly and return to navigation
     this.completeEvent();
     return;
-
-    // Legacy DOM mode - Show confirmation
-    const storyElement = document.getElementById('story-text');
-    if (storyElement) {
-      storyElement.innerHTML = `
-        <h2>📿 レリック獲得！</h2>
-        <p><strong>${relic.name}</strong>を獲得しました！</p>
-        <div class="relic-effects">
-          ${relic.effects
-            .map(
-              effect => `<div class="effect-line">• ${effect.description}</div>`
-            )
-            .join('')}
-        </div>
-      `;
-    }
-
-    const choicesContainer = document.getElementById('choices-container');
-    if (choicesContainer) {
-      choicesContainer.innerHTML = '';
-      const continueButton = document.createElement('button');
-      continueButton.className = 'choice-btn';
-      continueButton.textContent = '続ける';
-      continueButton.addEventListener('click', () => {
-        this.completeEvent();
-      });
-      choicesContainer.appendChild(continueButton);
-    }
   }
 
   private setupTreasureEventForVue(): void {
@@ -1632,135 +1437,6 @@ export class MistvoyageGame {
   private handleUnknownEvent(): void {
     this.setupUnknownEventForVue();
     return;
-
-    const currentNode =
-      this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-
-    // Check if we already determined what this unknown event is
-    let selectedEventType: EventType;
-    if (currentNode.resolvedEventType) {
-      selectedEventType = currentNode.resolvedEventType;
-    } else {
-      // First time determining what this unknown event is
-      // Get chapter-specific configuration for ??? event probabilities
-      const chapter = this.chaptersData?.chapters.find(
-        c => c.id === this.gameState.currentChapter
-      );
-      const unknownConfig = chapter?.eventTypes?.unknown;
-
-      // Define default probabilities if not specified in chapter config
-      const defaultProbabilities = {
-        treasure: 20,
-        port: 20,
-        temple: 20,
-        monster: 40, // monster appears twice in the spec, so double weight
-      };
-
-      // Use chapter-specific probabilities if available, otherwise use defaults
-      const probabilities =
-        unknownConfig?.eventProbabilities || defaultProbabilities;
-
-      // Create weighted array for random selection
-      const weightedEvents: EventType[] = [];
-      Object.entries(probabilities).forEach(([eventType, weight]) => {
-        for (let i = 0; i < weight; i++) {
-          weightedEvents.push(eventType as EventType);
-        }
-      });
-
-      // Randomly select an event type
-      const randomIndex = Math.floor(Math.random() * weightedEvents.length);
-      selectedEventType = weightedEvents[randomIndex];
-
-      // Store the resolved event type so it doesn't change on subsequent calls
-      currentNode.resolvedEventType = selectedEventType;
-    }
-
-    // Show brief message about the ??? event revealing itself
-    const storyElement = document.getElementById('story-text');
-    const choicesContainer = document.getElementById('choices-container');
-
-    // Debug: Check if elements exist
-    if (!storyElement) {
-      console.warn('story-text element not found for unknown event');
-    }
-    if (!choicesContainer) {
-      console.warn('choices-container element not found for unknown event');
-    }
-
-    if (storyElement && choicesContainer) {
-      storyElement.innerHTML = `
-        <h2>❓ 謎のイベント</h2>
-        <p>霧が晴れると、その正体が明らかになりました...</p>
-        <p>このイベントは実際には<strong>${this.getSelectedEventTypeName(selectedEventType)}</strong>でした！</p>
-      `;
-
-      choicesContainer.innerHTML = '';
-
-      const continueButton = document.createElement('button');
-      continueButton.className = 'choice-btn';
-      continueButton.textContent = '続ける';
-      continueButton.onclick = () => {
-        console.log(
-          `Unknown event continue button clicked, processing: ${selectedEventType}`
-        );
-
-        // Change the node's eventType to the resolved type to prevent re-triggering unknown event
-        const currentNode =
-          this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-        if (currentNode) {
-          currentNode.eventType = selectedEventType;
-        }
-
-        // Update display to reflect the new event type on the map
-        this.updateDisplay();
-
-        // For treasure, port, and temple events, we need to keep the event phase
-        // For monster events, they handle their own transitions
-        if (
-          selectedEventType === 'monster' ||
-          selectedEventType === 'elite_monster'
-        ) {
-          this.handleMonsterEvent();
-        } else if (selectedEventType === 'boss') {
-          this.handleBossEvent();
-        } else {
-          // For treasure, port, temple - stay in event phase
-          this.processEvent(selectedEventType);
-        }
-      };
-
-      choicesContainer.appendChild(continueButton);
-    } else {
-      // Fallback: If DOM elements are not available, directly process the selected event
-      console.warn(
-        'DOM elements not available for unknown event, processing directly'
-      );
-
-      // Change the node's eventType to the resolved type to prevent re-triggering unknown event
-      const currentNode =
-        this.gameState.currentMap.nodes[this.gameState.currentNodeId];
-      if (currentNode) {
-        currentNode.eventType = selectedEventType;
-      }
-
-      // Update display to reflect the new event type on the map
-      this.updateDisplay();
-
-      // For treasure, port, and temple events, we need to keep the event phase
-      // For monster events, they handle their own transitions
-      if (
-        selectedEventType === 'monster' ||
-        selectedEventType === 'elite_monster'
-      ) {
-        this.handleMonsterEvent();
-      } else if (selectedEventType === 'boss') {
-        this.handleBossEvent();
-      } else {
-        // For treasure, port, temple - stay in event phase
-        this.processEvent(selectedEventType);
-      }
-    }
   }
 
   private getSelectedEventTypeName(eventType: EventType): string {
