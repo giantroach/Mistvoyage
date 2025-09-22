@@ -30,6 +30,16 @@ export class MapManager {
       chapter.requiredEvents
     );
 
+    // Debug: Check if fixedCount events are properly included
+    const templeCount = eventTypes.filter(e => e === 'temple').length;
+    const portCount = eventTypes.filter(e => e === 'port').length;
+    const treasureCount = eventTypes.filter(e => e === 'treasure').length;
+    const unknownCount = eventTypes.filter(e => e === 'unknown').length;
+    console.log(
+      `Generated events: temple=${templeCount}, port=${portCount}, treasure=${treasureCount}, unknown=${unknownCount}`,
+      eventTypes
+    );
+
     // Create start node
     map.nodes['start'] = {
       id: 'start',
@@ -47,6 +57,12 @@ export class MapManager {
     let nodeCounter = 1;
     const layerNodes: string[][] = [['start']];
 
+    // Track used event counts to respect maxCount
+    const usedEventCounts: { [key: string]: number } = {};
+    Object.keys(chapterConfig.eventTypes).forEach(type => {
+      usedEventCounts[type] = 0;
+    });
+
     for (let layer = 1; layer <= chapter.requiredEvents; layer++) {
       const currentLayerNodes: string[] = [];
       const previousLayer = layerNodes[layer - 1];
@@ -62,7 +78,8 @@ export class MapManager {
         eventTypes,
         branchCount,
         layer,
-        chapterConfig.eventTypes
+        chapterConfig.eventTypes,
+        usedEventCounts
       );
 
       for (let branch = 0; branch < branchCount; branch++) {
@@ -120,35 +137,50 @@ export class MapManager {
     config: any,
     totalEvents: number
   ): EventType[] {
+    console.log('=== Event Type Distribution Debug ===');
+    console.log('Total events needed:', totalEvents);
+    console.log('Config:', config);
+
     const eventTypes: EventType[] = [];
     const typeKeys = Object.keys(config) as EventType[];
 
     // First, add fixed count events
+    console.log('Phase 1: Adding fixed count events');
     typeKeys.forEach(type => {
       const typeConfig = config[type];
       if (typeConfig.fixedCount && typeConfig.fixedCount > 0) {
+        console.log(`Adding ${typeConfig.fixedCount} ${type} (fixedCount)`);
         for (let i = 0; i < typeConfig.fixedCount; i++) {
           eventTypes.push(type);
         }
       }
     });
+    console.log('After fixed count:', eventTypes);
 
     // Add minimum count events - mark them as priority
+    console.log('Phase 2: Adding minimum count events');
     const priorityEvents: EventType[] = [];
     typeKeys.forEach(type => {
       const typeConfig = config[type];
       if (typeConfig.minCount && typeConfig.minCount > 0) {
         const currentCount = eventTypes.filter(t => t === type).length;
         const needToAdd = Math.max(0, typeConfig.minCount - currentCount);
+        console.log(
+          `${type}: current=${currentCount}, minCount=${typeConfig.minCount}, needToAdd=${needToAdd}, maxCount=${typeConfig.maxCount}`
+        );
         for (let i = 0; i < needToAdd; i++) {
           eventTypes.push(type);
           priorityEvents.push(type); // Track priority events
         }
       }
     });
+    console.log('After min count:', eventTypes);
 
     // Fill remaining slots based on weights, respecting maxCount
     const remainingSlots = totalEvents - eventTypes.length;
+    console.log(
+      `Phase 3: Filling ${remainingSlots} remaining slots with weighted distribution`
+    );
     const weightedTypes: EventType[] = [];
 
     typeKeys.forEach(type => {
@@ -177,6 +209,17 @@ export class MapManager {
 
       if (currentCount < maxCount) {
         eventTypes.push(randomType);
+
+        // After adding, check if this type has reached its maxCount
+        const newCount = eventTypes.filter(t => t === randomType).length;
+        if (newCount >= maxCount) {
+          // Remove ALL instances of this type from weightedTypes to prevent further selection
+          for (let k = weightedTypes.length - 1; k >= 0; k--) {
+            if (weightedTypes[k] === randomType) {
+              weightedTypes.splice(k, 1);
+            }
+          }
+        }
       } else {
         // Remove this type from weightedTypes to avoid infinite loop
         weightedTypes.splice(randomIndex, 1);
@@ -236,6 +279,14 @@ export class MapManager {
 
     finalEventTypes.push(...remainingEvents);
 
+    console.log('=== Final Distribution ===');
+    const finalCounts: { [key: string]: number } = {};
+    finalEventTypes.forEach(type => {
+      finalCounts[type] = (finalCounts[type] || 0) + 1;
+    });
+    console.log('Final counts:', finalCounts);
+    console.log('Final array:', finalEventTypes);
+
     return finalEventTypes;
   }
 
@@ -243,107 +294,188 @@ export class MapManager {
     availableEvents: EventType[],
     branchCount: number,
     layer: number,
-    eventTypeConfig: any
+    eventTypeConfig: any,
+    usedEventCounts: { [key: string]: number }
   ): EventType[] {
+    console.log(
+      `Layer ${layer}: Selecting ${branchCount} events from available:`,
+      availableEvents
+    );
+
     const selectedTypes: EventType[] = [];
-    const usedTypesInLayer = new Set<EventType>();
 
-    // Create a copy of available events to avoid modifying the original
-    const eventPool = [...availableEvents];
-
+    // Simply take events from the distributed array in order
     for (let i = 0; i < branchCount; i++) {
       let selectedType: EventType = 'unknown';
-      let selectedIndex = -1;
+      let found = false;
 
-      // Phase 1: Try to find a unique event type (not used in this layer)
-      for (let j = 0; j < eventPool.length; j++) {
-        const candidateType = eventPool[j];
+      console.log(
+        `  Branch ${i}: Looking for event from available:`,
+        availableEvents
+      );
 
-        // Check if this is a minCount (priority) event
-        const isMinCountEvent = this.isMinCountEvent(
-          candidateType,
-          eventTypeConfig
-        );
-
-        // Check if this type is already used in current layer
-        const isDuplicateInLayer = usedTypesInLayer.has(candidateType);
+      // Look for a suitable event in the available events
+      for (let j = 0; j < availableEvents.length; j++) {
+        const candidateType = availableEvents[j];
 
         // Check if elite_monster is too close to start
-        const isEliteTooClose = candidateType === 'elite_monster' && layer <= 2;
-
-        // For layers with multiple nodes, strongly avoid duplicates unless it's a priority event
-        const shouldAvoidDuplicate =
-          isDuplicateInLayer && branchCount >= 2 && !isMinCountEvent;
-
-        // First priority: unique types that meet all constraints
-        if (!shouldAvoidDuplicate && !isEliteTooClose) {
-          selectedType = candidateType;
-          selectedIndex = j;
-          break;
-        }
-      }
-
-      // Phase 2: If no unique type found, try priority events even if duplicate
-      if (selectedIndex === -1) {
-        for (let j = 0; j < eventPool.length; j++) {
-          const candidateType = eventPool[j];
-          const isMinCountEvent = this.isMinCountEvent(
-            candidateType,
-            eventTypeConfig
+        if (candidateType === 'elite_monster' && layer <= 2) {
+          console.log(
+            `  Branch ${i}: Skipping ${candidateType} - too close to start`
           );
-          const isEliteTooClose =
-            candidateType === 'elite_monster' && layer <= 2;
-
-          // Allow priority events to be duplicated if necessary
-          if (isMinCountEvent && !isEliteTooClose) {
-            selectedType = candidateType;
-            selectedIndex = j;
-            break;
-          }
+          continue; // Skip this event for now
         }
+
+        // Found a suitable event
+        selectedType = candidateType;
+        availableEvents.splice(j, 1); // Remove it from the array
+        found = true;
+        console.log(`  Branch ${i}: Selected from array: ${selectedType}`);
+        break;
       }
 
-      // Phase 3: If still no suitable type, allow any non-elite type
-      if (selectedIndex === -1) {
-        for (let j = 0; j < eventPool.length; j++) {
-          const candidateType = eventPool[j];
-          const isEliteTooClose =
-            candidateType === 'elite_monster' && layer <= 2;
-
-          if (!isEliteTooClose) {
-            selectedType = candidateType;
-            selectedIndex = j;
-            break;
-          }
-        }
+      // If no suitable event found, take any event (including elite_monster if necessary)
+      if (!found && availableEvents.length > 0) {
+        selectedType = availableEvents.shift()!;
+        console.log(`  Branch ${i}: Force selected: ${selectedType}`);
       }
 
-      // Phase 4: Last resort - use any available type
-      if (selectedIndex === -1 && eventPool.length > 0) {
-        selectedType = eventPool[0];
-        selectedIndex = 0;
+      if (!found && availableEvents.length === 0) {
+        // Find an alternative that respects maxCount
+        selectedType = this.findAlternativeEvent(
+          eventTypeConfig,
+          usedEventCounts,
+          layer
+        );
+        console.log(
+          `  Branch ${i}: Array exhausted, using alternative: ${selectedType}`
+        );
       }
 
-      // Add the selected type to our tracking
-      usedTypesInLayer.add(selectedType);
       selectedTypes.push(selectedType);
+      // Update used count immediately
+      usedEventCounts[selectedType] = (usedEventCounts[selectedType] || 0) + 1;
+      console.log(
+        `  Branch ${i}: Final selection: ${selectedType}, new count: ${usedEventCounts[selectedType]}`
+      );
+    }
 
-      // Remove the selected event from the pool
-      if (selectedIndex >= 0) {
-        eventPool.splice(selectedIndex, 1);
+    // If we couldn't get enough events from the available array,
+    // we need to find alternatives that respect maxCount
+    console.log(
+      `Need ${branchCount} events, have ${selectedTypes.length}, finding alternatives...`
+    );
+    while (selectedTypes.length < branchCount) {
+      let foundAlternative = false;
+      console.log(
+        `Alternative search: need ${branchCount - selectedTypes.length} more events`
+      );
+
+      // Try to find an event type that hasn't reached its maxCount
+      for (const eventType of Object.keys(eventTypeConfig) as EventType[]) {
+        const config = eventTypeConfig[eventType];
+        const maxCount = config.maxCount || 999; // Default to high number if no maxCount
+        const currentUsed = usedEventCounts[eventType] || 0;
+
+        console.log(
+          `Checking ${eventType}: currentUsed=${currentUsed}, maxCount=${maxCount}`
+        );
+
+        if (currentUsed < maxCount) {
+          // Check if elite_monster is too close to start
+          if (eventType === 'elite_monster' && layer <= 2) {
+            console.log(
+              `Skipping ${eventType} - too close to start (layer ${layer})`
+            );
+            continue;
+          }
+
+          console.log(`Selected alternative: ${eventType}`);
+          selectedTypes.push(eventType);
+          // Update used count immediately
+          usedEventCounts[eventType] = (usedEventCounts[eventType] || 0) + 1;
+          foundAlternative = true;
+          break;
+        } else {
+          console.log(
+            `${eventType} has reached maxCount (${currentUsed}/${maxCount})`
+          );
+        }
       }
 
-      // If we run out of events but still need more, use 'unknown'
-      if (eventPool.length === 0 && i < branchCount - 1) {
-        // Fill remaining slots with 'unknown'
-        for (let k = i + 1; k < branchCount; k++) {
-          selectedTypes.push('unknown');
-        }
+      // If no alternative found, we're truly stuck - break to avoid infinite loop
+      if (!foundAlternative) {
+        console.warn(
+          `Could not find suitable events for layer ${layer}, needed ${branchCount}, got ${selectedTypes.length}`
+        );
         break;
       }
     }
 
+    console.log(`Layer ${layer} selected:`, selectedTypes);
+    console.log(`Remaining events after layer ${layer}:`, availableEvents);
+    console.log(`Current used counts:`, usedEventCounts);
+
     return selectedTypes;
+  }
+
+  private findAlternativeEvent(
+    eventTypeConfig: any,
+    usedEventCounts: { [key: string]: number },
+    layer: number
+  ): EventType {
+    // Build weighted array of available event types
+    const weightedTypes: EventType[] = [];
+
+    for (const eventType of Object.keys(eventTypeConfig) as EventType[]) {
+      const config = eventTypeConfig[eventType];
+      const maxCount = config.maxCount || 999;
+      const currentUsed = usedEventCounts[eventType] || 0;
+      const weight = config.weight || 0;
+
+      if (currentUsed < maxCount && weight > 0) {
+        // Check if elite_monster is too close to start
+        if (eventType === 'elite_monster' && layer <= 2) {
+          continue;
+        }
+
+        // Add to weighted array
+        for (let i = 0; i < weight; i++) {
+          weightedTypes.push(eventType as EventType);
+        }
+      }
+    }
+
+    // Select randomly from weighted array
+    if (weightedTypes.length > 0) {
+      const randomIndex = Math.floor(Math.random() * weightedTypes.length);
+      const selected = weightedTypes[randomIndex];
+      console.log(
+        `Alternative selection: ${selected} from ${weightedTypes.length} weighted options`
+      );
+      return selected;
+    }
+
+    // If no weighted options available, try any event type that hasn't reached maxCount
+    for (const eventType of Object.keys(eventTypeConfig) as EventType[]) {
+      const config = eventTypeConfig[eventType];
+      const maxCount = config.maxCount || 999;
+      const currentUsed = usedEventCounts[eventType] || 0;
+
+      if (currentUsed < maxCount) {
+        if (eventType === 'elite_monster' && layer <= 2) {
+          continue;
+        }
+        console.log(`Fallback selection: ${eventType} (no weight available)`);
+        return eventType as EventType;
+      }
+    }
+
+    // If all event types have reached maxCount, return 'unknown' as last resort
+    console.warn(
+      'All event types have reached maxCount, using unknown as fallback'
+    );
+    return 'unknown';
   }
 
   private isMinCountEvent(eventType: EventType, eventTypeConfig: any): boolean {
