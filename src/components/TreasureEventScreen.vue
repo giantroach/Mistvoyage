@@ -26,9 +26,6 @@
                   {{ relic.rarity }}
                 </span>
               </div>
-              <div class="relic-description">
-                {{ relic.description }}
-              </div>
               <div class="relic-effects">
                 <div
                   v-for="(effect, effectIndex) in relic.effects"
