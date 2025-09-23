@@ -263,23 +263,57 @@ export class BattleManager {
   ): void {
     const battleState = gameState.battleState!;
 
+    // Initialize monster weapon cooldowns if not exists
+    if (!battleState.weaponCooldowns) {
+      battleState.weaponCooldowns = {};
+    }
+    if (!battleState.weaponCooldowns.monsters) {
+      battleState.weaponCooldowns.monsters = {};
+    }
+
     battleState.monsters.forEach(monster => {
       if (monster.hp <= 0) return;
+
+      // Initialize cooldown tracking for this monster if not exists
+      if (!battleState.weaponCooldowns!.monsters![monster.id]) {
+        battleState.weaponCooldowns!.monsters![monster.id] = {};
+      }
 
       // Check each monster weapon
       monster.weapons.forEach(weaponId => {
         const weaponData = this.monstersData.monsterWeapons[weaponId];
         if (!weaponData) return;
 
-        // Simple cooldown check (monsters don't have complex weapon state tracking)
-        const shouldAttack = Math.random() < 0.05; // 5% chance per update cycle for slower combat
-        if (shouldAttack) {
+        const monsterCooldowns = battleState.weaponCooldowns!.monsters![monster.id];
+
+        // Initialize weapon cooldown if not exists
+        if (!monsterCooldowns[weaponId]) {
+          // Add random initial delay to prevent all monsters attacking at once
+          const randomDelay = Math.random() * weaponData.cooldown * 0.5; // 0-50% of cooldown
+          monsterCooldowns[weaponId] = {
+            lastUsed: currentTime - weaponData.cooldown + randomDelay,
+            cooldown: weaponData.cooldown,
+            isReady: false,
+            remainingTime: randomDelay
+          };
+        }
+
+        const weaponCooldown = monsterCooldowns[weaponId];
+        const timeSinceLastUse = currentTime - weaponCooldown.lastUsed;
+
+        // Check if weapon is off cooldown
+        if (timeSinceLastUse >= weaponData.cooldown) {
           this.executeMonsterAttack(
             gameState,
             monster,
             weaponData,
             currentTime
           );
+
+          // Update last used time
+          weaponCooldown.lastUsed = currentTime;
+          weaponCooldown.isReady = false;
+          weaponCooldown.remainingTime = weaponData.cooldown;
         }
       });
     });
