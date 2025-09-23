@@ -45,16 +45,57 @@ export class PortManager {
       return; // Already at full hull
     }
 
-    if (this.gameState.playerParameters.money < 10) {
+    const repairCost = this.getRepairCost();
+    if (this.gameState.playerParameters.money < repairCost) {
       return; // Not enough money
     }
 
     // Perform repair
-    this.gameState.playerParameters.money -= 10;
+    this.gameState.playerParameters.money -= repairCost;
     this.gameState.playerParameters.hull =
       this.gameState.playerParameters.ship.hullMax;
 
     this.updateDisplayCallback();
+  }
+
+  hireCrew(): boolean {
+    // Check if crew is already at max
+    if (
+      this.gameState.playerParameters.crew >=
+      this.gameState.playerParameters.ship.crewMax
+    ) {
+      return false; // Already at max crew
+    }
+
+    const hireCost = this.getCrewHireCost();
+    if (this.gameState.playerParameters.money < hireCost) {
+      return false; // Not enough money
+    }
+
+    // Hire crew member
+    this.gameState.playerParameters.money -= hireCost;
+    this.gameState.playerParameters.crew++;
+
+    this.updateDisplayCallback();
+    return true;
+  }
+
+  getRepairCost(): number {
+    if (!this.chaptersData) return 15; // Default cost
+
+    const chapterData = this.chaptersData.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    return chapterData?.portServices?.repairCost || 15;
+  }
+
+  getCrewHireCost(): number {
+    if (!this.chaptersData) return 30; // Default cost
+
+    const chapterData = this.chaptersData.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    return chapterData?.portServices?.crewHireCost || 30;
   }
 
   generatePortWeapons(): Weapon[] {

@@ -13,6 +13,7 @@
       <!-- Parameter Display Component -->
       <ParameterDisplay
         v-if="gameState"
+        :key="parameterDisplayKey"
         :player-params="gameState.playerParameters"
         :current-chapter="gameState.currentChapter"
         :events-completed="gameState.eventsCompleted"
@@ -52,7 +53,10 @@
           portView === 'main'
         "
         :player-params="gameState.playerParameters"
+        :repair-cost="getRepairCost()"
+        :crew-hire-cost="getCrewHireCost()"
         @repair-ship="handleRepairShip"
+        @hire-crew="handleHireCrew"
         @show-weapons="handleShowWeapons"
         @show-relics="handleShowRelics"
         @leave-port="handleLeavePort"
@@ -287,7 +291,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, watchEffect, nextTick } from 'vue';
+import { onMounted, ref, watch, watchEffect, nextTick, triggerRef } from 'vue';
 import { MistvoyageGame } from './game';
 import BattleScreen from './components/BattleScreen.vue';
 import BattleResultScreen from './components/BattleResultScreen.vue';
@@ -320,6 +324,7 @@ import type {
 
 let game: MistvoyageGame | null = null;
 const gameState = ref<GameState | null>(null);
+const parameterDisplayKey = ref<number>(0);
 
 // Port state management
 const portView = ref<'main' | 'weapons' | 'relics'>('main');
@@ -366,6 +371,8 @@ const getWeatherEffects = (weather: any) => {
 const updateGameState = () => {
   if (game) {
     const newState = game.getGameState();
+    const oldMoney = gameState.value?.playerParameters?.money;
+    const oldCrew = gameState.value?.playerParameters?.crew;
 
     // Deep clone the state but preserve Set objects
     const clonedState = JSON.parse(JSON.stringify(newState));
@@ -379,7 +386,27 @@ const updateGameState = () => {
       }
     }
 
-    gameState.value = clonedState;
+    // Force deep reactivity by creating completely new object
+    gameState.value = {
+      ...clonedState,
+      playerParameters: {
+        ...clonedState.playerParameters,
+        // Ensure all properties are fresh references
+        hull: clonedState.playerParameters.hull,
+        crew: clonedState.playerParameters.crew,
+        money: clonedState.playerParameters.money,
+        food: clonedState.playerParameters.food,
+        sight: clonedState.playerParameters.sight,
+        weapons: [...clonedState.playerParameters.weapons],
+        relics: [...clonedState.playerParameters.relics],
+        weather: { ...clonedState.playerParameters.weather },
+        ship: { ...clonedState.playerParameters.ship }
+      }
+    };
+
+    // Log if values changed
+    if (oldMoney !== gameState.value.playerParameters.money || oldCrew !== gameState.value.playerParameters.crew) {
+    }
   }
 };
 
@@ -405,10 +432,87 @@ const handleContinueBattle = async () => {
 };
 
 // Port event handlers
-const handleRepairShip = () => {
-  if (game && game.getPortManager()) {
-    game.getPortManager().repairShip();
-    updateGameState();
+const handleRepairShip = async () => {
+  if (game && game.getPortManager() && gameState.value) {
+    const portManager = game.getPortManager();
+    const playerParams = gameState.value.playerParameters;
+
+    // Check conditions directly in Vue
+    if (
+      playerParams.hull >= playerParams.ship.hullMax ||
+      playerParams.money < portManager.getRepairCost()
+    ) {
+      return;
+    }
+
+    const repairCost = portManager.getRepairCost();
+
+    // Create completely new gameState to trigger reactivity
+    gameState.value = {
+      ...gameState.value,
+      playerParameters: {
+        ...gameState.value.playerParameters,
+        money: gameState.value.playerParameters.money - repairCost,
+        hull: gameState.value.playerParameters.ship.hullMax,
+      }
+    };
+
+    // Also update the game engine state to keep them in sync
+    const engineState = game.getGameState();
+    engineState.playerParameters.money = gameState.value.playerParameters.money;
+    engineState.playerParameters.hull = gameState.value.playerParameters.hull;
+
+    // Mark port action time to prevent immediate overwrite
+    (window as any).setLastPortActionTime?.();
+
+    // Additional force update
+    await nextTick();
+    triggerRef(gameState);
+
+    // Force ParameterDisplay to re-render
+    parameterDisplayKey.value++;
+  }
+};
+
+const handleHireCrew = async () => {
+  if (game && game.getPortManager() && gameState.value) {
+    const portManager = game.getPortManager();
+    const playerParams = gameState.value.playerParameters;
+
+    // Check conditions directly in Vue
+    if (
+      playerParams.crew >= playerParams.ship.crewMax ||
+      playerParams.money < portManager.getCrewHireCost()
+    ) {
+      return;
+    }
+
+    const hireCost = portManager.getCrewHireCost();
+
+    // Create completely new gameState to trigger reactivity
+    gameState.value = {
+      ...gameState.value,
+      playerParameters: {
+        ...gameState.value.playerParameters,
+        money: gameState.value.playerParameters.money - hireCost,
+        crew: gameState.value.playerParameters.crew + 1,
+      }
+    };
+
+    // Also update the game engine state to keep them in sync
+    const engineState = game.getGameState();
+    engineState.playerParameters.money = gameState.value.playerParameters.money;
+    engineState.playerParameters.crew = gameState.value.playerParameters.crew;
+
+    // Mark port action time to prevent immediate overwrite
+    (window as any).setLastPortActionTime?.();
+
+    // Additional force update
+    await nextTick();
+    triggerRef(gameState);
+
+    // Force ParameterDisplay to re-render
+    parameterDisplayKey.value++;
   }
 };
 
@@ -703,8 +807,20 @@ onMounted(async () => {
   // Setup reactive state updates
   updateGameState();
 
-  // Set up periodic updates for reactive state
-  setInterval(updateGameState, 100);
+  // Set up selective periodic updates for reactive state
+  let lastPortActionTime = 0;
+  setInterval(() => {
+    // Skip updates for 2 seconds after port actions to prevent overwriting Vue changes
+    if (Date.now() - lastPortActionTime > 2000) {
+      updateGameState();
+    } else {
+    }
+  }, 100);
+
+  // Store reference to track port actions
+  (window as any).setLastPortActionTime = () => {
+    lastPortActionTime = Date.now();
+  };
 
   // Set up custom event listeners for legacy components
   document.addEventListener('show-weapon-detail', (event: any) => {
@@ -759,6 +875,19 @@ watchEffect(() => {
 
 // Watch portView changes
 watchEffect(() => {});
+
+// Helper functions to get port costs
+const getRepairCost = (): number => {
+  if (!game || !gameState.value) return 15;
+  const portManager = game.getPortManager();
+  return portManager ? portManager.getRepairCost() : 15;
+};
+
+const getCrewHireCost = (): number => {
+  if (!game || !gameState.value) return 30;
+  const portManager = game.getPortManager();
+  return portManager ? portManager.getCrewHireCost() : 30;
+};
 </script>
 
 <style>

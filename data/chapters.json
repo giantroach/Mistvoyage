@@ -31,18 +31,35 @@
             "legendary": 0
           }
         },
-        "temple": { "weight": 5, "fixedCount": 1 },
+        "temple": { "weight": 5, "fixedCount": 1, "maxCount": 2 },
         "unknown": {
           "weight": 8,
           "fixedCount": 0,
           "minCount": 1,
-          "maxCount": 2,
           "eventProbabilities": {
-            "treasure": 20,
+            "treasure": 10,
             "port": 20,
-            "temple": 20,
+            "temple": 10,
             "monster": 40
           }
+        }
+      },
+      "portServices": {
+        "repairCost": 15,
+        "crewHireCost": 30,
+        "weaponRarityWeights": {
+          "common": 60,
+          "uncommon": 30,
+          "rare": 8,
+          "epic": 2,
+          "legendary": 0
+        },
+        "relicRarityWeights": {
+          "common": 60,
+          "uncommon": 30,
+          "rare": 8,
+          "epic": 2,
+          "legendary": 0
         }
       },
       "encounters": [
@@ -119,6 +136,24 @@
             "temple": 20,
             "monster": 40
           }
+        }
+      },
+      "portServices": {
+        "repairCost": 20,
+        "crewHireCost": 40,
+        "weaponRarityWeights": {
+          "common": 45,
+          "uncommon": 35,
+          "rare": 15,
+          "epic": 4,
+          "legendary": 1
+        },
+        "relicRarityWeights": {
+          "common": 45,
+          "uncommon": 35,
+          "rare": 15,
+          "epic": 4,
+          "legendary": 1
         }
       },
       "encounters": [
@@ -211,6 +246,24 @@
             "temple": 20,
             "monster": 40
           }
+        }
+      },
+      "portServices": {
+        "repairCost": 25,
+        "crewHireCost": 50,
+        "weaponRarityWeights": {
+          "common": 30,
+          "uncommon": 35,
+          "rare": 25,
+          "epic": 8,
+          "legendary": 2
+        },
+        "relicRarityWeights": {
+          "common": 30,
+          "uncommon": 35,
+          "rare": 25,
+          "epic": 8,
+          "legendary": 2
         }
       },
       "encounters": [

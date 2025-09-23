@@ -2,27 +2,9 @@
   <div class="port-screen">
     <h3>港に到着</h3>
     <p>
-      賑やかな港に到着しました。ここでは船の修理、武器の購入、レリックの購入ができます。
+      賑やかな港に到着しました。ここでは船の修理、武器の購入、レリックの購入、乗組員の雇用ができます。
     </p>
 
-    <div class="port-status">
-      <p><strong>現在の資金:</strong> {{ playerParams.money }}金</p>
-      <p>
-        <strong>船体の状態:</strong> {{ playerParams.hull }}/{{
-          playerParams.ship.hullMax
-        }}
-      </p>
-      <p>
-        <strong>武器スロット:</strong> {{ playerParams.weapons.length }}/{{
-          playerParams.ship.weaponSlots
-        }}
-      </p>
-      <p>
-        <strong>保管庫:</strong> {{ playerParams.relics.length }}/{{
-          playerParams.maxStorage
-        }}
-      </p>
-    </div>
 
     <div class="port-actions">
       <button
@@ -30,7 +12,15 @@
         :disabled="!canRepair"
         @click="$emit('repair-ship')"
       >
-        🔧 船体を修復 (10金)
+        🔧 船体を修復 ({{ repairCost }}金)
+      </button>
+
+      <button
+        class="choice-btn hire-btn"
+        :disabled="!canHireCrew"
+        @click="$emit('hire-crew')"
+      >
+        👤 乗組員を雇う ({{ crewHireCost }}金)
       </button>
 
       <button class="choice-btn" @click="$emit('show-weapons')">
@@ -54,12 +44,15 @@ import type { PlayerParameters } from '@/types';
 
 interface Props {
   playerParams: PlayerParameters;
+  repairCost: number;
+  crewHireCost: number;
 }
 
 const props = defineProps<Props>();
 
 defineEmits<{
   'repair-ship': [];
+  'hire-crew': [];
   'show-weapons': [];
   'show-relics': [];
   'leave-port': [];
@@ -68,7 +61,14 @@ defineEmits<{
 const canRepair = computed(() => {
   return (
     props.playerParams.hull < props.playerParams.ship.hullMax &&
-    props.playerParams.money >= 10
+    props.playerParams.money >= props.repairCost
+  );
+});
+
+const canHireCrew = computed(() => {
+  return (
+    props.playerParams.crew < props.playerParams.ship.crewMax &&
+    props.playerParams.money >= props.crewHireCost
   );
 });
 </script>
@@ -78,24 +78,12 @@ const canRepair = computed(() => {
   padding: 1.5rem;
 }
 
-.port-status {
-  margin: 1.5rem 0;
-  padding: 1rem;
-  background-color: #2a2a2a;
-  border-radius: 8px;
-  border: 1px solid #444;
-}
-
-.port-status p {
-  margin: 0.5rem 0;
-  color: #ccc;
-}
 
 .port-actions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin: 2rem 0;
+  margin: 1rem 0;
 }
 
 .choice-btn {
@@ -119,8 +107,17 @@ const canRepair = computed(() => {
   cursor: not-allowed;
 }
 
-.repair-btn:disabled {
+.repair-btn:disabled,
+.hire-btn:disabled {
   opacity: 0.6;
+}
+
+.hire-btn {
+  background-color: #6a5a8c;
+}
+
+.hire-btn:hover:not(:disabled) {
+  background-color: #7a6a9c;
 }
 
 .leave-btn {
