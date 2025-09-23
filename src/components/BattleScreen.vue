@@ -126,6 +126,12 @@ const formattedBattleLog = computed(() => {
             : `${entry.damage}ダメージ`
           : 'ミス';
         content = `${actor}の${entry.weaponName}: ${result}`;
+
+        // Add crew loss information if present
+        if (entry.crewLoss && entry.crewLoss > 0) {
+          content += ` <span style="color: #ff9999; font-weight: bold;">(乗組員${entry.crewLoss}人が失われた!)</span>`;
+        }
+
         const backgroundColor =
           entry.actorType === 'player' ? '#2a4a2a' : '#4a2a2a'; // Green for player, red for enemy
         return `<p style="background-color: ${backgroundColor}; padding: 0.5rem; margin: 0.2rem 0; border-radius: 4px; border-left: 4px solid ${

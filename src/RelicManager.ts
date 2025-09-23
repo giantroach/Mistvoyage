@@ -300,6 +300,7 @@ export class RelicManager {
       sight_increase: '望遠鏡',
       crew_increase: '指揮旗',
       gold_bonus: '金貨',
+      crew_protection: '護符',
       berserker: '狂戦士の魂',
       weapon_relic: '武器',
     };
@@ -341,5 +342,24 @@ export class RelicManager {
 
   private randomBetween(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Get crew loss reduction percentage from equipped relics
+  getCrewLossReduction(relics?: Relic[]): number {
+    if (!relics || relics.length === 0) {
+      return 0;
+    }
+
+    let totalReduction = 0;
+    relics.forEach(relic => {
+      relic.effects.forEach(effect => {
+        if (effect.type === 'crew_protection') {
+          totalReduction += effect.value;
+        }
+      });
+    });
+
+    // Cap at 90% reduction
+    return Math.min(90, totalReduction);
   }
 }

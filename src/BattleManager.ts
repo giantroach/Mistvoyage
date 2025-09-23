@@ -371,6 +371,7 @@ export class BattleManager {
     const hit = Math.random() * 100 < finalAccuracy;
 
     let damage = 0;
+    let crewLoss = 0;
     if (hit) {
       damage = this.rollDamage(weapon.damage.min, weapon.damage.max);
 
@@ -384,6 +385,14 @@ export class BattleManager {
       }
 
       playerParams.hull = Math.max(0, playerParams.hull - damage);
+
+      // Check for crew loss
+      if (weapon.crewLoss) {
+        crewLoss = this.calculateCrewLoss(gameState, weapon.crewLoss);
+        if (crewLoss > 0) {
+          playerParams.crew = Math.max(0, playerParams.crew - crewLoss);
+        }
+      }
     }
 
     const action: BattleAction = {
@@ -395,6 +404,7 @@ export class BattleManager {
       damage,
       hit,
       timestamp: currentTime,
+      crewLoss,
     };
 
     if (weapon.effect) {
@@ -529,6 +539,32 @@ export class BattleManager {
     });
 
     return totalMultiplier;
+  }
+
+  private calculateCrewLoss(
+    gameState: GameState,
+    crewLossConfig: { chance: number; min: number; max: number }
+  ): number {
+    // Apply relic effects that reduce crew loss chance
+    const relicManager = gameState.playerParameters.relicManager;
+    let effectiveChance = crewLossConfig.chance;
+
+    if (relicManager) {
+      const crewLossReduction = relicManager.getCrewLossReduction(
+        gameState.playerParameters.relics
+      );
+      effectiveChance = Math.max(
+        0,
+        effectiveChance * (1 - crewLossReduction / 100)
+      );
+    }
+
+    // Roll for crew loss
+    if (Math.random() * 100 < effectiveChance) {
+      return this.rollDamage(crewLossConfig.min, crewLossConfig.max);
+    }
+
+    return 0;
   }
 
   private applyEffect(

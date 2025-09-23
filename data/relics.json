@@ -76,6 +76,17 @@
         "epic": { "min": 30, "max": 50 },
         "legendary": { "min": 40, "max": 60 }
       }
+    },
+    "crew_protection": {
+      "name": "乗組員保護",
+      "description": "モンスターの攻撃による乗組員損失の確率を{value}%低減する",
+      "rarityRanges": {
+        "common": { "min": 15, "max": 25 },
+        "uncommon": { "min": 20, "max": 35 },
+        "rare": { "min": 30, "max": 45 },
+        "epic": { "min": 40, "max": 60 },
+        "legendary": { "min": 50, "max": 75 }
+      }
     }
   },
   "legendaryEffects": {

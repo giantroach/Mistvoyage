@@ -251,6 +251,7 @@ export interface BattleAction {
   hit: boolean;
   critical?: boolean;
   effect?: string;
+  crewLoss?: number;
   timestamp: number;
 }
 
@@ -350,6 +351,7 @@ export interface PlayerParameters {
   relics: Relic[];
   weapons: Weapon[];
   maxStorage: number;
+  relicManager?: any; // Reference to RelicManager instance
 
   // Private parameters (internal only)
   speed: number;

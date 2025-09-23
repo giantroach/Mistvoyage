@@ -162,6 +162,7 @@ export class MistvoyageGame {
       relics: [],
       weapons: [defaultWeapon],
       maxStorage: defaultShip.storage,
+      relicManager: undefined, // Will be set during initialization
 
       // Private parameters
       speed: defaultShip.baseSpeed,
@@ -195,6 +196,9 @@ export class MistvoyageGame {
       await this.relicManager.initialize();
       await WeaponManager.initialize();
       this.weaponManager = WeaponManager.getInstance();
+
+      // Set relicManager reference in player parameters
+      this.gameState.playerParameters.relicManager = this.relicManager;
 
       // Initialize PortManager after WeaponManager is ready
       this.portManager = new PortManager(
