@@ -425,6 +425,15 @@ export class BattleManager {
         crewLoss = this.calculateCrewLoss(gameState, weapon.crewLoss);
         if (crewLoss > 0) {
           playerParams.crew = Math.max(0, playerParams.crew - crewLoss);
+
+          // Check for crew-based game over
+          if (playerParams.crew === 0) {
+            battleState.result = 'defeat';
+            battleState.isActive = false;
+            gameState.gamePhase = 'game_over';
+            gameState.gameOverReason = 'crew_lost';
+            return;
+          }
         }
       }
     }
@@ -684,6 +693,7 @@ export class BattleManager {
       // Defeat
       battleState.phase = 'defeat';
       gameState.gamePhase = 'game_over';
+      gameState.gameOverReason = 'ship_destroyed';
     }
 
     battleState.isActive = false;

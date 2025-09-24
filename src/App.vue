@@ -175,6 +175,8 @@
             gameState.gamePhase === 'victory')
         "
         :is-victory="gameState.gamePhase === 'victory'"
+        :crew-count="gameState ? gameState.playerParameters.crew : 0"
+        :game-over-reason="gameState ? gameState.gameOverReason : undefined"
         @restart="handleRestart"
       />
 

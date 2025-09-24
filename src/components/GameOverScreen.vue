@@ -5,6 +5,8 @@
         <h2 v-if="isVictory">🎉 勝利！</h2>
         <h2 v-else>💀 ゲームオーバー</h2>
         <p v-if="isVictory">すべてのチャプターを制覇しました！</p>
+        <p v-else-if="gameOverReason === 'crew_lost'">すべての乗組員が失われました...船を維持することができなくなりました。</p>
+        <p v-else-if="gameOverReason === 'ship_destroyed'">船が破壊されました...海の藻屑と化してしまいました。</p>
         <p v-else>あなたの冒険は終わりを告げました...</p>
       </div>
     </div>
@@ -20,6 +22,8 @@
 <script setup lang="ts">
 interface Props {
   isVictory: boolean;
+  crewCount?: number;
+  gameOverReason?: string;
 }
 
 const props = defineProps<Props>();

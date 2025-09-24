@@ -394,6 +394,7 @@ export interface GameState {
     context: 'shop' | 'treasure' | 'boss_reward';
     shopIndex?: number;
   } | null;
+  gameOverReason?: string;
 }
 
 export type GamePhase =

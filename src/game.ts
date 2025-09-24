@@ -363,6 +363,19 @@ export class MistvoyageGame {
       });
     }
 
+    const debugLoseCrew = document.getElementById('debug-lose-crew');
+    if (debugLoseCrew) {
+      debugLoseCrew.replaceWith(debugLoseCrew.cloneNode(true));
+      const newDebugLoseCrew = document.getElementById('debug-lose-crew');
+      newDebugLoseCrew?.addEventListener('click', () => {
+        this.gameState.playerParameters.crew = 0;
+        this.gameState.gamePhase = 'game_over';
+        this.gameState.gameOverReason = 'crew_lost';
+        this.updateDisplay();
+        this.showSaveStatus('乗組員全滅 - ゲームオーバー');
+      });
+    }
+
     // Weapons & Items
     const debugAddWeapon = document.getElementById('debug-add-weapon');
     const debugAddRelic = document.getElementById('debug-add-relic');
@@ -622,6 +635,12 @@ export class MistvoyageGame {
   // ==================== GAME FLOW METHODS ====================
 
   private updateDisplay(): void {
+    // Check for crew-based game over before updating display
+    if (this.gameState.playerParameters.crew === 0 && this.gameState.gamePhase !== 'game_over') {
+      this.gameState.gamePhase = 'game_over';
+      this.gameState.gameOverReason = 'crew_lost';
+    }
+
     this.updateParameterDisplay();
 
     // Update cooldown display during combat

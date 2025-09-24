@@ -12,6 +12,7 @@
           <button class="debug-btn" id="debug-gain-money">資金+1000</button>
           <button class="debug-btn" id="debug-heal">完全回復</button>
           <button class="debug-btn" id="debug-restore-food">食料満タン</button>
+          <button class="debug-btn danger" id="debug-lose-crew">乗組員全滅（ゲームオーバーテスト）</button>
         </div>
 
         <div class="debug-section">
@@ -190,6 +191,15 @@
 
 .debug-btn:hover {
   background-color: #5a8c69;
+}
+
+.debug-btn.danger {
+  background-color: #8b2635;
+  color: #ffcccb;
+}
+
+.debug-btn.danger:hover {
+  background-color: #a53144;
 }
 
 .debug-weapon-controls,
