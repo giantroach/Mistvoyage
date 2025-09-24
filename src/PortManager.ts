@@ -58,6 +58,18 @@ export class PortManager {
     this.updateDisplayCallback();
   }
 
+  buyFood(): void {
+    const foodCost = this.getFoodCost();
+    if (this.gameState.playerParameters.money < foodCost) {
+      return; // Not enough money
+    }
+
+    // Purchase 5 food units
+    this.gameState.playerParameters.money -= foodCost;
+    this.gameState.playerParameters.food += 5;
+    this.updateDisplayCallback();
+  }
+
   hireCrew(): boolean {
     // Check if crew is already at max
     if (
@@ -96,6 +108,15 @@ export class PortManager {
       c => c.id === this.gameState.currentChapter
     );
     return chapterData?.portServices?.crewHireCost || 30;
+  }
+
+  getFoodCost(): number {
+    if (!this.chaptersData) return 10; // Default cost
+
+    const chapterData = this.chaptersData.chapters.find(
+      c => c.id === this.gameState.currentChapter
+    );
+    return chapterData?.portServices?.foodCost || 10;
   }
 
   generatePortWeapons(): Weapon[] {

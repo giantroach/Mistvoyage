@@ -13,6 +13,7 @@
           <button class="debug-btn" id="debug-heal">完全回復</button>
           <button class="debug-btn" id="debug-restore-food">食料満タン</button>
           <button class="debug-btn danger" id="debug-lose-crew">乗組員全滅（ゲームオーバーテスト）</button>
+          <button class="debug-btn danger" id="debug-set-low-food">食料を0.5に設定（食料不足テスト）</button>
         </div>
 
         <div class="debug-section">

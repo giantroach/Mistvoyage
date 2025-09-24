@@ -55,8 +55,10 @@
         :player-params="gameState.playerParameters"
         :repair-cost="getRepairCost()"
         :crew-hire-cost="getCrewHireCost()"
+        :food-cost="getFoodCost()"
         @repair-ship="handleRepairShip"
         @hire-crew="handleHireCrew"
+        @buy-food="handleBuyFood"
         @show-weapons="handleShowWeapons"
         @show-relics="handleShowRelics"
         @leave-port="handleLeavePort"
@@ -889,6 +891,49 @@ const getCrewHireCost = (): number => {
   if (!game || !gameState.value) return 30;
   const portManager = game.getPortManager();
   return portManager ? portManager.getCrewHireCost() : 30;
+};
+
+const getFoodCost = (): number => {
+  if (!game || !gameState.value) return 10;
+  const portManager = game.getPortManager();
+  return portManager ? portManager.getFoodCost() : 10;
+};
+
+const handleBuyFood = async () => {
+  if (game && game.getPortManager() && gameState.value) {
+    const portManager = game.getPortManager();
+    const playerParams = gameState.value.playerParameters;
+
+    // Check if player has enough money
+    if (playerParams.money < portManager.getFoodCost()) {
+      return;
+    }
+
+    const foodCost = portManager.getFoodCost();
+
+    // Create completely new gameState to trigger reactivity
+    gameState.value = {
+      ...gameState.value,
+      playerParameters: {
+        ...gameState.value.playerParameters,
+        money: gameState.value.playerParameters.money - foodCost,
+        food: gameState.value.playerParameters.food + 5,
+      },
+    };
+
+    // Also update the game engine state to keep them in sync
+    const engineState = game.getGameState();
+    engineState.playerParameters.money = gameState.value.playerParameters.money;
+    engineState.playerParameters.food = gameState.value.playerParameters.food;
+    // Mark port action time to prevent immediate overwrite
+    (window as any).setLastPortActionTime?.();
+    // Additional force update
+    nextTick(() => {
+      if (game) {
+        game.updateDisplay();
+      }
+    });
+  }
 };
 </script>
 

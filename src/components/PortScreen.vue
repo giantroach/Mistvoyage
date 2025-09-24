@@ -23,6 +23,14 @@
         👤 乗組員を雇う ({{ crewHireCost }}金)
       </button>
 
+      <button
+        class="choice-btn food-btn"
+        :disabled="!canBuyFood"
+        @click="$emit('buy-food')"
+      >
+        🍞 食料を購入 ({{ foodCost }}金) +5食料
+      </button>
+
       <button class="choice-btn" @click="$emit('show-weapons')">
         ⚔️ 武器を購入
       </button>
@@ -46,6 +54,7 @@ interface Props {
   playerParams: PlayerParameters;
   repairCost: number;
   crewHireCost: number;
+  foodCost: number;
 }
 
 const props = defineProps<Props>();
@@ -53,6 +62,7 @@ const props = defineProps<Props>();
 defineEmits<{
   'repair-ship': [];
   'hire-crew': [];
+  'buy-food': [];
   'show-weapons': [];
   'show-relics': [];
   'leave-port': [];
@@ -70,6 +80,10 @@ const canHireCrew = computed(() => {
     props.playerParams.crew < props.playerParams.ship.crewMax &&
     props.playerParams.money >= props.crewHireCost
   );
+});
+
+const canBuyFood = computed(() => {
+  return props.playerParams.money >= props.foodCost;
 });
 </script>
 
@@ -108,7 +122,8 @@ const canHireCrew = computed(() => {
 }
 
 .repair-btn:disabled,
-.hire-btn:disabled {
+.hire-btn:disabled,
+.food-btn:disabled {
   opacity: 0.6;
 }
 
@@ -118,6 +133,14 @@ const canHireCrew = computed(() => {
 
 .hire-btn:hover:not(:disabled) {
   background-color: #7a6a9c;
+}
+
+.food-btn {
+  background-color: #5a7c4a;
+}
+
+.food-btn:hover:not(:disabled) {
+  background-color: #6a8c5a;
 }
 
 .leave-btn {

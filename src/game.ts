@@ -376,6 +376,17 @@ export class MistvoyageGame {
       });
     }
 
+    const debugSetLowFood = document.getElementById('debug-set-low-food');
+    if (debugSetLowFood) {
+      debugSetLowFood.replaceWith(debugSetLowFood.cloneNode(true));
+      const newDebugSetLowFood = document.getElementById('debug-set-low-food');
+      newDebugSetLowFood?.addEventListener('click', () => {
+        this.gameState.playerParameters.food = 0.5;
+        this.updateDisplay();
+        this.showSaveStatus('食料を0.5に設定しました（移動で食料不足発生）');
+      });
+    }
+
     // Weapons & Items
     const debugAddWeapon = document.getElementById('debug-add-weapon');
     const debugAddRelic = document.getElementById('debug-add-relic');
@@ -869,6 +880,9 @@ export class MistvoyageGame {
     );
 
     if (success) {
+      // Process food consumption before other effects
+      this.processFoodConsumption();
+
       // Progress weather when moving to a new node
       this.gameState.playerParameters.weather =
         this.weatherManager.progressWeather(
@@ -1397,6 +1411,51 @@ export class MistvoyageGame {
 
   private showError(message: string): void {
     this.displayManager.showError(message);
+  }
+
+  private processFoodConsumption(): void {
+    const crew = this.gameState.playerParameters.crew;
+    const requiredFood = Math.round((crew * 0.1 + 0.5) * 10) / 10; // Round to 1 decimal place
+
+    if (this.gameState.playerParameters.food >= requiredFood) {
+      // Sufficient food - consume normally
+      this.gameState.playerParameters.food -= requiredFood;
+      this.gameState.playerParameters.food = Math.round(this.gameState.playerParameters.food * 10) / 10;
+    } else {
+      // Insufficient food - risk crew loss
+      const shortfall = requiredFood - this.gameState.playerParameters.food;
+      const crewLossChance = shortfall * 10; // 10% per missing food unit
+
+      // Consume all remaining food
+      this.gameState.playerParameters.food = 0;
+
+      // Check for crew loss
+      if (Math.random() * 100 < crewLossChance && crew > 0) {
+        this.gameState.playerParameters.crew--;
+
+        // Show crew loss notification
+        this.showCrewLossModal(shortfall, crewLossChance);
+
+        // Check for game over due to crew loss
+        if (this.gameState.playerParameters.crew === 0) {
+          this.gameState.gamePhase = 'game_over';
+          this.gameState.gameOverReason = 'crew_lost';
+          return;
+        }
+      }
+    }
+  }
+
+  private showCrewLossModal(shortfall: number, chance: number): void {
+    const message = `食料不足により乗組員を1人失いました。\n不足した食料: ${shortfall.toFixed(1)}\n乗組員損失確率: ${chance.toFixed(1)}%`;
+
+    // Use Vue status display if available
+    if ((window as any).gameInstance?.showVueStatus) {
+      (window as any).gameInstance.showVueStatus(message, true);
+    } else {
+      // Fallback to DisplayManager
+      this.displayManager.showSaveStatus(message, true);
+    }
   }
 
   // Public getters

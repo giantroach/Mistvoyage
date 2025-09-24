@@ -46,6 +46,7 @@
       },
       "portServices": {
         "repairCost": 15,
+        "foodCost": 10,
         "crewHireCost": 30,
         "weaponRarityWeights": {
           "common": 60,
@@ -140,6 +141,7 @@
       },
       "portServices": {
         "repairCost": 20,
+        "foodCost": 15,
         "crewHireCost": 40,
         "weaponRarityWeights": {
           "common": 45,
@@ -250,6 +252,7 @@
       },
       "portServices": {
         "repairCost": 25,
+        "foodCost": 20,
         "crewHireCost": 50,
         "weaponRarityWeights": {
           "common": 30,
