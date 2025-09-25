@@ -404,12 +404,15 @@ const updateGameState = () => {
         weapons: [...clonedState.playerParameters.weapons],
         relics: [...clonedState.playerParameters.relics],
         weather: { ...clonedState.playerParameters.weather },
-        ship: { ...clonedState.playerParameters.ship }
-      }
+        ship: { ...clonedState.playerParameters.ship },
+      },
     };
 
     // Log if values changed
-    if (oldMoney !== gameState.value.playerParameters.money || oldCrew !== gameState.value.playerParameters.crew) {
+    if (
+      oldMoney !== gameState.value.playerParameters.money ||
+      oldCrew !== gameState.value.playerParameters.crew
+    ) {
     }
   }
 };
@@ -458,7 +461,7 @@ const handleRepairShip = async () => {
         ...gameState.value.playerParameters,
         money: gameState.value.playerParameters.money - repairCost,
         hull: gameState.value.playerParameters.ship.hullMax,
-      }
+      },
     };
 
     // Also update the game engine state to keep them in sync
@@ -500,7 +503,7 @@ const handleHireCrew = async () => {
         ...gameState.value.playerParameters,
         money: gameState.value.playerParameters.money - hireCost,
         crew: gameState.value.playerParameters.crew + 1,
-      }
+      },
     };
 
     // Also update the game engine state to keep them in sync

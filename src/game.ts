@@ -647,7 +647,10 @@ export class MistvoyageGame {
 
   private updateDisplay(): void {
     // Check for crew-based game over before updating display
-    if (this.gameState.playerParameters.crew === 0 && this.gameState.gamePhase !== 'game_over') {
+    if (
+      this.gameState.playerParameters.crew === 0 &&
+      this.gameState.gamePhase !== 'game_over'
+    ) {
       this.gameState.gamePhase = 'game_over';
       this.gameState.gameOverReason = 'crew_lost';
     }
@@ -1420,7 +1423,8 @@ export class MistvoyageGame {
     if (this.gameState.playerParameters.food >= requiredFood) {
       // Sufficient food - consume normally
       this.gameState.playerParameters.food -= requiredFood;
-      this.gameState.playerParameters.food = Math.round(this.gameState.playerParameters.food * 10) / 10;
+      this.gameState.playerParameters.food =
+        Math.round(this.gameState.playerParameters.food * 10) / 10;
     } else {
       // Insufficient food - risk crew loss
       const shortfall = requiredFood - this.gameState.playerParameters.food;

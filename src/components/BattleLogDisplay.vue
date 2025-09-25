@@ -36,7 +36,8 @@ const formattedBattleLog = computed(() => {
         // This is a BattleAction entry
         const battleAction = entry as any; // Cast to access all BattleAction properties
         timePrefix = formatElapsedTime(battleAction.timestamp);
-        const actor = battleAction.actorType === 'player' ? 'あなた' : battleAction.actorId;
+        const actor =
+          battleAction.actorType === 'player' ? 'あなた' : battleAction.actorId;
         const result = battleAction.hit
           ? battleAction.critical
             ? `${battleAction.damage}ダメージ (クリティカル!)`

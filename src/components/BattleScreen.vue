@@ -98,7 +98,6 @@ const playerWeaponCooldowns = computed(() => {
   });
 });
 
-
 const turnStatus = computed(() => {
   return props.battleState.playerTurn ? 'あなたの番' : '敵の番';
 });
@@ -180,7 +179,6 @@ const statusColor = computed(() => {
   border-radius: 8px;
   border: 1px solid #444;
 }
-
 
 .turn-info {
   text-align: center;

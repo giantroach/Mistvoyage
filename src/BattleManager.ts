@@ -284,7 +284,8 @@ export class BattleManager {
         const weaponData = this.monstersData.monsterWeapons[weaponId];
         if (!weaponData) return;
 
-        const monsterCooldowns = battleState.weaponCooldowns!.monsters![monster.id];
+        const monsterCooldowns =
+          battleState.weaponCooldowns!.monsters![monster.id];
 
         // Initialize weapon cooldown if not exists
         if (!monsterCooldowns[weaponId]) {
@@ -294,7 +295,7 @@ export class BattleManager {
             lastUsed: currentTime - weaponData.cooldown + randomDelay,
             cooldown: weaponData.cooldown,
             isReady: false,
-            remainingTime: randomDelay
+            remainingTime: randomDelay,
           };
         }
 

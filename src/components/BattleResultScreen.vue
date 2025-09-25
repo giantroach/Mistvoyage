@@ -59,7 +59,6 @@ const goldReward = computed(() => {
   }
   return totalGold;
 });
-
 </script>
 
 <style scoped>
@@ -86,7 +85,6 @@ const goldReward = computed(() => {
   border-bottom: 1px solid #444;
   padding-bottom: 0.5rem;
 }
-
 
 ul {
   list-style: none;

@@ -5,7 +5,6 @@
       賑やかな港に到着しました。ここでは船の修理、武器の購入、レリックの購入、乗組員の雇用ができます。
     </p>
 
-
     <div class="port-actions">
       <button
         class="choice-btn repair-btn"
@@ -91,7 +90,6 @@ const canBuyFood = computed(() => {
 .port-screen {
   padding: 1.5rem;
 }
-
 
 .port-actions {
   display: flex;

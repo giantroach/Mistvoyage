@@ -26,6 +26,10 @@
             <span class="stat-value">{{ cooldownText }}</span>
           </div>
           <div class="stat-row">
+            <span class="stat-label">武器タイプ:</span>
+            <span class="stat-value">{{ weapon.weaponType }}</span>
+          </div>
+          <div class="stat-row">
             <span class="stat-label">クリティカル率:</span>
             <span class="stat-value">{{ weapon.critRate }}%</span>
           </div>
