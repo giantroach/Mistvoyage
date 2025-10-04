@@ -36,8 +36,16 @@ const formattedBattleLog = computed(() => {
         // This is a BattleAction entry
         const battleAction = entry as any; // Cast to access all BattleAction properties
         timePrefix = formatElapsedTime(battleAction.timestamp);
-        const actor =
-          battleAction.actorType === 'player' ? 'あなた' : battleAction.actorId;
+
+        // Get actor name - for monsters, look up the name from battleState
+        let actor = 'あなた';
+        if (battleAction.actorType !== 'player') {
+          const monster = props.battleState.monsters.find(
+            m => m.id === battleAction.actorId
+          );
+          actor = monster ? monster.name : battleAction.actorId;
+        }
+
         const result = battleAction.hit
           ? battleAction.critical
             ? `${battleAction.damage}ダメージ (クリティカル!)`
