@@ -299,7 +299,8 @@ header h1 {
   line-height: 1.2;
 }
 
-.parameter-group span {
+/* Only apply text overflow to direct child spans that are NOT param-item */
+.parameter-group > span:not(#hull-display):not(#food-display):not(#money-display):not(#crew-display):not(#sight-display):not(#weather-display):not(#weapon-slots-display):not(#storage-display) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -1382,6 +1382,13 @@ export class MistvoyageGame {
   // ==================== PARAMETER DISPLAY ====================
 
   private updateParameterDisplay(): void {
+    // DisplayManager no longer does direct DOM manipulation
+    // Instead, trigger Vue's reactive state update
+    if ((window as any).gameInstance?.updateVueGameState) {
+      (window as any).gameInstance.updateVueGameState();
+    }
+
+    // Keep legacy method call for backwards compatibility (it's now a no-op)
     this.displayManager.updateParameterDisplay(
       this.gameState,
       this.gameData,

@@ -1,41 +1,53 @@
 <template>
   <div id="parameters-display">
     <div class="parameter-group primary">
-      <span id="hull-display">
+      <span id="hull-display" class="param-item">
         <Ship :size="16" class="param-icon" />
-        船体: {{ playerParams.hull }}/{{ playerParams.ship.hullMax }}
+        <span class="param-text"
+          >船体: {{ playerParams.hull }}/{{ playerParams.ship.hullMax }}</span
+        >
       </span>
-      <span id="food-display">
+      <span id="food-display" class="param-item">
         <Package :size="16" class="param-icon" />
-        食料: {{ playerParams.food }}
+        <span class="param-text">食料: {{ playerParams.food }}</span>
       </span>
-      <span id="money-display">
+      <span id="money-display" class="param-item">
         <Coins :size="16" class="param-icon" />
-        資金: {{ playerParams.money }}
+        <span class="param-text">資金: {{ playerParams.money }}</span>
       </span>
-      <span id="crew-display">
+      <span id="crew-display" class="param-item">
         <Ship :size="16" class="param-icon" />
-        乗組員: {{ playerParams.crew }}/{{ playerParams.ship.crewMax }}
+        <span class="param-text"
+          >乗組員: {{ playerParams.crew }}/{{ playerParams.ship.crewMax }}</span
+        >
       </span>
     </div>
     <div class="parameter-group secondary">
-      <span id="sight-display">
+      <span id="sight-display" class="param-item">
         <Eye :size="16" class="param-icon" />
-        視界: {{ playerParams.sight }}
+        <span class="param-text">視界: {{ playerParams.sight }}</span>
       </span>
-      <span id="weather-display">
+      <span id="weather-display" class="param-item">
         <CloudRain :size="16" class="param-icon" />
-        天候: {{ playerParams.weather.displayName }}
+        <span class="param-text"
+          >天候: {{ playerParams.weather.displayName }}</span
+        >
       </span>
-      <span id="weapon-slots-display">
+      <span id="weapon-slots-display" class="param-item">
         <Sword :size="16" class="param-icon" />
-        武器スロット: {{ playerParams.weapons.length }}/{{
-          playerParams.ship.weaponSlots
-        }}
+        <span class="param-text"
+          >武器スロット: {{ playerParams.weapons.length }}/{{
+            playerParams.ship.weaponSlots
+          }}</span
+        >
       </span>
-      <span id="storage-display">
+      <span id="storage-display" class="param-item">
         <Package :size="16" class="param-icon" />
-        保管庫: {{ playerParams.relics.length }}/{{ playerParams.maxStorage }}
+        <span class="param-text"
+          >保管庫: {{ playerParams.relics.length }}/{{
+            playerParams.maxStorage
+          }}</span
+        >
       </span>
     </div>
     <div class="parameter-group equipment">
@@ -153,26 +165,34 @@ onUpdated(() => {
 });
 </script>
 
-<style scoped>
-.parameter-group {
-  display: flex;
-  gap: 0.2rem;
-  margin: 0.2rem 0;
+<style>
+/* Parameter icon styles - must be global to work with lucide-vue-next */
+#parameters-display .param-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.param-icon {
-  vertical-align: middle;
-  margin-right: 4px;
-  display: inline-block;
+#parameters-display .param-icon {
+  flex-shrink: 0;
+  display: block;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  min-height: 16px;
 }
 
-.param-icon-container {
+#parameters-display .param-text {
+  white-space: nowrap;
+}
+
+#parameters-display .param-icon-container {
   display: inline-flex;
   align-items: center;
 }
 
-.clickable-weapon,
-.clickable-relic {
+#parameters-display .clickable-weapon,
+#parameters-display .clickable-relic {
   cursor: pointer;
   color: #66ccff;
   text-decoration: underline;
@@ -180,8 +200,8 @@ onUpdated(() => {
   align-items: center;
 }
 
-.clickable-weapon:hover,
-.clickable-relic:hover {
+#parameters-display .clickable-weapon:hover,
+#parameters-display .clickable-relic:hover {
   color: #99ddff;
 }
 </style>

@@ -19,143 +19,26 @@ export class DisplayManager {
     gameData: GameData | null,
     chaptersData?: ChaptersData | null
   ): void {
-    const params = gameState.playerParameters;
+    // Vue components handle all parameter display now through reactive state
+    // No direct DOM manipulation needed - Vue will automatically update the display
+    // when gameState changes in App.vue
 
-    // Vue components handle parameter display now
-    // Only update legacy DOM elements if they exist (for backwards compatibility)
-    this.updateParameterElement(
-      'hull-display',
-      `船体: ${params.hull}/${params.ship.hullMax}`
-    );
-    this.updateParameterElement('food-display', `食料: ${params.food}`);
-    this.updateParameterElement('money-display', `資金: ${params.money}`);
-    this.updateParameterElement(
-      'crew-display',
-      `乗組員: ${params.crew}/${params.ship.crewMax}`
-    );
-    this.updateParameterElement('sight-display', `視界: ${params.sight}`);
-    this.updateParameterElement(
-      'weather-display',
-      `天候: ${params.weather.displayName}`
-    );
-    this.updateParameterElement(
-      'storage-display',
-      `保管庫: ${params.relics.length}/${params.maxStorage}`
-    );
-    // Update weapons with clickable links
-    this.updateWeaponsDisplay(params.weapons);
-
-    // Update relics with clickable links
-    this.updateRelicsDisplay(params.relics);
-
-    // Update game progress
-    const chapter = chaptersData?.chapters.find(
-      c => c.id === gameState.currentChapter
-    );
-    if (chapter) {
-      this.updateParameterElement(
-        'chapter-display',
-        `チャプター: ${gameState.currentChapter} - ${chapter.name}`
-      );
-      this.updateParameterElement(
-        'progress-display',
-        `進行: ${gameState.eventsCompleted}/${chapter.requiredEvents}`
-      );
-    }
+    // Note: This method is kept for backwards compatibility but does nothing
+    // All updates are handled by Vue's reactivity system in ParameterDisplay.vue
   }
 
+  // Legacy methods kept for backwards compatibility but no longer used
+  // All parameter display is now handled by Vue components (ParameterDisplay.vue)
   private updateParameterElement(id: string, text: string): void {
-    const element = document.getElementById(id);
-    if (element) {
-      element.textContent = text;
-    }
+    // No-op: Vue handles this now
   }
 
   private updateWeaponsDisplay(weapons: any[]): void {
-    const element = document.getElementById('weapons-display');
-    if (element) {
-      if (weapons.length === 0) {
-        element.innerHTML = '武器: なし';
-        return;
-      }
-
-      const weaponElements = weapons
-        .map(
-          weapon =>
-            `<span class="clickable-weapon" data-weapon-id="${weapon.id}" title="${weapon.description}">⚔️ ${weapon.name}</span>`
-        )
-        .join(', ');
-
-      element.innerHTML = `武器: ${weaponElements}`;
-
-      // Use event delegation - set up listener once per element
-      if (!element.hasAttribute('data-listener-attached')) {
-        element.setAttribute('data-listener-attached', 'true');
-        element.addEventListener('click', e => {
-          const target = e.target as HTMLElement;
-          if (target.classList.contains('clickable-weapon')) {
-            const weaponId = target.getAttribute('data-weapon-id');
-            // Get current weapons from gameInstance instead of closure
-            const gameInstance = (window as any).gameInstance;
-            if (gameInstance && gameInstance.gameState) {
-              const weapon =
-                gameInstance.gameState.playerParameters.weapons.find(
-                  (w: any) => w.id === weaponId
-                );
-              if (weapon) {
-                const event = new CustomEvent('show-weapon-detail', {
-                  detail: weapon,
-                });
-                document.dispatchEvent(event);
-              }
-            }
-          }
-        });
-      }
-    }
+    // No-op: Vue handles this in ParameterDisplay.vue (weaponsDisplay computed property)
   }
 
   private updateRelicsDisplay(relics: any[]): void {
-    const element = document.getElementById('relics-display');
-    if (element) {
-      if (relics.length === 0) {
-        element.innerHTML = 'レリック: なし';
-        return;
-      }
-
-      const relicElements = relics
-        .map(
-          relic =>
-            `<span class="clickable-relic" data-relic-id="${relic.id}" title="${relic.description}">🏺 ${relic.name}</span>`
-        )
-        .join(', ');
-
-      element.innerHTML = `レリック: ${relicElements}`;
-
-      // Use event delegation - set up listener once per element
-      if (!element.hasAttribute('data-listener-attached')) {
-        element.setAttribute('data-listener-attached', 'true');
-        element.addEventListener('click', e => {
-          const target = e.target as HTMLElement;
-          if (target.classList.contains('clickable-relic')) {
-            const relicId = target.getAttribute('data-relic-id');
-            // Get current relics from gameInstance instead of closure
-            const gameInstance = (window as any).gameInstance;
-            if (gameInstance && gameInstance.gameState) {
-              const relic = gameInstance.gameState.playerParameters.relics.find(
-                (r: any) => r.id === relicId
-              );
-              if (relic) {
-                const event = new CustomEvent('show-relic-detail', {
-                  detail: relic,
-                });
-                document.dispatchEvent(event);
-              }
-            }
-          }
-        });
-      }
-    }
+    // No-op: Vue handles this in ParameterDisplay.vue (relicsDisplay computed property)
   }
 
   generateMapDisplay(gameState: GameState, sightRange: number): string {

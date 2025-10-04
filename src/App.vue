@@ -870,6 +870,7 @@ onMounted(async () => {
 
   // Add Vue-specific methods to game instance
   (window as any).gameInstance.showVueStatus = showSaveStatus;
+  (window as any).gameInstance.updateVueGameState = updateGameState;
 
   // Setup reactive state updates
   updateGameState();
