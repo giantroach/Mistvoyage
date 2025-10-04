@@ -362,4 +362,79 @@ export class RelicManager {
     // Cap at 90% reduction
     return Math.min(90, totalReduction);
   }
+
+  // Remove relic effects from player parameters
+  removeRelicEffects(playerParams: any, relic: Relic): void {
+    relic.effects.forEach(effect => {
+      switch (effect.type) {
+        case 'hull_increase':
+          // Reduce current hull proportionally, but don't go below 1
+          const hullRatio = playerParams.hull / playerParams.maxHull;
+          playerParams.maxHull = Math.max(
+            1,
+            playerParams.maxHull - effect.value
+          );
+          playerParams.ship.hullMax = Math.max(
+            1,
+            playerParams.ship.hullMax - effect.value
+          );
+          playerParams.hull = Math.max(
+            1,
+            Math.floor(playerParams.maxHull * hullRatio)
+          );
+          break;
+        case 'speed_increase':
+          playerParams.speed = Math.max(0, playerParams.speed - effect.value);
+          break;
+        case 'sight_increase':
+          playerParams.sight = Math.max(0, playerParams.sight - effect.value);
+          break;
+        case 'crew_increase':
+          // Reduce crew max, and reduce current crew if it exceeds the new max
+          playerParams.ship.crewMax = Math.max(
+            1,
+            playerParams.ship.crewMax - effect.value
+          );
+          playerParams.crew = Math.min(
+            playerParams.crew,
+            playerParams.ship.crewMax
+          );
+          break;
+        case 'weapon_slot_increase':
+          playerParams.ship.weaponSlots = Math.max(
+            1,
+            playerParams.ship.weaponSlots - effect.value
+          );
+          // If current weapons exceed the new limit, we keep them but the user can't add more
+          break;
+        case 'weapon_relic':
+          // Remove the weapon if it exists
+          if (effect.weapon) {
+            const weaponIndex = playerParams.weapons.findIndex(
+              (w: any) => w.id === effect.weapon!.id
+            );
+            if (weaponIndex !== -1) {
+              playerParams.weapons.splice(weaponIndex, 1);
+            }
+          }
+          break;
+        case 'storage_increase':
+          playerParams.maxStorage = Math.max(
+            1,
+            playerParams.maxStorage - effect.value
+          );
+          // If current relics exceed the new limit, we keep them but the user can't add more
+          break;
+        case 'gold_bonus':
+          // This effect is passive and doesn't need removal
+          break;
+        case 'crew_protection':
+          // This effect is passive and doesn't need removal
+          break;
+        case 'berserker':
+          // This effect is applied during battle, doesn't need removal here
+          break;
+      }
+    });
+  }
 }

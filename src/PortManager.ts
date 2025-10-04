@@ -197,6 +197,50 @@ export class PortManager {
     return true;
   }
 
+  sellWeapon(index: number): boolean {
+    const weapons = this.gameState.playerParameters.weapons;
+    if (index < 0 || index >= weapons.length) {
+      return false; // Invalid index
+    }
+
+    const weapon = weapons[index];
+    const sellPrice = Math.floor((weapon.price || 0) / 2);
+
+    // Remove weapon from inventory
+    this.gameState.playerParameters.weapons.splice(index, 1);
+
+    // Add money
+    this.gameState.playerParameters.money += sellPrice;
+
+    this.updateDisplayCallback();
+    return true;
+  }
+
+  sellRelic(index: number): boolean {
+    const relics = this.gameState.playerParameters.relics;
+    if (index < 0 || index >= relics.length) {
+      return false; // Invalid index
+    }
+
+    const relic = relics[index];
+    const sellPrice = Math.floor((relic.price || 0) / 2);
+
+    // Remove relic effects before selling
+    this.relicManager.removeRelicEffects(
+      this.gameState.playerParameters,
+      relic
+    );
+
+    // Remove relic from inventory
+    this.gameState.playerParameters.relics.splice(index, 1);
+
+    // Add money
+    this.gameState.playerParameters.money += sellPrice;
+
+    this.updateDisplayCallback();
+    return true;
+  }
+
   leavePort(): void {
     // Complete the port event
     this.gameState.eventsCompleted++;

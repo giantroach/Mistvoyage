@@ -2,7 +2,7 @@
   <div class="port-screen">
     <h3>港に到着</h3>
     <p>
-      賑やかな港に到着しました。ここでは船の修理、武器の購入、レリックの購入、乗組員の雇用ができます。
+      賑やかな港に到着しました。ここでは船の修理、武器の購入・売却、レリックの購入・売却、乗組員の雇用ができます。
     </p>
 
     <div class="port-actions">
@@ -38,6 +38,22 @@
         🏺 レリックを購入
       </button>
 
+      <button
+        class="choice-btn sell-btn"
+        :disabled="!canSellWeapons"
+        @click="$emit('sell-weapons')"
+      >
+        💰 武器を売却
+      </button>
+
+      <button
+        class="choice-btn sell-btn"
+        :disabled="!canSellRelics"
+        @click="$emit('sell-relics')"
+      >
+        💎 レリックを売却
+      </button>
+
       <button class="choice-btn leave-btn" @click="$emit('leave-port')">
         ⛵ 港を出発する
       </button>
@@ -64,6 +80,8 @@ defineEmits<{
   'buy-food': [];
   'show-weapons': [];
   'show-relics': [];
+  'sell-weapons': [];
+  'sell-relics': [];
   'leave-port': [];
 }>();
 
@@ -83,6 +101,14 @@ const canHireCrew = computed(() => {
 
 const canBuyFood = computed(() => {
   return props.playerParams.money >= props.foodCost;
+});
+
+const canSellWeapons = computed(() => {
+  return props.playerParams.weapons.length > 0;
+});
+
+const canSellRelics = computed(() => {
+  return props.playerParams.relics.length > 0;
 });
 </script>
 
@@ -139,6 +165,14 @@ const canBuyFood = computed(() => {
 
 .food-btn:hover:not(:disabled) {
   background-color: #6a8c5a;
+}
+
+.sell-btn {
+  background-color: #7c6a4a;
+}
+
+.sell-btn:hover:not(:disabled) {
+  background-color: #8c7a5a;
 }
 
 .leave-btn {

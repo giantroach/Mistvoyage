@@ -61,6 +61,8 @@
         @buy-food="handleBuyFood"
         @show-weapons="handleShowWeapons"
         @show-relics="handleShowRelics"
+        @sell-weapons="handleShowSellWeapons"
+        @sell-relics="handleShowSellRelics"
         @leave-port="handleLeavePort"
       />
 
@@ -88,6 +90,30 @@
         :relics="portRelics"
         @purchase-relic="handlePurchaseRelic"
         @back-to-port="handleBackToPort"
+      />
+
+      <WeaponSell
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'port' &&
+          portView === 'sell-weapons'
+        "
+        :player-weapons="gameState.playerParameters.weapons"
+        @sell-weapon="handleSellWeapon"
+        @back="handleBackToPort"
+      />
+
+      <RelicSell
+        v-else-if="
+          gameState &&
+          gameState.gamePhase === 'event' &&
+          getCurrentNode(gameState)?.eventType === 'port' &&
+          portView === 'sell-relics'
+        "
+        :player-relics="gameState.playerParameters.relics"
+        @sell-relic="handleSellRelic"
+        @back="handleBackToPort"
       />
 
       <!-- Temple Screen -->
@@ -302,6 +328,8 @@ import BattleResultScreen from './components/BattleResultScreen.vue';
 import PortScreen from './components/PortScreen.vue';
 import WeaponShop from './components/WeaponShop.vue';
 import RelicShop from './components/RelicShop.vue';
+import WeaponSell from './components/WeaponSell.vue';
+import RelicSell from './components/RelicSell.vue';
 import TempleScreen from './components/TempleScreen.vue';
 import ParameterDisplay from './components/ParameterDisplay.vue';
 import MapDisplay from './components/MapDisplay.vue';
@@ -331,7 +359,9 @@ const gameState = ref<GameState | null>(null);
 const parameterDisplayKey = ref<number>(0);
 
 // Port state management
-const portView = ref<'main' | 'weapons' | 'relics'>('main');
+const portView = ref<
+  'main' | 'weapons' | 'relics' | 'sell-weapons' | 'sell-relics'
+>('main');
 const portWeapons = ref<Weapon[]>([]);
 const portRelics = ref<Relic[]>([]);
 
@@ -559,6 +589,36 @@ const handlePurchaseRelic = (index: number) => {
 
 const handleBackToPort = () => {
   portView.value = 'main';
+};
+
+const handleShowSellWeapons = () => {
+  portView.value = 'sell-weapons';
+};
+
+const handleShowSellRelics = () => {
+  portView.value = 'sell-relics';
+};
+
+const handleSellWeapon = (index: number) => {
+  if (game && game.getPortManager()) {
+    const success = game.getPortManager().sellWeapon(index);
+    if (success) {
+      updateGameState();
+      // Force ParameterDisplay to re-render
+      parameterDisplayKey.value++;
+    }
+  }
+};
+
+const handleSellRelic = (index: number) => {
+  if (game && game.getPortManager()) {
+    const success = game.getPortManager().sellRelic(index);
+    if (success) {
+      updateGameState();
+      // Force ParameterDisplay to re-render
+      parameterDisplayKey.value++;
+    }
+  }
 };
 
 const handleLeavePort = async () => {
