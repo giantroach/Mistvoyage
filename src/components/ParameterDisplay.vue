@@ -27,6 +27,12 @@
         <CloudRain :size="16" class="param-icon" />
         天候: {{ playerParams.weather.displayName }}
       </span>
+      <span id="weapon-slots-display">
+        <Sword :size="16" class="param-icon" />
+        武器スロット: {{ playerParams.weapons.length }}/{{
+          playerParams.ship.weaponSlots
+        }}
+      </span>
       <span id="storage-display">
         <Package :size="16" class="param-icon" />
         保管庫: {{ playerParams.relics.length }}/{{ playerParams.maxStorage }}
@@ -49,15 +55,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  Ship,
-  Coins,
-  Eye,
-  CloudRain,
-  Package,
-  Sword,
-  Zap,
-} from 'lucide-vue-next';
+import { Ship, Coins, Eye, CloudRain, Package, Sword } from 'lucide-vue-next';
 import type { PlayerParameters, ChaptersData } from '@/types';
 
 interface Props {
