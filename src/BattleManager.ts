@@ -46,16 +46,21 @@ export class BattleManager {
     );
     const monsters = this.createMonstersFromEncounter(encounter);
 
+    const currentTime = Date.now();
     gameState.battleState = {
       isActive: true,
       phase: 'preparation',
       monsters,
-      playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
-        weapon,
-        lastUsed: Date.now() - weapon.cooldown.max, // Allow immediate attack
-      })),
+      playerWeapons: gameState.playerParameters.weapons.map(weapon => {
+        // Add random initial delay (0-50% of max cooldown) to prevent simultaneous firing
+        const randomDelay = Math.random() * weapon.cooldown.max * 0.5;
+        return {
+          weapon,
+          lastUsed: currentTime - weapon.cooldown.max + randomDelay,
+        };
+      }),
       battleLog: [],
-      startTime: Date.now(),
+      startTime: currentTime,
       playerEffects: [],
       playerTurn: true,
       turnCount: 1,
@@ -80,16 +85,21 @@ export class BattleManager {
 
     const bossMonster = this.createBossMonster(chapterData.bossMonster);
 
+    const currentTime = Date.now();
     gameState.battleState = {
       isActive: true,
       phase: 'preparation',
       monsters: [bossMonster],
-      playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
-        weapon,
-        lastUsed: Date.now() - weapon.cooldown.max,
-      })),
+      playerWeapons: gameState.playerParameters.weapons.map(weapon => {
+        // Add random initial delay (0-50% of max cooldown) to prevent simultaneous firing
+        const randomDelay = Math.random() * weapon.cooldown.max * 0.5;
+        return {
+          weapon,
+          lastUsed: currentTime - weapon.cooldown.max + randomDelay,
+        };
+      }),
       battleLog: [],
-      startTime: Date.now(),
+      startTime: currentTime,
       playerEffects: [],
       playerTurn: true,
       turnCount: 1,
@@ -115,16 +125,21 @@ export class BattleManager {
       effects: [],
     };
 
+    const currentTime = Date.now();
     gameState.battleState = {
       isActive: true,
       phase: 'preparation',
       monsters: [monster],
-      playerWeapons: gameState.playerParameters.weapons.map(weapon => ({
-        weapon,
-        lastUsed: Date.now() - weapon.cooldown.max, // Allow immediate attack
-      })),
+      playerWeapons: gameState.playerParameters.weapons.map(weapon => {
+        // Add random initial delay (0-50% of max cooldown) to prevent simultaneous firing
+        const randomDelay = Math.random() * weapon.cooldown.max * 0.5;
+        return {
+          weapon,
+          lastUsed: currentTime - weapon.cooldown.max + randomDelay,
+        };
+      }),
       battleLog: [],
-      startTime: Date.now(),
+      startTime: currentTime,
       playerEffects: [],
       playerTurn: true,
       turnCount: 1,
@@ -238,13 +253,13 @@ export class BattleManager {
 
       if (timeSinceLastUse >= effectiveCooldown) {
         // Find target monster (alive monster with lowest HP)
-        const target = battleState.monsters
-          .filter(m => m.hp > 0)
-          .reduce((lowest, current) =>
+        const aliveMonsters = battleState.monsters.filter(m => m.hp > 0);
+
+        if (aliveMonsters.length > 0) {
+          const target = aliveMonsters.reduce((lowest, current) =>
             current.hp < lowest.hp ? current : lowest
           );
 
-        if (target) {
           this.executePlayerAttack(
             gameState,
             weaponState.weapon,
