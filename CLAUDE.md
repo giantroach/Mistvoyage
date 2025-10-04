@@ -17,6 +17,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - **Weather System**: Dynamic weather progression affecting combat and navigation
 - **Temple System**: Weather reset functionality through prayer offerings
 - **Inventory System**: Advanced inventory management with slot-full handling
+- **Selling System**: Sell unwanted weapons and relics at ports for half price
 - **Debug System**: Comprehensive debug panel for testing and development
 
 ### Core Components
@@ -33,7 +34,7 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/BattleManager.ts` - Advanced auto-battle system with weapon cooldowns
 - `src/SaveManager.ts` - Game save/load functionality using LocalStorage
 - `src/RelicManager.ts` - Relic system management and effects
-- `src/PortManager.ts` - Port event handling and services (ship repair, weapon/relic purchases)
+- `src/PortManager.ts` - Port event handling and services (ship repair, weapon/relic purchases and sales)
 - `src/WeaponManager.ts` - Weapon generation and management system
 - `src/WeatherManager.ts` - Weather progression and effects system
 - `src/DebugManager.ts` - Development and testing utilities
@@ -46,6 +47,8 @@ Mistvoyage is a text-based offline roguelike game implemented as a web applicati
 - `src/components/PortScreen.vue` - Port services main interface
 - `src/components/WeaponShop.vue` - Weapon purchasing interface
 - `src/components/RelicShop.vue` - Relic purchasing interface
+- `src/components/WeaponSell.vue` - Weapon selling interface
+- `src/components/RelicSell.vue` - Relic selling interface
 - `src/components/TempleScreen.vue` - Temple prayer and weather reset interface
 - `src/components/ParameterDisplay.vue` - Player statistics display
 - `src/components/MapDisplay.vue` - Interactive navigation map
@@ -162,6 +165,12 @@ npm run deploy
   - Support for both weapons and relics with unified interface
   - Item preview with detailed stats and effects
   - Discard existing items or cancel acquisition
+- **Selling System**: Port-based item selling functionality
+  - Sell weapons and relics for half their purchase price
+  - Proper removal of relic effects when selling (via RelicManager.removeRelicEffects)
+  - Real-time parameter updates with forced UI refresh (parameterDisplayKey++)
+  - Separate WeaponSell and RelicSell Vue components
+  - PortManager handles selling logic and state management
 - **Dynamic Parameter Updates**: `maxStorage` and `maxHull` properties automatically updated by relic effects
 - **Chapter Progression**: Proper state management with `generateChapterMap()` and complete state resets
 - **Error Handling**: Robust error handling for battle end, inventory management, and state transitions
