@@ -655,17 +655,9 @@ export class MistvoyageGame {
       this.gameState.gameOverReason = 'crew_lost';
     }
 
-    this.updateParameterDisplay();
-
-    // Update cooldown display during combat
-    if (
-      this.gameState.gamePhase === 'combat' &&
-      this.gameState.battleState?.isActive
-    ) {
-      const cooldownData = this.battleManager.getCooldownData(this.gameState);
-      this.displayManager.updateCooldownDisplay(cooldownData);
-    } else {
-      this.displayManager.hideCooldownDisplay();
+    // Update Vue's reactive state
+    if ((window as any).gameInstance?.updateVueGameState) {
+      (window as any).gameInstance.updateVueGameState();
     }
 
     switch (this.gameState.gamePhase) {
@@ -1377,23 +1369,6 @@ export class MistvoyageGame {
     // Reset game state to initial state
     this.gameState = this.initializeGameState();
     this.startGame();
-  }
-
-  // ==================== PARAMETER DISPLAY ====================
-
-  private updateParameterDisplay(): void {
-    // DisplayManager no longer does direct DOM manipulation
-    // Instead, trigger Vue's reactive state update
-    if ((window as any).gameInstance?.updateVueGameState) {
-      (window as any).gameInstance.updateVueGameState();
-    }
-
-    // Keep legacy method call for backwards compatibility (it's now a no-op)
-    this.displayManager.updateParameterDisplay(
-      this.gameState,
-      this.gameData,
-      this.chaptersData
-    );
   }
 
   // ==================== SAVE/LOAD SYSTEM ====================

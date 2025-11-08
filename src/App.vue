@@ -238,9 +238,6 @@
         <p v-if="gameState">Current phase: {{ gameState.gamePhase }}</p>
         <p v-else>Game state not available</p>
       </div>
-
-      <!-- Cooldown Display Component -->
-      <CooldownDisplay v-if="cooldownData" :cooldown-data="cooldownData" />
     </main>
 
     <!-- Detail Modals -->
@@ -338,7 +335,6 @@ import ChapterStartScreen from './components/ChapterStartScreen.vue';
 import TreasureEventScreen from './components/TreasureEventScreen.vue';
 import UnknownEventScreen from './components/UnknownEventScreen.vue';
 import GameOverScreen from './components/GameOverScreen.vue';
-import CooldownDisplay from './components/CooldownDisplay.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
 import DebugPanel from './components/DebugPanel.vue';
 import WeaponDetailModal from './components/WeaponDetailModal.vue';
@@ -371,7 +367,6 @@ const treasureRelics = ref<Relic[]>([]);
 // New component state management
 const chaptersData = ref<ChaptersData | null>(null);
 const shipsData = ref<ShipsData | null>(null);
-const cooldownData = ref<any>(null);
 const statusMessage = ref<string>('');
 const statusIsError = ref<boolean>(false);
 const statusDisplay = ref<any>(null);

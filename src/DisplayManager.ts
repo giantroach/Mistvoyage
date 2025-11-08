@@ -14,33 +14,6 @@ export class DisplayManager {
     this.mapManager = mapManager;
   }
 
-  updateParameterDisplay(
-    gameState: GameState,
-    gameData: GameData | null,
-    chaptersData?: ChaptersData | null
-  ): void {
-    // Vue components handle all parameter display now through reactive state
-    // No direct DOM manipulation needed - Vue will automatically update the display
-    // when gameState changes in App.vue
-
-    // Note: This method is kept for backwards compatibility but does nothing
-    // All updates are handled by Vue's reactivity system in ParameterDisplay.vue
-  }
-
-  // Legacy methods kept for backwards compatibility but no longer used
-  // All parameter display is now handled by Vue components (ParameterDisplay.vue)
-  private updateParameterElement(id: string, text: string): void {
-    // No-op: Vue handles this now
-  }
-
-  private updateWeaponsDisplay(weapons: any[]): void {
-    // No-op: Vue handles this in ParameterDisplay.vue (weaponsDisplay computed property)
-  }
-
-  private updateRelicsDisplay(relics: any[]): void {
-    // No-op: Vue handles this in ParameterDisplay.vue (relicsDisplay computed property)
-  }
-
   generateMapDisplay(gameState: GameState, sightRange: number): string {
     const currentNode = gameState.currentMap.nodes[gameState.currentNodeId];
     if (!currentNode) return '';
@@ -363,94 +336,5 @@ export class DisplayManager {
         behavior: 'smooth',
       });
     }, 50); // Small delay to ensure DOM is updated
-  }
-
-  updateCooldownDisplay(cooldownData: {
-    playerWeapons: Array<{
-      name: string;
-      cooldownPercent: number;
-      remainingTime: number;
-      isReady: boolean;
-    }>;
-    monsters: Array<{
-      id: string;
-      name: string;
-      weapons: Array<{
-        name: string;
-        isActive: boolean;
-      }>;
-    }>;
-  }): void {
-    const cooldownContainer = document.getElementById('cooldown-display');
-    const playerBarsContainer = document.getElementById('player-weapon-bars');
-    const monsterBarsContainer = document.getElementById('monster-weapon-bars');
-
-    if (!cooldownContainer || !playerBarsContainer || !monsterBarsContainer)
-      return;
-
-    // Show cooldown container during combat
-    const hasCooldownData =
-      cooldownData.playerWeapons.length > 0 || cooldownData.monsters.length > 0;
-    if (hasCooldownData) {
-      cooldownContainer.classList.add('visible');
-    } else {
-      cooldownContainer.classList.remove('visible');
-      return;
-    }
-
-    // Update player weapon bars
-    playerBarsContainer.innerHTML = '';
-    cooldownData.playerWeapons.forEach(weapon => {
-      const weaponBar = document.createElement('div');
-      weaponBar.className = 'weapon-cooldown-bar';
-
-      const remainingSeconds = Math.ceil(weapon.remainingTime / 1000);
-      const timeText = weapon.isReady ? '準備完了' : `${remainingSeconds}秒`;
-
-      weaponBar.innerHTML = `
-        <div class="weapon-name">${weapon.name}</div>
-        <div class="cooldown-bar">
-          <div class="cooldown-fill ${weapon.isReady ? 'cooldown-ready' : ''}"
-               style="width: ${100 - weapon.cooldownPercent}%"></div>
-        </div>
-        <div class="cooldown-text">${timeText}</div>
-      `;
-
-      playerBarsContainer.appendChild(weaponBar);
-    });
-
-    // Update monster weapon status
-    monsterBarsContainer.innerHTML = '';
-    cooldownData.monsters.forEach(monster => {
-      const monsterBar = document.createElement('div');
-      monsterBar.className = 'monster-weapon-bar';
-
-      const weaponStatusHtml = monster.weapons
-        .map(
-          weapon =>
-            `<span class="weapon-status-indicator ${
-              weapon.isActive ? 'weapon-active' : 'weapon-inactive'
-            }">
-          ${weapon.name}
-        </span>`
-        )
-        .join('');
-
-      monsterBar.innerHTML = `
-        <div class="monster-name">${monster.name}</div>
-        <div class="monster-weapon-status">
-          ${weaponStatusHtml}
-        </div>
-      `;
-
-      monsterBarsContainer.appendChild(monsterBar);
-    });
-  }
-
-  hideCooldownDisplay(): void {
-    const cooldownContainer = document.getElementById('cooldown-display');
-    if (cooldownContainer) {
-      cooldownContainer.classList.remove('visible');
-    }
   }
 }
