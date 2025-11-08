@@ -475,17 +475,13 @@ const handleHireCrew = async () => {
 };
 
 const handleShowWeapons = () => {
-  if (game && game.getPortManager()) {
-    portWeapons.value = game.getPortManager().generatePortWeapons();
-    portView.value = 'weapons';
-  }
+  // Just switch view - inventory already generated when entering port
+  portView.value = 'weapons';
 };
 
 const handleShowRelics = () => {
-  if (game && game.getPortManager()) {
-    portRelics.value = game.getPortManager().generatePortRelics();
-    portView.value = 'relics';
-  }
+  // Just switch view - inventory already generated when entering port
+  portView.value = 'relics';
 };
 
 const handlePurchaseWeapon = (index: number) => {
@@ -546,6 +542,11 @@ const handleLeavePort = async () => {
   if (game && game.getPortManager()) {
     game.getPortManager().leavePort();
     portView.value = 'main';
+
+    // Clear port inventory cache when leaving port
+    portWeapons.value = [];
+    portRelics.value = [];
+
     updateGameState();
 
     // Wait for Vue to re-render and show the legacy DOM elements
@@ -872,13 +873,19 @@ watchEffect(() => {
       });
     }
 
-    // Reset port view only when ENTERING a port event (not while already in it)
+    // Reset port view and generate port inventory only when ENTERING a port event (not while already in it)
     if (
       gameState.value.gamePhase === 'event' &&
       currentNode?.eventType === 'port' &&
       (previousGamePhase.value !== 'event' || previousNodeType.value !== 'port')
     ) {
       portView.value = 'main';
+
+      // Generate port inventory when entering port
+      if (game && game.getPortManager()) {
+        portWeapons.value = game.getPortManager().generatePortWeapons();
+        portRelics.value = game.getPortManager().generatePortRelics();
+      }
     }
 
     // Update previous state
