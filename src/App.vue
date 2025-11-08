@@ -4,10 +4,10 @@
       <div class="header-top">
         <h1>Mistvoyage</h1>
         <div id="game-controls">
-          <button id="save-btn">セーブ</button>
-          <button id="load-btn">ロード</button>
-          <button id="settings-btn">設定</button>
-          <button id="debug-btn">🔧 デバッグ</button>
+          <button @click="handleSave">セーブ</button>
+          <button @click="handleLoad">ロード</button>
+          <button @click="showSettingsModal = true">設定</button>
+          <button @click="handleShowDebug">🔧 デバッグ</button>
         </div>
       </div>
       <!-- Parameter Display Component -->
@@ -131,7 +131,7 @@
 
       <!-- Map Display Component for Navigation -->
       <MapDisplay
-        v-if="gameState && gameState.gamePhase === 'navigation'"
+        v-else-if="gameState && gameState.gamePhase === 'navigation'"
         :game-state="gameState"
         :sight-range="gameState.playerParameters.sight"
         @navigate-to-node="handleNavigateToNode"
@@ -140,7 +140,7 @@
 
       <!-- Ship Selection Component -->
       <ShipSelectionScreen
-        v-if="
+        v-else-if="
           gameState && gameState.gamePhase === 'ship_selection' && shipsData
         "
         :ships="Object.values(shipsData.ships)"
@@ -208,27 +208,6 @@
         @restart="handleRestart"
       />
 
-      <!-- Legacy DOM-based game content -->
-      <div
-        v-else-if="
-          !gameState ||
-          gameState.gamePhase === 'navigation' ||
-          gameState.gamePhase === 'event' ||
-          gameState.gamePhase === 'combat' ||
-          gameState.gamePhase === 'battle_result' ||
-          gameState.gamePhase === 'game_over' ||
-          gameState.gamePhase === 'victory'
-        "
-      >
-        <div id="story-display">
-          <div id="story-text"></div>
-        </div>
-
-        <div id="choices-container">
-          <!-- 選択肢がここに動的に表示される -->
-        </div>
-      </div>
-
       <!-- Fallback for unknown game phases -->
       <div
         v-else
@@ -236,6 +215,20 @@
       >
         <h2>Unknown Game Phase</h2>
         <p v-if="gameState">Current phase: {{ gameState.gamePhase }}</p>
+        <p v-if="gameState && getCurrentNode(gameState)">
+          Event type: {{ getCurrentNode(gameState)?.eventType }}
+        </p>
+        <p v-if="gameState && getCurrentNode(gameState)">
+          Resolved event type:
+          {{ getCurrentNode(gameState)?.resolvedEventType }}
+        </p>
+        <p v-if="gameState">
+          treasureRelics: {{ gameState.treasureRelics?.length || 0 }}
+        </p>
+        <p v-if="gameState">
+          unknownEvent: {{ gameState.unknownEvent ? 'exists' : 'null' }}
+        </p>
+        <p v-if="gameState">portView: {{ portView }}</p>
         <p v-else>Game state not available</p>
       </div>
     </main>
@@ -283,42 +276,20 @@
     <!-- Debug Panel Component -->
     <DebugPanel />
 
-    <!-- Settings Modal -->
-    <div id="settings-modal" class="modal">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>設定</h2>
-          <button class="close-btn" id="close-settings">&times;</button>
-        </div>
-        <div class="modal-body">
-          <div class="setting-item">
-            <label for="auto-save-toggle">オートセーブ</label>
-            <input type="checkbox" id="auto-save-toggle" checked />
-          </div>
-          <div class="setting-item">
-            <label for="battle-speed">戦闘速度</label>
-            <select id="battle-speed">
-              <option value="slow">遅い</option>
-              <option value="normal" selected>普通</option>
-              <option value="fast">速い</option>
-            </select>
-          </div>
-          <div class="setting-item">
-            <label for="text-size">文字サイズ</label>
-            <select id="text-size">
-              <option value="small">小</option>
-              <option value="normal" selected>標準</option>
-              <option value="large">大</option>
-            </select>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Settings Modal Component -->
+    <SettingsModal
+      :show="showSettingsModal"
+      :settings="gameSettings"
+      @close="showSettingsModal = false"
+      @update-settings="handleUpdateSettings"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch, watchEffect, nextTick, triggerRef } from 'vue';
+import { useGameStore } from './stores/gameStore';
+import type { GameSettings } from './stores/types';
 import { MistvoyageGame } from './game';
 import BattleScreen from './components/BattleScreen.vue';
 import BattleResultScreen from './components/BattleResultScreen.vue';
@@ -337,56 +308,49 @@ import UnknownEventScreen from './components/UnknownEventScreen.vue';
 import GameOverScreen from './components/GameOverScreen.vue';
 import StatusDisplay from './components/StatusDisplay.vue';
 import DebugPanel from './components/DebugPanel.vue';
+import SettingsModal from './components/SettingsModal.vue';
 import WeaponDetailModal from './components/WeaponDetailModal.vue';
 import RelicDetailModal from './components/RelicDetailModal.vue';
 import BossRewardScreen from './components/BossRewardScreen.vue';
 import InventoryManagementModal from './components/InventoryManagementModal.vue';
-import type {
-  GameState,
-  Weapon,
-  Relic,
-  ChaptersData,
-  ShipsData,
-  Chapter,
-} from './types';
+import type { Chapter, Weapon, Relic, GameState } from './types';
 
+// Use Pinia store for state management
+const store = useGameStore();
+
+// Local state (not in store)
 let game: MistvoyageGame | null = null;
-const gameState = ref<GameState | null>(null);
-const parameterDisplayKey = ref<number>(0);
-
-// Port state management
-const portView = ref<
-  'main' | 'weapons' | 'relics' | 'sell-weapons' | 'sell-relics'
->('main');
-const portWeapons = ref<Weapon[]>([]);
-const portRelics = ref<Relic[]>([]);
-
-// Treasure state management
-const treasureRelics = ref<Relic[]>([]);
-
-// New component state management
-const chaptersData = ref<ChaptersData | null>(null);
-const shipsData = ref<ShipsData | null>(null);
-const statusMessage = ref<string>('');
-const statusIsError = ref<boolean>(false);
+const treasureRelics = ref<any[]>([]);
 const statusDisplay = ref<any>(null);
 
-// Detail modal state management
-const showWeaponDetailModal = ref<boolean>(false);
-const showRelicDetailModal = ref<boolean>(false);
-const selectedWeapon = ref<Weapon | null>(null);
-const selectedRelic = ref<Relic | null>(null);
+// Destructure store for easier access (using storeToRefs for reactivity)
+import { storeToRefs } from 'pinia';
+const {
+  gameState,
+  chaptersData,
+  shipsData,
+  parameterDisplayKey,
+  portView,
+  portWeapons,
+  portRelics,
+  showWeaponDetailModal,
+  showRelicDetailModal,
+  selectedWeapon,
+  selectedRelic,
+  showSettingsModal,
+  gameSettings,
+  statusMessage,
+  statusIsError,
+} = storeToRefs(store);
 
-// Helper function to get current node
-const getCurrentNode = (state: GameState) => {
-  if (!state || !state.currentMap || !state.currentNodeId) return null;
-  return state.currentMap.nodes[state.currentNodeId] || null;
+// Helper function to get current node (using store getter)
+const getCurrentNode = (state: any) => {
+  return store.currentNode;
 };
 
-// Helper function to get current chapter
+// Helper function to get current chapter (using store getter)
 const getCurrentChapter = (chapterId: number) => {
-  if (!chaptersData.value) return null;
-  return chaptersData.value.chapters.find(c => c.id === chapterId) || null;
+  return store.currentChapter;
 };
 
 const getWeatherEffects = (weather: any) => {
@@ -396,49 +360,11 @@ const getWeatherEffects = (weather: any) => {
   return { speed: 0, accuracy: 0, sight: 0 };
 };
 
-// Update gameState reactively
+// Update gameState reactively using store
 const updateGameState = () => {
   if (game) {
     const newState = game.getGameState();
-    const oldMoney = gameState.value?.playerParameters?.money;
-    const oldCrew = gameState.value?.playerParameters?.crew;
-
-    // Deep clone the state but preserve Set objects
-    const clonedState = JSON.parse(JSON.stringify(newState));
-
-    // Restore visitedNodes as a Set if it exists
-    if (newState.visitedNodes) {
-      if (newState.visitedNodes instanceof Set) {
-        clonedState.visitedNodes = Array.from(newState.visitedNodes);
-      } else if (Array.isArray(newState.visitedNodes)) {
-        clonedState.visitedNodes = newState.visitedNodes;
-      }
-    }
-
-    // Force deep reactivity by creating completely new object
-    gameState.value = {
-      ...clonedState,
-      playerParameters: {
-        ...clonedState.playerParameters,
-        // Ensure all properties are fresh references
-        hull: clonedState.playerParameters.hull,
-        crew: clonedState.playerParameters.crew,
-        money: clonedState.playerParameters.money,
-        food: clonedState.playerParameters.food,
-        sight: clonedState.playerParameters.sight,
-        weapons: [...clonedState.playerParameters.weapons],
-        relics: [...clonedState.playerParameters.relics],
-        weather: { ...clonedState.playerParameters.weather },
-        ship: { ...clonedState.playerParameters.ship },
-      },
-    };
-
-    // Log if values changed
-    if (
-      oldMoney !== gameState.value.playerParameters.money ||
-      oldCrew !== gameState.value.playerParameters.crew
-    ) {
-    }
+    store.updateGameState(newState);
   }
 };
 
@@ -501,8 +427,8 @@ const handleRepairShip = async () => {
     await nextTick();
     triggerRef(gameState);
 
-    // Force ParameterDisplay to re-render
-    parameterDisplayKey.value++;
+    // Force ParameterDisplay to re-render using store
+    store.forceParameterRefresh();
   }
 };
 
@@ -543,8 +469,8 @@ const handleHireCrew = async () => {
     await nextTick();
     triggerRef(gameState);
 
-    // Force ParameterDisplay to re-render
-    parameterDisplayKey.value++;
+    // Force ParameterDisplay to re-render using store
+    store.forceParameterRefresh();
   }
 };
 
@@ -649,17 +575,13 @@ const handleLeaveTemple = async () => {
   }
 };
 
-// New component event handlers
-const handleShowWeaponDetail = (weapon: any) => {
-  // Always use Vue modal approach
-  selectedWeapon.value = weapon;
-  showWeaponDetailModal.value = true;
+// New component event handlers (using store methods)
+const handleShowWeaponDetail = (weapon: Weapon) => {
+  store.showWeaponDetail(weapon);
 };
 
-const handleShowRelicDetail = (relic: any) => {
-  // Always use Vue modal approach
-  selectedRelic.value = relic;
-  showRelicDetailModal.value = true;
+const handleShowRelicDetail = (relic: Relic) => {
+  store.showRelicDetail(relic);
 };
 
 // Ship selection event handler
@@ -836,34 +758,63 @@ watch(
   }
 );
 
-// Status display methods
+// Header button handlers
+const handleSave = () => {
+  if (game) {
+    game.saveGameFromVue();
+  }
+};
+
+const handleLoad = () => {
+  if (game) {
+    game.loadGameFromVue();
+    updateGameState();
+  }
+};
+
+const handleShowDebug = () => {
+  // DebugPanel component handles its own visibility
+  const debugBtn = document.getElementById('debug-btn');
+  if (debugBtn) {
+    debugBtn.click();
+  }
+};
+
+const handleUpdateSettings = (settings: GameSettings) => {
+  store.updateSettings(settings);
+};
+
+// Status display methods (using store)
 const showSaveStatus = (message: string, isError = false) => {
-  statusMessage.value = message;
-  statusIsError.value = isError;
+  store.showStatus(message, isError);
 };
 
 onMounted(async () => {
+  // Load settings from localStorage using store
+  store.loadSettings();
+
   game = new MistvoyageGame();
 
   await game.initialize();
 
-  // Load game data
+  // Load game data into store
   try {
     const [chaptersResponse, shipsResponse] = await Promise.all([
       fetch('./data/chapters.json'),
       fetch('./data/ships.json'),
     ]);
-    chaptersData.value = await chaptersResponse.json();
-    shipsData.value = await shipsResponse.json();
+    store.setChaptersData(await chaptersResponse.json());
+    store.setShipsData(await shipsResponse.json());
   } catch (error) {
     console.error('Failed to load game data:', error);
   }
 
-  // Make game instance globally accessible for onclick handlers
+  // Make game instance and store globally accessible
   (window as any).gameInstance = game;
   (window as any).debugManager = game.getDebugManager();
+  (window as any).gameStore = store;
 
-  // Add Vue-specific methods to game instance
+  // Add Vue-specific methods to game instance (for backwards compatibility)
   (window as any).gameInstance.showVueStatus = showSaveStatus;
   (window as any).gameInstance.updateVueGameState = updateGameState;
 

@@ -367,8 +367,6 @@ export interface PlayerParameters {
   gold: number;
 }
 
-export type WeatherType = '晴れ' | '曇り' | '雨' | '嵐' | '霧';
-
 // Game state
 export interface GameState {
   currentChapter: number;

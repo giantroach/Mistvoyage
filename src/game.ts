@@ -259,63 +259,19 @@ export class MistvoyageGame {
   }
 
   private setupEventListeners(): void {
-    const saveBtn = document.getElementById('save-btn');
-    const loadBtn = document.getElementById('load-btn');
-    const settingsBtn = document.getElementById('settings-btn');
-    const debugBtn = document.getElementById('debug-btn');
-
-    if (saveBtn) saveBtn.addEventListener('click', () => this.saveGame());
-    if (loadBtn) loadBtn.addEventListener('click', () => this.loadGame());
-    if (settingsBtn)
-      settingsBtn.addEventListener('click', () => this.showSettings());
-    if (debugBtn)
-      debugBtn.addEventListener('click', () => {
-        const debugModal = document.getElementById('debug-modal');
-        if (debugModal) {
-          debugModal.style.display = 'block';
-        }
-      });
-
-    // Modal close buttons
-    const closeDebugBtn = document.getElementById('close-debug');
-    const closeSettingsBtn = document.getElementById('close-settings');
-
-    if (closeDebugBtn) {
-      closeDebugBtn.addEventListener('click', () => {
-        const debugModal = document.getElementById('debug-modal');
-        if (debugModal) {
-          debugModal.style.display = 'none';
-        }
-      });
-    }
-
-    if (closeSettingsBtn) {
-      closeSettingsBtn.addEventListener('click', () => {
-        const settingsModal = document.getElementById('settings-modal');
-        if (settingsModal) {
-          settingsModal.style.display = 'none';
-        }
-      });
-    }
-
-    // Close modal when clicking outside of it
-    window.addEventListener('click', event => {
-      const debugModal = document.getElementById('debug-modal');
-      const settingsModal = document.getElementById('settings-modal');
-
-      if (event.target === debugModal) {
-        debugModal.style.display = 'none';
-      }
-      if (event.target === settingsModal) {
-        settingsModal.style.display = 'none';
-      }
-    });
-
-    // Debug panel button event listeners
-    this.setupDebugButtonListeners();
+    // Event listeners are now handled by Vue components
+    // Debug panel is handled by DebugPanel.vue component
+    // This method is kept for backwards compatibility
   }
 
+  // Debug button listeners are now handled by DebugPanel.vue and DebugManager
   private setupDebugButtonListeners(): void {
+    // All debug functionality is now handled by DebugPanel.vue and DebugManager
+    // This method is kept for backwards compatibility but is no longer used
+  }
+
+  // Moved to DebugManager - kept for backwards compatibility
+  private old_setupDebugButtonListeners_DEPRECATED(): void {
     // Basic operations
     const debugGainExp = document.getElementById('debug-gain-exp');
     const debugGainMoney = document.getElementById('debug-gain-money');
@@ -655,8 +611,12 @@ export class MistvoyageGame {
       this.gameState.gameOverReason = 'crew_lost';
     }
 
-    // Update Vue's reactive state
-    if ((window as any).gameInstance?.updateVueGameState) {
+    // Update Pinia store directly if available
+    if ((window as any).gameStore) {
+      (window as any).gameStore.updateGameState(this.gameState);
+    }
+    // Fallback to Vue instance method for backwards compatibility
+    else if ((window as any).gameInstance?.updateVueGameState) {
       (window as any).gameInstance.updateVueGameState();
     }
 
@@ -1385,6 +1345,15 @@ export class MistvoyageGame {
       this.updateDisplay();
     }
     this.displayManager.showSaveStatus(result.message, !result.success);
+  }
+
+  // Vue-friendly save/load methods
+  public saveGameFromVue(): void {
+    this.saveGame();
+  }
+
+  public loadGameFromVue(): void {
+    this.loadGame();
   }
 
   private showSettings(): void {
